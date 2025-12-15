@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "Mikkel",
+    "entries": {
+      "2026": {
+        "paid": 15,
+        "lists": {
+          "initial": [1, 2],
+          "july": []
+        }
+      }
+    }
+  },
+  {
+    "id": 2,
+    "name": "Anders",
+    "entries": {
+      "2026": {
+        "paid": 15,
+        "lists": {
+          "initial": [2],
+          "july": []
+        }
+      }
+    }
+  }
+]
