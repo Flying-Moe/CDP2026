@@ -1,4 +1,5 @@
 console.log("CDP2026 loaded");
+
 async function loadJSON(path) {
   const res = await fetch(path);
   return res.json();
@@ -30,39 +31,39 @@ async function renderLists() {
     people.map(p => [p.id, p])
   );
 
-  const allPicks = [];
+  // Optæl hvor mange gange hver person er valgt
+  const pickCounter = {};
 
   players.forEach(player => {
     const entry = player.entries["2026"];
     if (!entry) return;
 
     const list = getActiveList(entry);
-const usedJulySweep = entry.lists.july && entry.lists.july.length > 0;
     list.forEach(pid => {
-      allPicks.push(pid);
+      pickCounter[pid] = (pickCounter[pid] || 0) + 1;
     });
   });
 
-  const pickCount = id =>
-    allPicks.filter(pid => pid === id).length;
-
   const container = document.getElementById("lists");
+  container.innerHTML = ""; // sikkerhed ved re-render
 
   players.forEach(player => {
     const entry = player.entries["2026"];
     if (!entry) return;
 
     const activeList = getActiveList(entry);
+    const usedJulySweep =
+      entry.lists.july && entry.lists.july.length > 0;
 
     const section = document.createElement("section");
     section.style.marginBottom = "2rem";
 
     section.innerHTML = `
       <h2>
-  ${player.name}
-  (${activeList.length}/20)
-  ${usedJulySweep ? "🟣 July sweep" : ""}
-</h2>
+        ${player.name}
+        (${activeList.length}/20)
+        ${usedJulySweep ? "🟣 July sweep" : ""}
+      </h2>
       <table>
         <thead>
           <tr>
@@ -74,11 +75,12 @@ const usedJulySweep = entry.lists.july && entry.lists.july.length > 0;
         <tbody>
           ${activeList.map(pid => {
             const p = peopleMap[pid];
+            if (!p) return "";
             return `
               <tr>
                 <td>${p.name}</td>
                 <td>${calculateAge(p.birthDate)}</td>
-                <td>${pickCount(pid)}</td>
+                <td>${pickCounter[pid] || 0}</td>
               </tr>
             `;
           }).join("")}
@@ -90,4 +92,4 @@ const usedJulySweep = entry.lists.july && entry.lists.july.length > 0;
   });
 }
 
-renderLists();
+renderLists(); 
