@@ -1,0 +1,19 @@
+{
+  "game": {
+    "startDate": "2026-01-01",
+    "entryFee": 15,
+    "currency": "EUR",
+    "initialPickCount": 20,
+    "replacementWindowDays": 7,
+    "julySweep": {
+      "enabled": true,
+      "month": 7,
+      "fee": 15
+    }
+  },
+  "scoring": {
+    "base": 100,
+    "minAgeForMinPoints": 99,
+    "minPoints": 1
+  }
+}
