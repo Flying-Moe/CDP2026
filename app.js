@@ -37,7 +37,7 @@ async function renderLists() {
     if (!entry) return;
 
     const list = getActiveList(entry);
-
+const usedJulySweep = entry.lists.july && entry.lists.july.length > 0;
     list.forEach(pid => {
       allPicks.push(pid);
     });
@@ -58,7 +58,11 @@ async function renderLists() {
     section.style.marginBottom = "2rem";
 
     section.innerHTML = `
-      <h2>${player.name} (${activeList.length}/20)</h2>
+      <h2>
+  ${player.name}
+  (${activeList.length}/20)
+  ${usedJulySweep ? "🟣 July sweep" : ""}
+</h2>
       <table>
         <thead>
           <tr>
