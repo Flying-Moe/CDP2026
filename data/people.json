@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "David Attenborough",
+    "birthDate": "1926-05-08"
+  },
+  {
+    "id": 2,
+    "name": "Michael J. Fox",
+    "birthDate": "1961-06-09"
+  }
+]
