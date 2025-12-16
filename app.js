@@ -89,7 +89,6 @@ async function renderLists() {
       <h2 class="player-header">
         ${player.name} (${rows.length}/20)
         ${usedJulySweep ? "🟣 July sweep" : ""}
-        — Potential: ${totalPotential}
       </h2>
 
       <div class="player-list" style="display:block;">
