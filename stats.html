@@ -29,14 +29,6 @@
 
   <script src="stats.js"></script>
   <script src="common.js"></script>
-  <script>
-    (function () {
-      const el = document.getElementById("build-info");
-      if (!el) return;
-      const d = new Date(document.lastModified);
-      const pad = n => String(n).padStart(2, "0");
-      el.textContent = `Last updated: ${pad(d.getDate())}:${pad(d.getMonth()+1)}:${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    })();
-  </script>
+
 </body>
 </html>
