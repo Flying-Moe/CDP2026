@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Grim Reaper – CDP 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h1>Grim Reaper</h1>
+
+<div id="login">
+  <input type="email" id="email" placeholder="Email" />
+  <input type="password" id="password" placeholder="Password" />
+  <button id="loginBtn">Login</button>
+  <p id="loginError" style="color:red;"></p>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <p><strong>Logged in as Grim Reaper</strong></p>
+  <button id="logoutBtn">Logout</button>
+
+  <hr />
+
+  <p>Admin tools coming next…</p>
+</div>
+
+<footer>
+  <hr />
+  <p id="build-info" class="build-info"></p>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script src="firebase.js"></script>
+<script src="admin.js"></script>
+<script src="common.js"></script>
+</body>
+</html>
