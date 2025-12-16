@@ -25,15 +25,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
   const errorEl = document.getElementById("login-error");
 
-  loginBtn.addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+
+  async function handleLogin() {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+      errorEl.textContent = "Please enter email and password";
+      return;
+    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
       errorEl.textContent = "Login failed";
     }
+  }
+
+  // Klik på login-knap
+  loginBtn.addEventListener("click", handleLogin);
+
+  // Enter-tast i email eller password
+  function onEnter(e) {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  }
+
+  emailInput.addEventListener("keydown", onEnter);
+  passwordInput.addEventListener("keydown", onEnter);
+
+  // Logout
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+  });
+
+});
+
   });
 
   logoutBtn.addEventListener("click", async () => {
