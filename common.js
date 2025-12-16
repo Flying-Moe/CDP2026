@@ -31,6 +31,6 @@ console.log("Common loaded");
   const tz =
     Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-el.textContent += ` Last updated: ${date} ${time} (${tz})`;
+el.innerHTML += ` <span class="build-timestamp">Last updated: ${date} ${time} (${tz})</span>`;
 
 })();
