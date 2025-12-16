@@ -36,6 +36,21 @@ function sortRows(rows, key, direction) {
   });
 }
 
+/* Automatic timestamp in footer (DD:MM:YYYY HH:MM) */
+function renderLastUpdated() {
+  const el = document.getElementById("build-info");
+  if (!el) return;
+
+  const d = new Date(document.lastModified);
+  const pad = n => String(n).padStart(2, "0");
+
+  const formatted =
+    `${pad(d.getDate())}:${pad(d.getMonth() + 1)}:${d.getFullYear()} ` +
+    `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+  el.textContent = `Last updated: ${formatted}`;
+}
+
 async function renderLists() {
   const people = await loadJSON("data/people.json");
   const players = await loadJSON("data/players.json");
@@ -56,6 +71,8 @@ async function renderLists() {
   });
 
   const container = document.getElementById("lists");
+  if (!container) return;
+
   container.innerHTML = "";
 
   players.forEach(player => {
@@ -78,12 +95,9 @@ async function renderLists() {
       };
     });
 
-    const totalPotential = rows.reduce(
-      (sum, r) => sum + r.potential,
-      0
-    );
-
     const section = document.createElement("section");
+
+    const totalPotential = rows.reduce((sum, r) => sum + r.potential, 0);
 
     section.innerHTML = `
       <h2 class="player-header">
@@ -92,7 +106,7 @@ async function renderLists() {
       </h2>
 
       <div class="player-list" style="display:block;">
-        <table>
+        <table class="list-table">
           <thead>
             <tr>
               <th data-sort="name">Name</th>
@@ -153,6 +167,8 @@ async function renderLists() {
 
         sortRows(rows, key, currentSort.direction);
 
+        const total = rows.reduce((s, r) => s + r.potential, 0);
+
         table.querySelector("tbody").innerHTML = `
           ${rows.map(r => `
             <tr>
@@ -166,7 +182,7 @@ async function renderLists() {
           <tr class="total-row">
             <td>Total</td>
             <td></td>
-            <td>${rows.reduce((s, r) => s + r.potential, 0)}</td>
+            <td>${total}</td>
             <td></td>
           </tr>
         `;
@@ -176,3 +192,4 @@ async function renderLists() {
 }
 
 renderLists();
+renderLastUpdated();
