@@ -43,6 +43,26 @@ async function renderLists() {
   const peopleMap = Object.fromEntries(
     people.map(p => [p.id, p])
   );
+  
+function alignNameColumns() {
+  // Find alle name-celler (første kolonne)
+  const nameCells = document.querySelectorAll(
+    ".list-table td:nth-child(1), .list-table th:nth-child(1)"
+  );
+
+  let maxWidth = 0;
+
+  nameCells.forEach(cell => {
+    // midlertidigt auto for korrekt måling
+    cell.style.width = "auto";
+    maxWidth = Math.max(maxWidth, cell.offsetWidth);
+  });
+
+  // Sæt samme bredde på alle
+  nameCells.forEach(cell => {
+    cell.style.width = `${maxWidth}px`;
+  });
+}
 
   /* Count how many picked each person */
   const pickCounter = {};
@@ -177,3 +197,4 @@ async function renderLists() {
 }
 
 renderLists();
+alignNameColumns();
