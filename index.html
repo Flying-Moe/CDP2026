@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>CDP - 2026</title>
+  <title>CDP 2026</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1>Celebrity Dead Pool - 2026</h1>
+  <h1>Celebrity Dead Pool 2026</h1>
 
   <nav>
     <a href="index.html">Home</a> |
@@ -17,20 +17,29 @@
   </nav>
 
   <p>
-    Official overview for Celebrity Dead Pool - 2026.<br>
+    Official overview for Celebrity Dead Pool 2026.<br>
     Lists, hits and points are updated by the Grim Reaper.
   </p>
 
-<footer>
-  <hr />
-  <p id="build-info" class="build-info"></p>
-  <p>
-    © 2026 Celebrity Dead Pool |
-    <a href="rules.html">Rules</a>
-  </p>
-</footer>
-
+  <footer>
+    <hr />
+    <p id="build-info" class="build-info"></p>
+    <p>
+      © 2026 Celebrity Dead Pool |
+      <a href="rules.html">Rules</a>
+    </p>
+  </footer>
 
   <script src="nav.js"></script>
+  <script>
+    // Timestamp for pages without app.js / leaderboard.js
+    (function () {
+      const el = document.getElementById("build-info");
+      if (!el) return;
+      const d = new Date(document.lastModified);
+      const pad = n => String(n).padStart(2, "0");
+      el.textContent = `Last updated: ${pad(d.getDate())}:${pad(d.getMonth()+1)}:${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    })();
+  </script>
 </body>
 </html>
