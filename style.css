@@ -3,23 +3,19 @@ body {
   margin: 2rem;
 }
 
-/* Navigation */
+/* =========================
+   NAVIGATION
+========================= */
+
 nav {
   margin-bottom: 1.5rem;
-}
-
-nav a {
-  text-decoration: none;
-  margin-right: 0.5rem;
-}
-
-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
 }
 
 nav a {
+  text-decoration: none;
   white-space: nowrap;
 }
 
@@ -28,7 +24,10 @@ nav a.active {
   text-decoration: underline;
 }
 
-/* Player sections */
+/* =========================
+   PLAYER SECTIONS
+========================= */
+
 section {
   margin-bottom: 2rem;
 }
@@ -37,7 +36,15 @@ section {
   cursor: pointer;
 }
 
-/* Default table (safe baseline) */
+/* =========================
+   TABLES – BASELINE
+========================= */
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 table {
   border-collapse: collapse;
   margin: 0.5rem 0;
@@ -53,13 +60,16 @@ th {
   cursor: pointer;
 }
 
-/* === Lists table (fixed width + fixed columns) === */
+/* =========================
+   LISTS TABLE (DESKTOP-FIRST)
+========================= */
+
 table.list-table {
   width: 800px;
   table-layout: fixed;
 }
 
-/* Column widths for list tables only */
+/* Column widths */
 table.list-table th:nth-child(1),
 table.list-table td:nth-child(1) {
   width: 360px;
@@ -83,7 +93,7 @@ table.list-table td:nth-child(4) {
   text-align: right;
 }
 
-/* Total row (lists) */
+/* Total row (bevidst diskret) */
 .total-row td {
   border-top: 2px solid #000;
   background-color: #fafafa;
@@ -99,7 +109,10 @@ table.list-table td:nth-child(4) {
   font-weight: bold;
 }
 
-/* === Leaderboard layout === */
+/* =========================
+   LEADERBOARD
+========================= */
+
 table.leaderboard {
   width: auto;
   min-width: 400px;
@@ -132,7 +145,10 @@ table.leaderboard tr.leader {
   font-weight: bold;
 }
 
-/* Footer */
+/* =========================
+   FOOTER
+========================= */
+
 footer {
   margin-top: 3rem;
   font-size: 0.9em;
@@ -142,10 +158,13 @@ footer {
 .build-info {
   font-size: 0.8em;
   color: #777;
-  margin-top: 0.3rem;
   font-style: italic;
-  text-align: left; /* ← venstrejusteret */
+  text-align: left;
 }
+
+/* =========================
+   LINKS
+========================= */
 
 .grim-link {
   font-style: italic;
@@ -154,4 +173,18 @@ footer {
 
 .grim-link:hover {
   color: #000;
+}
+
+/* =========================
+   MOBILE TWEAKS
+========================= */
+
+@media (max-width: 600px) {
+  body {
+    margin: 1rem;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
 }
