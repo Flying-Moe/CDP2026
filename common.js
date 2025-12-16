@@ -28,10 +28,7 @@ console.log("Common loaded");
   const tz =
     Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  el.innerHTML = `
-    © 2026 Celebrity Dead Pool &nbsp;|&nbsp;
-    <span class="build-timestamp">
-      Last updated: ${date} ${time} (${tz})
-    </span>
-  `;
+  el.textContent =
+    `© 2026 Celebrity Dead Pool | Last updated: ${date} ${time} (${tz})`;
 })();
+
