@@ -132,7 +132,7 @@ footer {
 .build-info {
   font-size: 0.8em;
   color: #777;
-  text-align: center;
   margin-top: 0.3rem;
   font-style: italic;
+  text-align: left; /* ← venstrejusteret */
 }
