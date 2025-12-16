@@ -96,3 +96,39 @@ footer {
 .total-row td:nth-child(3) {
   font-weight: bold;
 }
+/* === Leaderboard layout === */
+
+table.leaderboard {
+  width: auto;                 /* IKKE 100% */
+  min-width: 400px;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+table.leaderboard th,
+table.leaderboard td {
+  padding: 0.35rem 0.6rem;
+  white-space: nowrap;
+}
+
+/* Align columns nicely */
+table.leaderboard th:nth-child(1),
+table.leaderboard td:nth-child(1),
+table.leaderboard th:nth-child(3),
+table.leaderboard td:nth-child(3),
+table.leaderboard th:nth-child(4),
+table.leaderboard td:nth-child(4) {
+  text-align: center;
+}
+
+table.leaderboard th:nth-child(2),
+table.leaderboard td:nth-child(2) {
+  text-align: left;
+  padding-right: 1.2rem;
+}
+
+/* Highlight current leader */
+table.leaderboard tr.leader {
+  background-color: #fff3cd;
+  font-weight: bold;
+}
