@@ -36,21 +36,6 @@ function sortRows(rows, key, direction) {
   });
 }
 
-/* Automatic timestamp in footer (DD:MM:YYYY HH:MM) */
-function renderLastUpdated() {
-  const el = document.getElementById("build-info");
-  if (!el) return;
-
-  const d = new Date(document.lastModified);
-  const pad = n => String(n).padStart(2, "0");
-
-  const formatted =
-    `${pad(d.getDate())}:${pad(d.getMonth() + 1)}:${d.getFullYear()} ` +
-    `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-  el.textContent = `Last updated: ${formatted}`;
-}
-
 async function renderLists() {
   const people = await loadJSON("data/people.json");
   const players = await loadJSON("data/players.json");
@@ -192,4 +177,3 @@ async function renderLists() {
 }
 
 renderLists();
-renderLastUpdated();
