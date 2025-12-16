@@ -39,7 +39,7 @@ onAuthStateChanged(auth, async user => {
   }
 
   // Check Firestore admin permission
-  const adminRef = doc(db, "admins", "Reaper");
+  const adminRef = doc(db, "admins", user.email);
   const snap = await getDoc(adminRef);
 
   if (!snap.exists() || snap.data().active !== true) {
