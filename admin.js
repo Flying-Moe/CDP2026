@@ -13,7 +13,6 @@ import {
 import {
   doc,
   getDoc,
-  setDoc,
   collection,
   getDocs,
   addDoc,
@@ -22,7 +21,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* -----------------------
-   DOM-LOGIK
+   DOM + AUTH
 ------------------------ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -54,7 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* Login */
   loginBtn.addEventListener("click", handleLogin);
 
   function onEnter(e) {
@@ -67,12 +65,10 @@ document.addEventListener("DOMContentLoaded", () => {
   emailInput.addEventListener("keydown", onEnter);
   passwordInput.addEventListener("keydown", onEnter);
 
-  /* Logout */
   logoutBtn.addEventListener("click", async () => {
     await signOut(auth);
   });
 
-  /* Auth state */
   onAuthStateChanged(auth, async user => {
     if (!user) {
       loginSection.style.display = "block";
@@ -92,22 +88,16 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSection.style.display = "none";
     adminSection.style.display = "block";
 
-    loadPlayers();
     loadPeople();
   });
 });
 
 /* -----------------------
-   PLAYERS (PLACEHOLDER)
------------------------- */
-
-async function loadPlayers() {
-  // implementeres senere
-}
-
-/* -----------------------
    PEOPLE
 ------------------------ */
+
+let currentPersonId = null;
+let cachedPeopleNames = [];
 
 async function loadPeople() {
   const snap = await getDocs(collection(db, "people"));
@@ -115,9 +105,12 @@ async function loadPeople() {
   if (!tbody) return;
 
   tbody.innerHTML = "";
+  cachedPeopleNames = [];
 
   snap.forEach(docu => {
     const p = docu.data();
+    cachedPeopleNames.push(p.name);
+
     const tr = document.createElement("tr");
 
     const hasBirth = !!p.birthDate;
@@ -127,8 +120,8 @@ async function loadPeople() {
       <td>${p.birthDate || "—"}</td>
       <td>${hasBirth ? "OK" : "Missing birth date"}</td>
       <td>
-        <button data-id="${docu.id}" class="edit-person">Edit</button>
-        <button data-id="${docu.id}" class="delete-person">Delete</button>
+        <button class="edit-person" data-id="${docu.id}">Edit</button>
+        <button class="delete-person" data-id="${docu.id}">Delete</button>
       </td>
     `;
 
@@ -137,6 +130,8 @@ async function loadPeople() {
 
   wirePeopleActions();
 }
+
+/* ---------- Add person ---------- */
 
 document.getElementById("add-person-btn")?.addEventListener("click", async () => {
   const name = document.getElementById("new-person-name").value.trim();
@@ -158,30 +153,13 @@ document.getElementById("add-person-btn")?.addEventListener("click", async () =>
   loadPeople();
 });
 
+/* ---------- Edit / Delete ---------- */
+
 function wirePeopleActions() {
+
   document.querySelectorAll(".edit-person").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const ref = doc(db, "people", id);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return;
-
-      const p = snap.data();
-
-      const newName = prompt("Edit name:", p.name);
-      if (!newName) return;
-
-      const newBirth = prompt(
-        "Edit birth date (YYYY-MM-DD):",
-        p.birthDate || ""
-      );
-
-      await updateDoc(ref, {
-        name: newName.trim(),
-        birthDate: newBirth.trim()
-      });
-
-      loadPeople();
+    btn.addEventListener("click", () => {
+      openEditPerson(btn.dataset.id);
     });
   });
 
@@ -193,3 +171,66 @@ function wirePeopleActions() {
     });
   });
 }
+
+/* ---------- Edit modal ---------- */
+
+async function openEditPerson(id) {
+  const ref = doc(db, "people", id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const p = snap.data();
+  currentPersonId = id;
+
+  document.getElementById("edit-person-name").value = p.name;
+  document.getElementById("edit-person-birthdate").value = p.birthDate || "";
+  document.getElementById("person-warning").style.display = "none";
+
+  document.getElementById("edit-person-modal").classList.remove("hidden");
+}
+
+function closeEditPerson() {
+  document.getElementById("edit-person-modal").classList.add("hidden");
+  currentPersonId = null;
+}
+
+document.getElementById("cancel-person-btn")
+  .addEventListener("click", closeEditPerson);
+
+document.getElementById("save-person-btn")
+  .addEventListener("click", async () => {
+
+    const name = document.getElementById("edit-person-name").value.trim();
+    const birthDate = document.getElementById("edit-person-birthdate").value;
+    const warning = document.getElementById("person-warning");
+
+    if (!name) {
+      warning.textContent = "Name is required";
+      warning.style.display = "block";
+      return;
+    }
+
+    const duplicates =
+      cachedPeopleNames.filter(n =>
+        n.toLowerCase() === name.toLowerCase()
+      ).length > 1;
+
+    if (duplicates) {
+      warning.textContent =
+        "Warning: another person with this name exists";
+      warning.style.display = "block";
+    } else if (!birthDate) {
+      warning.textContent = "Warning: birth date missing";
+      warning.style.display = "block";
+    } else {
+      warning.style.display = "none";
+    }
+
+    await updateDoc(doc(db, "people", currentPersonId), {
+      name,
+      birthDate
+    });
+
+    closeEditPerson();
+    loadPeople();
+  });
