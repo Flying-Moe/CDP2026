@@ -57,7 +57,7 @@ async function renderLeaderboard() {
 
     activeList.forEach(pid => {
       const death = deathMap[pid];
-      if (!death) return;
+      if (!death || !death.approved) return;
 
       const person = peopleMap[pid];
       if (!person) return;
@@ -67,8 +67,7 @@ async function renderLeaderboard() {
         death.deathDate
       );
 
-      const p = calculatePoints(age, config.scoring);
-      points += p;
+      points += calculatePoints(age, config.scoring);
       hits++;
     });
 
@@ -79,6 +78,7 @@ async function renderLeaderboard() {
     });
   });
 
+  // Sort by points, then hits
   results.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     return b.hits - a.hits;
@@ -88,14 +88,21 @@ async function renderLeaderboard() {
   tbody.innerHTML = "";
 
   results.forEach((r, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${i + 1}</td>
-        <td>${r.name}</td>
-        <td>${r.points}</td>
-        <td>${r.hits}</td>
-      </tr>
+    const tr = document.createElement("tr");
+
+    // Highlight leader ONLY if someone has points
+    if (i === 0 && r.points > 0) {
+      tr.classList.add("leader");
+    }
+
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${r.name}</td>
+      <td>${r.points}</td>
+      <td>${r.hits}</td>
     `;
+
+    tbody.appendChild(tr);
   });
 }
 
