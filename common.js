@@ -19,18 +19,19 @@ console.log("Common loaded");
   if (!el) return;
 
   const d = new Date(document.lastModified);
-
   const pad = n => String(n).padStart(2, "0");
 
   const date =
     `${pad(d.getDate())}/${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
-
   const time =
     `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
   const tz =
     Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-el.innerHTML += ` <span class="build-timestamp">Last updated: ${date} ${time} (${tz})</span>`;
-
+  el.innerHTML = `
+    © 2026 Celebrity Dead Pool &nbsp;|&nbsp;
+    <span class="build-timestamp">
+      Last updated: ${date} ${time} (${tz})
+    </span>
+  `;
 })();
