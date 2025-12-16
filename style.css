@@ -2,3 +2,7 @@ body {
   font-family: system-ui, sans-serif;
   margin: 2rem;
 }
+nav a.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
