@@ -30,10 +30,11 @@ section {
 /* Tables */
 table {
   border-collapse: collapse;
-  margin: 0.5rem auto;
+  margin: 0.5rem 0;
   width: 800px;          /* fast bredde */
   table-layout: fixed;  /* vigtig */
 }
+
 
 th, td {
   border: 1px solid #ccc;
