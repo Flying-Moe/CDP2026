@@ -96,3 +96,18 @@ async function renderLeaderboard() {
 }
 
 renderLeaderboard();
+async function renderBuildInfo() {
+  try {
+    const config = await loadJSON("data/config.json");
+    if (!config.build || !config.build.updatedAt) return;
+
+    const el = document.getElementById("build-info");
+    if (!el) return;
+
+    el.textContent = `Last updated: ${config.build.updatedAt}`;
+  } catch (e) {
+    console.warn("Build info not loaded");
+  }
+}
+
+renderBuildInfo();
