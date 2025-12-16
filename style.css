@@ -132,3 +132,9 @@ table.leaderboard tr.leader {
   background-color: #fff3cd;
   font-weight: bold;
 }
+.build-info {
+  font-size: 0.8em;
+  color: #777;
+  text-align: center;
+  margin-top: 0.3rem;
+}
