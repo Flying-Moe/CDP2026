@@ -51,7 +51,6 @@ async function renderLeaderboard() {
     if (!entry) return;
 
     const activeList = getActiveList(entry);
-
     let points = 0;
     let hits = 0;
 
@@ -71,14 +70,9 @@ async function renderLeaderboard() {
       hits++;
     });
 
-    results.push({
-      name: player.name,
-      points,
-      hits
-    });
+    results.push({ name: player.name, points, hits });
   });
 
-  // Sort by points, then hits
   results.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     return b.hits - a.hits;
@@ -89,11 +83,7 @@ async function renderLeaderboard() {
 
   results.forEach((r, i) => {
     const tr = document.createElement("tr");
-
-    // Highlight leader ONLY if someone has points
-    if (i === 0 && r.points > 0) {
-      tr.classList.add("leader");
-    }
+    if (i === 0 && r.points > 0) tr.classList.add("leader");
 
     tr.innerHTML = `
       <td>${i + 1}</td>
@@ -101,7 +91,6 @@ async function renderLeaderboard() {
       <td>${r.points}</td>
       <td>${r.hits}</td>
     `;
-
     tbody.appendChild(tr);
   });
 }
