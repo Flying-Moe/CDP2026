@@ -18,7 +18,7 @@
   <a href="admin.html" class="grim-link">Grim Reaper</a>
 </nav>
 
-<!-- LOGIN -->
+<!-- LOGIN (ALTID SYNLIG) -->
 <div id="login-section">
   <h2>Admin login</h2>
   <input type="email" id="email" placeholder="Email" />
@@ -27,25 +27,34 @@
   <p id="login-error" style="color:red;"></p>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN (SKJULT FØR LOGIN) -->
 <div id="admin-section" style="display:none;">
-  <p><strong>Logged in as Grim Reaper</strong></p>
-  <button id="logoutBtn">Logout</button>
+
+  <p>
+    <strong>Logged in as Grim Reaper</strong>
+    <button id="logoutBtn">Logout</button>
+  </p>
 
   <hr />
 
   <h2>Admin tools</h2>
 
-  <!-- TABS -->
+  <!-- TABS – RIGTIG ARBEJDSRÆKKEFØLGE -->
   <div id="admin-tabs">
-    <button data-tab="players" class="active">Players</button>
-    <button data-tab="people">People</button>
+    <button data-tab="people" class="active">People</button>
+    <button data-tab="players">Players</button>
     <button data-tab="deaths">Deaths</button>
   </div>
 
-  <!-- PLAYERS TAB -->
-  <div id="tab-players" class="tab-content">
+  <!-- PEOPLE TAB (FØRST) -->
+  <div id="tab-people" class="tab-content">
+    <h2>People</h2>
+    <p>Manage celebrities and birth dates.</p>
+    <!-- People UI kommer her -->
+  </div>
 
+  <!-- PLAYERS TAB -->
+  <div id="tab-players" class="tab-content" style="display:none;">
     <h2>Players</h2>
 
     <table id="players-table">
@@ -62,56 +71,49 @@
         <!-- injected by admin.js -->
       </tbody>
     </table>
-
   </div>
 
-  <!-- PEOPLE TAB -->
-  <div id="tab-people" class="tab-content" style="display:none;">
-    <h2>People</h2>
-    <p>Coming soon.</p>
-  </div>
-
-  <!-- DEATHS TAB -->
+  <!-- DEATHS TAB (SIDST) -->
   <div id="tab-deaths" class="tab-content" style="display:none;">
     <h2>Deaths</h2>
-    <p>Coming soon.</p>
+    <p>Approve registered deaths.</p>
   </div>
 
-</div>
+  <!-- EDIT PLAYER MODAL (KUN EFTER LOGIN) -->
+  <div id="edit-player-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Edit Player</h3>
 
-<!-- EDIT PLAYER MODAL -->
-<div id="edit-player-modal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Edit Player</h3>
+      <label>
+        Name<br />
+        <input type="text" id="edit-player-name" />
+      </label>
 
-    <label>
-      Name<br />
-      <input type="text" id="edit-player-name" />
-    </label>
+      <br /><br />
 
-    <br /><br />
+      <label>
+        <input type="checkbox" id="edit-player-active" />
+        Active
+      </label>
 
-    <label>
-      <input type="checkbox" id="edit-player-active" />
-      Active
-    </label>
+      <h4>Picks</h4>
 
-    <h4>Picks</h4>
+      <div id="pick-warning" style="color:red; display:none;"></div>
 
-    <div id="pick-warning" style="color:red; display:none;"></div>
+      <ul id="edit-player-picks"></ul>
 
-    <ul id="edit-player-picks"></ul>
+      <select id="add-pick-select">
+        <option value="">Add person…</option>
+      </select>
+      <button id="add-pick-btn">Add</button>
 
-    <select id="add-pick-select">
-      <option value="">Add person…</option>
-    </select>
-    <button id="add-pick-btn">Add</button>
-
-    <div class="modal-actions">
-      <button id="save-player-btn">Save</button>
-      <button onclick="closeEditPlayer()">Cancel</button>
+      <div class="modal-actions">
+        <button id="save-player-btn">Save</button>
+        <button onclick="closeEditPlayer()">Cancel</button>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script type="module" src="admin.js"></script>
