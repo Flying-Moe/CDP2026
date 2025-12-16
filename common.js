@@ -29,6 +29,6 @@ console.log("Common loaded");
     Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   el.textContent =
-    `© 2026 Celebrity Dead Pool | Last updated: ${date} ${time} (${tz})`;
+    `© 2026 Celebrity Dead Pool    |    Last updated: ${date} ${time} (${tz})`;
 })();
 
