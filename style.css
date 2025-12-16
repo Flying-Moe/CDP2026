@@ -27,14 +27,11 @@ section {
   cursor: pointer;
 }
 
-/* Tables */
+/* Default table (safe baseline) */
 table {
   border-collapse: collapse;
   margin: 0.5rem 0;
-  width: 800px;          /* fast bredde */
-  table-layout: fixed;  /* vigtig */
 }
-
 
 th, td {
   border: 1px solid #ccc;
@@ -46,42 +43,37 @@ th {
   cursor: pointer;
 }
 
-/* Kolonnebredder */
-th:nth-child(1),
-td:nth-child(1) {
-  width: 360px;          /* Name */
+/* === Lists table (fixed width + fixed columns) === */
+table.list-table {
+  width: 800px;
+  table-layout: fixed;
 }
 
-th:nth-child(2),
-td:nth-child(2) {
-  width: 80px;           /* Age */
+/* Column widths for list tables only */
+table.list-table th:nth-child(1),
+table.list-table td:nth-child(1) {
+  width: 360px;
+}
+
+table.list-table th:nth-child(2),
+table.list-table td:nth-child(2) {
+  width: 80px;
   text-align: right;
 }
 
-th:nth-child(3),
-td:nth-child(3) {
-  width: 160px;          /* Potential points */
+table.list-table th:nth-child(3),
+table.list-table td:nth-child(3) {
+  width: 160px;
   text-align: right;
 }
 
-th:nth-child(4),
-td:nth-child(4) {
-  width: 120px;          /* Picked by */
+table.list-table th:nth-child(4),
+table.list-table td:nth-child(4) {
+  width: 120px;
   text-align: right;
 }
 
-/* Total row */
-.total-row td {
-  border-top: 2px solid #000;
-  font-weight: bold;
-}
-
-/* Footer */
-footer {
-  margin-top: 3rem;
-  font-size: 0.9em;
-  color: #666;
-}
+/* Total row (lists) */
 .total-row td {
   border-top: 2px solid #000;
   background-color: #fafafa;
@@ -96,12 +88,11 @@ footer {
 .total-row td:nth-child(3) {
   font-weight: bold;
 }
-/* === Leaderboard layout === */
 
+/* === Leaderboard layout === */
 table.leaderboard {
-  width: auto;                 /* IKKE 100% */
+  width: auto;
   min-width: 400px;
-  border-collapse: collapse;
   margin-top: 1rem;
 }
 
@@ -111,7 +102,6 @@ table.leaderboard td {
   white-space: nowrap;
 }
 
-/* Align columns nicely */
 table.leaderboard th:nth-child(1),
 table.leaderboard td:nth-child(1),
 table.leaderboard th:nth-child(3),
@@ -127,14 +117,22 @@ table.leaderboard td:nth-child(2) {
   padding-right: 1.2rem;
 }
 
-/* Highlight current leader */
 table.leaderboard tr.leader {
   background-color: #fff3cd;
   font-weight: bold;
 }
+
+/* Footer */
+footer {
+  margin-top: 3rem;
+  font-size: 0.9em;
+  color: #666;
+}
+
 .build-info {
   font-size: 0.8em;
   color: #777;
   text-align: center;
   margin-top: 0.3rem;
+  font-style: italic;
 }
