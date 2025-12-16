@@ -48,11 +48,86 @@
   </div>
 
   <!-- PEOPLE TAB (FØRST) -->
-  <div id="tab-people" class="tab-content">
-    <h2>People</h2>
-    <p>Manage celebrities and birth dates.</p>
-    <!-- People UI kommer her -->
-  </div>
+<div id="tab-people" class="tab-content">
+
+  <h2>People</h2>
+  <p>Manage celebrities and birth dates.</p>
+
+  <table id="people-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Birth date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- injected by admin.js -->
+    </tbody>
+  </table>
+
+  <hr />
+
+  <h3>Add new person</h3>
+
+  <label>
+    Name<br />
+    <input type="text" id="new-person-name" />
+  </label>
+
+  <br /><br />
+
+  <label>
+    Birth date (YYYY-MM-DD)<br />
+    <input type="date" id="new-person-birthdate" />
+  </label>
+
+  <br /><br />
+
+  <button id="add-person-btn">Add person</button>
+
+</div>
+<div id="tab-people" class="tab-content">
+
+  <h2>People</h2>
+  <p>Manage celebrities and birth dates.</p>
+
+  <table id="people-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Birth date</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- injected by admin.js -->
+    </tbody>
+  </table>
+
+  <hr />
+
+  <h3>Add new person</h3>
+
+  <label>
+    Name<br />
+    <input type="text" id="new-person-name" />
+  </label>
+
+  <br /><br />
+
+  <label>
+    Birth date (YYYY-MM-DD)<br />
+    <input type="date" id="new-person-birthdate" />
+  </label>
+
+  <br /><br />
+
+  <button id="add-person-btn">Add person</button>
+
+</div>
 
   <!-- PLAYERS TAB -->
   <div id="tab-players" class="tab-content" style="display:none;">
