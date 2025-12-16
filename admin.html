@@ -27,6 +27,33 @@
   <button id="loginBtn">Login</button>
   <p id="login-error" style="color:red;"></p>
 </div>
+<!-- EDIT PERSON MODAL -->
+<div id="edit-person-modal" class="modal hidden">
+  <div class="modal-content">
+
+    <h3>Edit Person</h3>
+
+    <label>
+      Name<br />
+      <input type="text" id="edit-person-name" />
+    </label>
+
+    <br /><br />
+
+    <label>
+      Birth date (YYYY-MM-DD)<br />
+      <input type="date" id="edit-person-birthdate" />
+    </label>
+
+    <div id="person-warning" style="color:red; margin-top:0.5rem; display:none;"></div>
+
+    <div class="modal-actions">
+      <button id="save-person-btn">Save</button>
+      <button id="cancel-person-btn">Cancel</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- ADMIN (SKJULT FØR LOGIN) -->
 <div id="admin-section" style="display:none;">
