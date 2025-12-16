@@ -19,7 +19,8 @@
   <a href="admin.html" class="grim-link">Grim Reaper</a>
 </nav>
 
-<!-- LOGIN (ALTID SYNLIG) -->
+<!-- ================= LOGIN (ALTID SYNLIG) ================= -->
+
 <div id="login-section">
   <h2>Admin login</h2>
   <input type="email" id="email" placeholder="Email" />
@@ -27,35 +28,9 @@
   <button id="loginBtn">Login</button>
   <p id="login-error" style="color:red;"></p>
 </div>
-<!-- EDIT PERSON MODAL -->
-<div id="edit-person-modal" class="modal hidden">
-  <div class="modal-content">
 
-    <h3>Edit Person</h3>
+<!-- ================= ADMIN (SKJULT FØR LOGIN) ================= -->
 
-    <label>
-      Name<br />
-      <input type="text" id="edit-person-name" />
-    </label>
-
-    <br /><br />
-
-    <label>
-      Birth date (YYYY-MM-DD)<br />
-      <input type="date" id="edit-person-birthdate" />
-    </label>
-
-    <div id="person-warning" style="color:red; margin-top:0.5rem; display:none;"></div>
-
-    <div class="modal-actions">
-      <button id="save-person-btn">Save</button>
-      <button id="cancel-person-btn">Cancel</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ADMIN (SKJULT FØR LOGIN) -->
 <div id="admin-section" style="display:none;">
 
   <p>
@@ -67,96 +42,59 @@
 
   <h2>Admin tools</h2>
 
-  <!-- TABS – RIGTIG ARBEJDSRÆKKEFØLGE -->
+  <!-- ================= TABS ================= -->
+
   <div id="admin-tabs">
     <button data-tab="people" class="active">People</button>
     <button data-tab="players">Players</button>
     <button data-tab="deaths">Deaths</button>
   </div>
 
-  <!-- PEOPLE TAB (FØRST) -->
-<div id="tab-people" class="tab-content">
+  <!-- ================= PEOPLE TAB ================= -->
 
-  <h2>People</h2>
-  <p>Manage celebrities and birth dates.</p>
+  <div id="tab-people" class="tab-content">
 
-  <table id="people-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Birth date</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- injected by admin.js -->
-    </tbody>
-  </table>
+    <h2>People</h2>
+    <p>Manage celebrities and birth dates.</p>
 
-  <hr />
+    <table id="people-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Birth date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- injected by admin.js -->
+      </tbody>
+    </table>
 
-  <h3>Add new person</h3>
+    <hr />
 
-  <label>
-    Name<br />
-    <input type="text" id="new-person-name" />
-  </label>
+    <h3>Add new person</h3>
 
-  <br /><br />
+    <label>
+      Name<br />
+      <input type="text" id="new-person-name" />
+    </label>
 
-  <label>
-    Birth date (YYYY-MM-DD)<br />
-    <input type="date" id="new-person-birthdate" />
-  </label>
+    <br /><br />
 
-  <br /><br />
+    <label>
+      Birth date (YYYY-MM-DD)<br />
+      <input type="date" id="new-person-birthdate" />
+    </label>
 
-  <button id="add-person-btn">Add person</button>
+    <br /><br />
 
-</div>
-<div id="tab-people" class="tab-content">
+    <button id="add-person-btn">Add person</button>
 
-  <h2>People</h2>
-  <p>Manage celebrities and birth dates.</p>
+  </div>
 
-  <table id="people-table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Birth date</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- injected by admin.js -->
-    </tbody>
-  </table>
+  <!-- ================= PLAYERS TAB ================= -->
 
-  <hr />
-
-  <h3>Add new person</h3>
-
-  <label>
-    Name<br />
-    <input type="text" id="new-person-name" />
-  </label>
-
-  <br /><br />
-
-  <label>
-    Birth date (YYYY-MM-DD)<br />
-    <input type="date" id="new-person-birthdate" />
-  </label>
-
-  <br /><br />
-
-  <button id="add-person-btn">Add person</button>
-
-</div>
-
-  <!-- PLAYERS TAB -->
   <div id="tab-players" class="tab-content" style="display:none;">
     <h2>Players</h2>
 
@@ -176,15 +114,48 @@
     </table>
   </div>
 
-  <!-- DEATHS TAB (SIDST) -->
+  <!-- ================= DEATHS TAB ================= -->
+
   <div id="tab-deaths" class="tab-content" style="display:none;">
     <h2>Deaths</h2>
     <p>Approve registered deaths.</p>
   </div>
 
-  <!-- EDIT PLAYER MODAL (KUN EFTER LOGIN) -->
+  <!-- ================= EDIT PERSON MODAL ================= -->
+
+  <div id="edit-person-modal" class="modal hidden">
+    <div class="modal-content">
+
+      <h3>Edit Person</h3>
+
+      <label>
+        Name<br />
+        <input type="text" id="edit-person-name" />
+      </label>
+
+      <br /><br />
+
+      <label>
+        Birth date (YYYY-MM-DD)<br />
+        <input type="date" id="edit-person-birthdate" />
+      </label>
+
+      <div id="person-warning"
+           style="color:red; margin-top:0.5rem; display:none;"></div>
+
+      <div class="modal-actions">
+        <button id="save-person-btn">Save</button>
+        <button id="cancel-person-btn">Cancel</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= EDIT PLAYER MODAL ================= -->
+
   <div id="edit-player-modal" class="modal hidden">
     <div class="modal-content">
+
       <h3>Edit Player</h3>
 
       <label>
@@ -214,10 +185,13 @@
         <button id="save-player-btn">Save</button>
         <button onclick="closeEditPlayer()">Cancel</button>
       </div>
+
     </div>
   </div>
 
-</div>
+</div> <!-- END admin-section -->
+
+<!-- ================= SCRIPTS & FOOTER ================= -->
 
 <script type="module" src="admin.js"></script>
 
@@ -227,6 +201,6 @@
 </footer>
 
 <script src="common.js"></script>
-  
+
 </body>
 </html>
