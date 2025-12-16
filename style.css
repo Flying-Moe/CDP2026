@@ -136,3 +136,12 @@ footer {
   font-style: italic;
   text-align: left; /* ← venstrejusteret */
 }
+
+.grim-link {
+  font-style: italic;
+  color: #666;
+}
+
+.grim-link:hover {
+  color: #000;
+}
