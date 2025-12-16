@@ -180,11 +180,28 @@ footer {
 ========================= */
 
 @media (max-width: 600px) {
-  body {
-    margin: 1rem;
+
+  /* Lists table becomes fluid on mobile */
+  table.list-table {
+    width: 100%;
+    table-layout: auto;
   }
 
-  table {
-    font-size: 0.9rem;
+  table.list-table th,
+  table.list-table td {
+    padding: 0.3rem 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  /* Remove fixed column widths on mobile */
+  table.list-table th:nth-child(n),
+  table.list-table td:nth-child(n) {
+    width: auto;
+  }
+
+  /* Keep name readable */
+  table.list-table th:nth-child(1),
+  table.list-table td:nth-child(1) {
+    word-break: break-word;
   }
 }
