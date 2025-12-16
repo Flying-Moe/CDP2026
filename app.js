@@ -44,7 +44,7 @@ async function renderLists() {
     people.map(p => [p.id, p])
   );
 
-  /* Hvor mange har valgt hver person */
+  /* Count how many picked each person */
   const pickCounter = {};
   players.forEach(player => {
     const entry = player.entries["2026"];
@@ -112,8 +112,8 @@ async function renderLists() {
             `).join("")}
 
             <tr class="total-row">
-              <td></td>
               <td>Total</td>
+              <td></td>
               <td>${totalPotential}</td>
               <td></td>
             </tr>
@@ -124,7 +124,7 @@ async function renderLists() {
 
     container.appendChild(section);
 
-    /* Fold ind / ud */
+    /* Fold in / out */
     const header = section.querySelector(".player-header");
     const panel = section.querySelector(".player-list");
 
@@ -133,7 +133,7 @@ async function renderLists() {
         panel.style.display === "none" ? "block" : "none";
     });
 
-    /* Sortering */
+    /* Sorting */
     const table = section.querySelector("table");
     const headers = table.querySelectorAll("th");
     let currentSort = { key: null, direction: "asc" };
@@ -164,8 +164,8 @@ async function renderLists() {
           `).join("")}
 
           <tr class="total-row">
-            <td></td>
             <td>Total</td>
+            <td></td>
             <td>${rows.reduce((s, r) => s + r.potential, 0)}</td>
             <td></td>
           </tr>
