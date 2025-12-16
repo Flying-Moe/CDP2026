@@ -96,8 +96,16 @@
       Active
     </label>
 
-    <h4>Picks (read-only)</h4>
+    <h4>Picks</h4>
+
+    <div id="pick-warning" style="color:red; display:none;"></div>
+
     <ul id="edit-player-picks"></ul>
+
+    <select id="add-pick-select">
+      <option value="">Add person…</option>
+    </select>
+    <button id="add-pick-btn">Add</button>
 
     <div class="modal-actions">
       <button id="save-player-btn">Save</button>
