@@ -13,6 +13,16 @@ nav a {
   margin-right: 0.5rem;
 }
 
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+nav a {
+  white-space: nowrap;
+}
+
 nav a.active {
   font-weight: bold;
   text-decoration: underline;
