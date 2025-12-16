@@ -44,8 +44,8 @@ async function renderLists() {
     people.map(p => [p.id, p])
   );
 
+  /* Hvor mange har valgt hver person */
   const pickCounter = {};
-
   players.forEach(player => {
     const entry = player.entries["2026"];
     if (!entry) return;
@@ -69,23 +69,30 @@ async function renderLists() {
     const rows = activeList.map(pid => {
       const p = peopleMap[pid];
       const age = calculateAge(p.birthDate);
+      const potential = calculatePotentialPoints(age);
       return {
         name: p.name,
         age,
-        count: pickCounter[pid] || 0,
-        potential: calculatePotentialPoints(age)
+        potential,
+        count: pickCounter[pid] || 0
       };
     });
 
+    const totalPotential = rows.reduce(
+      (sum, r) => sum + r.potential,
+      0
+    );
+
     const section = document.createElement("section");
-    section.style.marginBottom = "1.5rem";
 
     section.innerHTML = `
-      <h2 class="player-header" style="cursor:pointer;">
+      <h2 class="player-header">
         ${player.name} (${rows.length}/20)
         ${usedJulySweep ? "🟣 July sweep" : ""}
+        — Potential: ${totalPotential}
       </h2>
-      <div class="player-list" style="display:none;">
+
+      <div class="player-list" style="display:block;">
         <table>
           <thead>
             <tr>
@@ -104,6 +111,13 @@ async function renderLists() {
                 <td>${r.count}</td>
               </tr>
             `).join("")}
+
+            <tr class="total-row">
+              <td></td>
+              <td>Total</td>
+              <td>${totalPotential}</td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -111,28 +125,21 @@ async function renderLists() {
 
     container.appendChild(section);
 
-    // Fold-ud logik
+    /* Fold ind / ud */
     const header = section.querySelector(".player-header");
     const panel = section.querySelector(".player-list");
 
     header.addEventListener("click", () => {
-      document
-        .querySelectorAll(".player-list")
-        .forEach(p => {
-          if (p !== panel) p.style.display = "none";
-        });
-
       panel.style.display =
         panel.style.display === "none" ? "block" : "none";
     });
 
-    // Sortering (kun når foldet ud)
+    /* Sortering */
     const table = section.querySelector("table");
     const headers = table.querySelectorAll("th");
     let currentSort = { key: null, direction: "asc" };
 
     headers.forEach(th => {
-      th.style.cursor = "pointer";
       th.addEventListener("click", () => {
         const key = th.dataset.sort;
         if (!key) return;
@@ -147,14 +154,23 @@ async function renderLists() {
 
         sortRows(rows, key, currentSort.direction);
 
-        table.querySelector("tbody").innerHTML = rows.map(r => `
-          <tr>
-            <td>${r.name}</td>
-            <td>${r.age}</td>
-            <td>${r.potential}</td>
-            <td>${r.count}</td>
+        table.querySelector("tbody").innerHTML = `
+          ${rows.map(r => `
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.age}</td>
+              <td>${r.potential}</td>
+              <td>${r.count}</td>
+            </tr>
+          `).join("")}
+
+          <tr class="total-row">
+            <td></td>
+            <td>Total</td>
+            <td>${rows.reduce((s, r) => s + r.potential, 0)}</td>
+            <td></td>
           </tr>
-        `).join("");
+        `;
       });
     });
   });
