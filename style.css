@@ -65,31 +65,13 @@ th {
 ========================= */
 
 table.list-table {
-  width: 800px;
-  table-layout: fixed;
+  width: 100%;
+  table-layout: auto;
 }
 
-/* Column widths */
-table.list-table th:nth-child(1),
-table.list-table td:nth-child(1) {
-  width: 360px;
-}
-
-table.list-table th:nth-child(2),
-table.list-table td:nth-child(2) {
-  width: 80px;
-  text-align: right;
-}
-
-table.list-table th:nth-child(3),
-table.list-table td:nth-child(3) {
-  width: 160px;
-  text-align: right;
-}
-
-table.list-table th:nth-child(4),
-table.list-table td:nth-child(4) {
-  width: 120px;
+table.list-table th:not(:first-child),
+table.list-table td:not(:first-child) {
+  white-space: nowrap;
   text-align: right;
 }
 
