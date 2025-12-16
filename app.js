@@ -23,6 +23,14 @@ function calculateAge(birthDate) {
   return age;
 }
 
+function sortRows(rows, key, direction) {
+  return rows.sort((a, b) => {
+    if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
+    if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
 async function renderLists() {
   const people = await loadJSON("data/people.json");
   const players = await loadJSON("data/players.json");
@@ -45,7 +53,7 @@ async function renderLists() {
   });
 
   const container = document.getElementById("lists");
-  container.innerHTML = ""; // sikkerhed ved re-render
+  container.innerHTML = "";
 
   players.forEach(player => {
     const entry = player.entries["2026"];
@@ -55,41 +63,82 @@ async function renderLists() {
     const usedJulySweep =
       entry.lists.july && entry.lists.july.length > 0;
 
+    const rows = activeList
+      .map(pid => {
+        const p = peopleMap[pid];
+        if (!p) return null;
+        return {
+          name: p.name,
+          age: calculateAge(p.birthDate),
+          count: pickCounter[pid] || 0
+        };
+      })
+      .filter(Boolean);
+
     const section = document.createElement("section");
     section.style.marginBottom = "2rem";
 
     section.innerHTML = `
       <h2>
         ${player.name}
-        (${activeList.length}/20)
+        (${rows.length}/20)
         ${usedJulySweep ? "🟣 July sweep" : ""}
       </h2>
       <table>
         <thead>
           <tr>
-            <th>Navn</th>
-            <th>Alder</th>
-            <th>Valgt af</th>
+            <th data-sort="name">Navn</th>
+            <th data-sort="age">Alder</th>
+            <th data-sort="count">Valgt af</th>
           </tr>
         </thead>
         <tbody>
-          ${activeList.map(pid => {
-            const p = peopleMap[pid];
-            if (!p) return "";
-            return `
-              <tr>
-                <td>${p.name}</td>
-                <td>${calculateAge(p.birthDate)}</td>
-                <td>${pickCounter[pid] || 0}</td>
-              </tr>
-            `;
-          }).join("")}
+          ${rows.map(r => `
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.age}</td>
+              <td>${r.count}</td>
+            </tr>
+          `).join("")}
         </tbody>
       </table>
     `;
 
     container.appendChild(section);
+
+    // Sorteringslogik (lokal pr. tabel)
+    const table = section.querySelector("table");
+    const headers = table.querySelectorAll("th");
+    let currentSort = { key: null, direction: "asc" };
+
+    headers.forEach(th => {
+      th.style.cursor = "pointer";
+
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (!key) return;
+
+        if (currentSort.key === key) {
+          currentSort.direction =
+            currentSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          currentSort.key = key;
+          currentSort.direction = "asc";
+        }
+
+        sortRows(rows, key, currentSort.direction);
+
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td>${r.name}</td>
+            <td>${r.age}</td>
+            <td>${r.count}</td>
+          </tr>
+        `).join("");
+      });
+    });
   });
 }
 
-renderLists(); 
+renderLists();
