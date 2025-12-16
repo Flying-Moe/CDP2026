@@ -1,1 +1,17 @@
-[] 
+[
+  {
+    "personId": 1,
+    "source": "Wikipedia",
+    "reportedDate": "2026-02-14"
+  },
+  {
+    "personId": 3,
+    "source": "Reuters",
+    "reportedDate": "2026-03-02"
+  },
+  {
+    "personId": 7,
+    "source": "BBC News",
+    "reportedDate": "2026-04-19"
+  }
+]
