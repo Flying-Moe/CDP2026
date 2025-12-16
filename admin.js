@@ -1,17 +1,24 @@
 import { auth, db } from "./firebase.js";
+
+/* ========= AUTH ========= */
+
 import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
-  addDoc,
-  updateDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* ========= FIRESTORE ========= */
 
 import {
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* -----------------------
@@ -42,15 +49,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
+    } catch {
       errorEl.textContent = "Login failed";
     }
   }
 
-  // Klik på login
+  /* Login */
   loginBtn.addEventListener("click", handleLogin);
 
-  // Enter i email / password
   function onEnter(e) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -61,12 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
   emailInput.addEventListener("keydown", onEnter);
   passwordInput.addEventListener("keydown", onEnter);
 
-  // Logout
+  /* Logout */
   logoutBtn.addEventListener("click", async () => {
     await signOut(auth);
   });
 
-  // Auth state
+  /* Auth state */
   onAuthStateChanged(auth, async user => {
     if (!user) {
       loginSection.style.display = "block";
@@ -87,43 +93,103 @@ document.addEventListener("DOMContentLoaded", () => {
     adminSection.style.display = "block";
 
     loadPlayers();
+    loadPeople();
   });
-
 });
 
 /* -----------------------
-   PLAYERS (MIDLERIDIG)
+   PLAYERS (PLACEHOLDER)
 ------------------------ */
 
 async function loadPlayers() {
-  // placeholder – implementeres senere
+  // implementeres senere
 }
 
 /* -----------------------
-   GAMMEL SAVE (URØRT)
+   PEOPLE
 ------------------------ */
 
-async function savePlayer() {
-  const id = document.getElementById("player-id")?.value?.trim();
-  const name = document.getElementById("player-name")?.value?.trim();
-  const paid = Number(document.getElementById("player-paid")?.value);
+async function loadPeople() {
+  const snap = await getDocs(collection(db, "people"));
+  const tbody = document.querySelector("#people-table tbody");
+  if (!tbody) return;
 
-  if (!id || !name) {
-    alert("Missing data");
+  tbody.innerHTML = "";
+
+  snap.forEach(docu => {
+    const p = docu.data();
+    const tr = document.createElement("tr");
+
+    const hasBirth = !!p.birthDate;
+
+    tr.innerHTML = `
+      <td>${p.name}</td>
+      <td>${p.birthDate || "—"}</td>
+      <td>${hasBirth ? "OK" : "Missing birth date"}</td>
+      <td>
+        <button data-id="${docu.id}" class="edit-person">Edit</button>
+        <button data-id="${docu.id}" class="delete-person">Delete</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  wirePeopleActions();
+}
+
+document.getElementById("add-person-btn")?.addEventListener("click", async () => {
+  const name = document.getElementById("new-person-name").value.trim();
+  const birthDate = document.getElementById("new-person-birthdate").value;
+
+  if (!name) {
+    alert("Name is required");
     return;
   }
 
-  await setDoc(doc(db, "players", id), {
+  await addDoc(collection(db, "people"), {
     name,
-    paid,
-    entries: {
-      2026: {
-        initial: [],
-        july: [],
-        julyUsed: false
-      }
-    }
-  }, { merge: true });
+    birthDate: birthDate || ""
+  });
 
-  loadPlayers();
+  document.getElementById("new-person-name").value = "";
+  document.getElementById("new-person-birthdate").value = "";
+
+  loadPeople();
+});
+
+function wirePeopleActions() {
+  document.querySelectorAll(".edit-person").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      const ref = doc(db, "people", id);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return;
+
+      const p = snap.data();
+
+      const newName = prompt("Edit name:", p.name);
+      if (!newName) return;
+
+      const newBirth = prompt(
+        "Edit birth date (YYYY-MM-DD):",
+        p.birthDate || ""
+      );
+
+      await updateDoc(ref, {
+        name: newName.trim(),
+        birthDate: newBirth.trim()
+      });
+
+      loadPeople();
+    });
+  });
+
+  document.querySelectorAll(".delete-person").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this person permanently?")) return;
+      await deleteDoc(doc(db, "people", btn.dataset.id));
+      loadPeople();
+    });
+  });
 }
