@@ -8,13 +8,11 @@ import {
 import {
   doc,
   getDoc,
-  collection,
-  getDocs,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* -----------------------
-   DOM-LOGIK (VIGTIGT)
+   DOM-LOGIK
 ------------------------ */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -37,6 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    errorEl.textContent = "";
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
@@ -44,12 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Klik på login-knap
+  // Klik på login
   loginBtn.addEventListener("click", handleLogin);
 
-  // Enter-tast i email eller password
+  // Enter i email / password
   function onEnter(e) {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleLogin();
     }
   }
@@ -62,14 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await signOut(auth);
   });
 
-});
-
-  });
-
-  logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-  });
-
+  // Auth state
   onAuthStateChanged(auth, async user => {
     if (!user) {
       loginSection.style.display = "block";
@@ -77,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Firestore admin check
     const adminRef = doc(db, "admins", user.email);
     const snap = await getDoc(adminRef);
 
@@ -90,20 +83,17 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSection.style.display = "none";
     adminSection.style.display = "block";
 
-    // VIGTIGT: loadPlayers må ikke crashe
     loadPlayers();
   });
 
 });
 
 /* -----------------------
-   PLAYERS (MIDLERIDIG SIKKER)
+   PLAYERS (MIDLERIDIG)
 ------------------------ */
 
 async function loadPlayers() {
-  // Midlertidig noop
-  // Den gamle players-list + selectPlayer er fjernet
-  // Ny tabel-baseret Players UI kobles på senere
+  // placeholder – implementeres senere
 }
 
 /* -----------------------
