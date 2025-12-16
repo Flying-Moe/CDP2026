@@ -23,6 +23,11 @@ function calculateAge(birthDate) {
   return age;
 }
 
+function calculatePotentialPoints(age) {
+  if (age >= 99) return 1;
+  return 100 - age;
+}
+
 function sortRows(rows, key, direction) {
   return rows.sort((a, b) => {
     if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
@@ -39,15 +44,13 @@ async function renderLists() {
     people.map(p => [p.id, p])
   );
 
-  // Optæl hvor mange gange hver person er valgt
   const pickCounter = {};
 
   players.forEach(player => {
     const entry = player.entries["2026"];
     if (!entry) return;
 
-    const list = getActiveList(entry);
-    list.forEach(pid => {
+    getActiveList(entry).forEach(pid => {
       pickCounter[pid] = (pickCounter[pid] || 0) + 1;
     });
   });
@@ -63,57 +66,73 @@ async function renderLists() {
     const usedJulySweep =
       entry.lists.july && entry.lists.july.length > 0;
 
-    const rows = activeList
-      .map(pid => {
-        const p = peopleMap[pid];
-        if (!p) return null;
-        return {
-          name: p.name,
-          age: calculateAge(p.birthDate),
-          count: pickCounter[pid] || 0
-        };
-      })
-      .filter(Boolean);
+    const rows = activeList.map(pid => {
+      const p = peopleMap[pid];
+      const age = calculateAge(p.birthDate);
+      return {
+        name: p.name,
+        age,
+        count: pickCounter[pid] || 0,
+        potential: calculatePotentialPoints(age)
+      };
+    });
 
     const section = document.createElement("section");
-    section.style.marginBottom = "2rem";
+    section.style.marginBottom = "1.5rem";
 
     section.innerHTML = `
-      <h2>
-        ${player.name}
-        (${rows.length}/20)
+      <h2 class="player-header" style="cursor:pointer;">
+        ${player.name} (${rows.length}/20)
         ${usedJulySweep ? "🟣 July sweep" : ""}
       </h2>
-      <table>
-        <thead>
-          <tr>
-            <th data-sort="name">Navn</th>
-            <th data-sort="age">Alder</th>
-            <th data-sort="count">Valgt af</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(r => `
+      <div class="player-list" style="display:none;">
+        <table>
+          <thead>
             <tr>
-              <td>${r.name}</td>
-              <td>${r.age}</td>
-              <td>${r.count}</td>
+              <th data-sort="name">Name</th>
+              <th data-sort="age">Age</th>
+              <th data-sort="potential">Potential points</th>
+              <th data-sort="count">Picked by</th>
             </tr>
-          `).join("")}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${r.name}</td>
+                <td>${r.age}</td>
+                <td>${r.potential}</td>
+                <td>${r.count}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
     `;
 
     container.appendChild(section);
 
-    // Sorteringslogik (lokal pr. tabel)
+    // Fold-ud logik
+    const header = section.querySelector(".player-header");
+    const panel = section.querySelector(".player-list");
+
+    header.addEventListener("click", () => {
+      document
+        .querySelectorAll(".player-list")
+        .forEach(p => {
+          if (p !== panel) p.style.display = "none";
+        });
+
+      panel.style.display =
+        panel.style.display === "none" ? "block" : "none";
+    });
+
+    // Sortering (kun når foldet ud)
     const table = section.querySelector("table");
     const headers = table.querySelectorAll("th");
     let currentSort = { key: null, direction: "asc" };
 
     headers.forEach(th => {
       th.style.cursor = "pointer";
-
       th.addEventListener("click", () => {
         const key = th.dataset.sort;
         if (!key) return;
@@ -128,11 +147,11 @@ async function renderLists() {
 
         sortRows(rows, key, currentSort.direction);
 
-        const tbody = table.querySelector("tbody");
-        tbody.innerHTML = rows.map(r => `
+        table.querySelector("tbody").innerHTML = rows.map(r => `
           <tr>
             <td>${r.name}</td>
             <td>${r.age}</td>
+            <td>${r.potential}</td>
             <td>${r.count}</td>
           </tr>
         `).join("");
