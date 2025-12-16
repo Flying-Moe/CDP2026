@@ -1,43 +1,53 @@
-const loginDiv = document.getElementById("login");
-const adminPanel = document.getElementById("adminPanel");
-const errorEl = document.getElementById("loginError");
+import { auth, db } from "./firebase.js";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-document.getElementById("loginBtn").onclick = async () => {
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const loginSection = document.getElementById("login-section");
+const adminSection = document.getElementById("admin-section");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const errorEl = document.getElementById("login-error");
+
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
   try {
-    await auth.signInWithEmailAndPassword(
-      email.value,
-      password.value
-    );
+    await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
-    errorEl.textContent = err.message;
+    errorEl.textContent = "Login failed";
   }
-};
+});
 
-document.getElementById("logoutBtn").onclick = () => {
-  auth.signOut();
-};
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+});
 
-auth.onAuthStateChanged(async user => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
-    loginDiv.style.display = "block";
-    adminPanel.style.display = "none";
+    loginSection.style.display = "block";
+    adminSection.style.display = "none";
     return;
   }
 
-  // Check admin rights
-  const snap = await db
-    .collection("admins")
-    .where("email", "==", user.email)
-    .where("active", "==", true)
-    .get();
+  // Check Firestore admin permission
+  const adminRef = doc(db, "admins", "Reaper");
+  const snap = await getDoc(adminRef);
 
-  if (snap.empty) {
+  if (!snap.exists() || snap.data().active !== true) {
     errorEl.textContent = "Not authorized";
-    auth.signOut();
+    await signOut(auth);
     return;
   }
 
-  // Authorized
-  loginDiv.style.display = "none";
-  adminPanel.style.display = "block";
+  loginSection.style.display = "none";
+  adminSection.style.display = "block";
 });
