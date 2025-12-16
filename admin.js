@@ -60,32 +60,25 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSection.style.display = "none";
     adminSection.style.display = "block";
 
-    // Kun efter godkendt login
+    // VIGTIGT: loadPlayers må ikke crashe
     loadPlayers();
   });
 
 });
 
 /* -----------------------
-   PLAYERS (EKSISTERENDE)
+   PLAYERS (MIDLERIDIG SIKKER)
 ------------------------ */
 
 async function loadPlayers() {
-  const snap = await getDocs(collection(db, "players"));
-  const list = document.getElementById("players-list");
-
-  if (!list) return; // midlertidig sikkerhed
-
-  list.innerHTML = "";
-
-  snap.forEach(docu => {
-    const d = docu.data();
-    const btn = document.createElement("button");
-    btn.textContent = d.name;
-    btn.onclick = () => selectPlayer(docu.id, d);
-    list.appendChild(btn);
-  });
+  // Midlertidig noop
+  // Den gamle players-list + selectPlayer er fjernet
+  // Ny tabel-baseret Players UI kobles på senere
 }
+
+/* -----------------------
+   GAMMEL SAVE (URØRT)
+------------------------ */
 
 async function savePlayer() {
   const id = document.getElementById("player-id")?.value?.trim();
