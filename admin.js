@@ -51,3 +51,42 @@ onAuthStateChanged(auth, async user => {
   loginSection.style.display = "none";
   adminSection.style.display = "block";
 });
+
+import { collection, getDocs, doc, setDoc } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+async function loadPlayers() {
+  const snap = await getDocs(collection(db, "players"));
+  const list = document.getElementById("players-list");
+  list.innerHTML = "";
+
+  snap.forEach(docu => {
+    const d = docu.data();
+    const btn = document.createElement("button");
+    btn.textContent = d.name;
+    btn.onclick = () => selectPlayer(docu.id, d);
+    list.appendChild(btn);
+  });
+}
+
+async function savePlayer() {
+  const id = document.getElementById("player-id").value.trim();
+  const name = document.getElementById("player-name").value.trim();
+  const paid = Number(document.getElementById("player-paid").value);
+
+  if (!id || !name) return alert("Missing data");
+
+  await setDoc(doc(db, "players", id), {
+    name,
+    paid,
+    entries: {
+      2026: {
+        initial: [],
+        july: [],
+        julyUsed: false
+      }
+    }
+  }, { merge: true });
+
+  loadPlayers();
+}
