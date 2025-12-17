@@ -17,8 +17,31 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function parseToISO(input) {
+  if (!input) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+
+  const m = input.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+  if (!m) return "";
+
+  const [, d, mth, y] = m;
+  return `${y}-${mth.padStart(2, "0")}-${d.padStart(2, "0")}`;
+}
+
+function isoToDisplay(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}-${m}-${y}`;
+}
 
 /* =====================================================
    DOM + AUTH
@@ -101,15 +124,14 @@ document.addEventListener("DOMContentLoaded", () => {
 function setupTabs() {
   document.querySelectorAll("#admin-tabs button").forEach(btn => {
     btn.addEventListener("click", () => {
-      document
-        .querySelectorAll("#admin-tabs button")
-        .forEach(b => b.classList.remove("active"));
 
+      document.querySelectorAll("#admin-tabs button")
+        .forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
       const tab = btn.dataset.tab;
-      document
-        .querySelectorAll(".tab-content")
+
+      document.querySelectorAll(".tab-content")
         .forEach(c => (c.style.display = "none"));
 
       const el = document.getElementById(`tab-${tab}`);
@@ -117,7 +139,6 @@ function setupTabs() {
     });
   });
 
-  // Default = Players
   document.querySelector('[data-tab="players"]').click();
 }
 
@@ -135,24 +156,20 @@ async function loadPlayers() {
   snap.forEach(docu => {
     const player = docu.data();
     const entry = player.entries?.["2026"];
+    const picks = entry?.picks || [];
 
     let approved = 0;
     let pending = 0;
     let rejected = 0;
 
-    if (entry?.picks && Array.isArray(entry.picks)) {
-      entry.picks.forEach(p => {
-        if (p.status === "approved") approved++;
-        else if (p.status === "rejected") rejected++;
-        else pending++;
-      });
-    }
+    picks.forEach(p => {
+      if (p.status === "approved") approved++;
+      else if (p.status === "rejected") rejected++;
+      else pending++;
+    });
 
     const tr = document.createElement("tr");
-
-    if (player.active === false) {
-      tr.style.opacity = "0.5";
-    }
+    if (player.active === false) tr.style.opacity = "0.5";
 
     tr.innerHTML = `
       <td>${player.name}</td>
@@ -169,20 +186,131 @@ async function loadPlayers() {
     tbody.appendChild(tr);
   });
 
-  wireValidateButtons();
-}
-
-function wireValidateButtons() {
   document.querySelectorAll(".validate-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      const playerId = btn.dataset.id;
-      console.log("TODO: open validate modal for player", playerId);
+      openValidateModal(btn.dataset.id);
     });
   });
 }
 
 /* =====================================================
-   PEOPLE
+   VALIDATE PICKS
+===================================================== */
+
+async function openValidateModal(playerId) {
+  const snap = await getDoc(doc(db, "players", playerId));
+  if (!snap.exists()) return;
+
+  const modal = document.getElementById("validate-picks-modal");
+  const tbody = document.querySelector("#validate-picks-table tbody");
+
+  const picks = snap.data().entries["2026"].picks || [];
+  tbody.innerHTML = "";
+
+  picks
+    .sort((a, b) =>
+      ["approved", "pending", "rejected"].indexOf(a.status) -
+      ["approved", "pending", "rejected"].indexOf(b.status)
+    )
+    .forEach((pick, index) => {
+
+      const tr = document.createElement("tr");
+      if (pick.status === "rejected") tr.style.opacity = "0.4";
+
+      tr.innerHTML = `
+        <td>${pick.name}</td>
+        <td>
+          <input type="date" value="${pick.birthDate || ""}"
+                 data-index="${index}">
+        </td>
+        <td>${pick.status}</td>
+        <td>
+          <button data-action="approve" data-index="${index}">
+            Approve
+          </button>
+          <button data-action="reject" data-index="${index}">
+            Reject
+          </button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+
+  tbody.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      handlePickAction(
+        playerId,
+        btn.dataset.action,
+        btn.dataset.index
+      );
+    });
+  });
+
+  modal.classList.remove("hidden");
+}
+
+async function handlePickAction(playerId, action, index) {
+  const ref = doc(db, "players", playerId);
+  const snap = await getDoc(ref);
+  const picks = snap.data().entries["2026"].picks;
+
+  const input = document.querySelector(
+    `input[data-index="${index}"]`
+  );
+
+  const iso = parseToISO(input.value);
+
+  if (action === "approve") {
+    if (!iso) {
+      alert("Birth date required");
+      return;
+    }
+
+    const q = query(
+      collection(db, "people"),
+      where("name", "==", picks[index].name),
+      where("birthDate", "==", iso)
+    );
+
+    const existing = await getDocs(q);
+
+    let personId;
+    if (existing.empty) {
+      const newDoc = await addDoc(collection(db, "people"), {
+        name: picks[index].name,
+        birthDate: iso
+      });
+      personId = newDoc.id;
+    } else {
+      personId = existing.docs[0].id;
+    }
+
+    picks[index].status = "approved";
+    picks[index].birthDate = iso;
+    picks[index].personId = personId;
+  }
+
+  if (action === "reject") {
+    picks[index].status = "rejected";
+  }
+
+  await updateDoc(ref, {
+    "entries.2026.picks": picks
+  });
+
+  openValidateModal(playerId);
+  loadPlayers();
+}
+
+document.getElementById("close-validate-btn")
+  ?.addEventListener("click", () => {
+    document.getElementById("validate-picks-modal")
+      .classList.add("hidden");
+  });
+
+/* =====================================================
+   PEOPLE (UÆNDRET LOGIK)
 ===================================================== */
 
 let currentPersonId = null;
@@ -200,8 +328,8 @@ async function loadPeople() {
     const p = docu.data();
     cachedPeopleNames.push(p.name);
 
-    const hasBirth = !!p.birthDate;
     const tr = document.createElement("tr");
+    const hasBirth = !!p.birthDate;
 
     tr.innerHTML = `
       <td>${p.name}</td>
@@ -219,7 +347,7 @@ async function loadPeople() {
   wirePeopleActions();
 }
 
-/* ---------- Add person ---------- */
+/* ---------- People actions ---------- */
 
 document.getElementById("add-person-btn")
   ?.addEventListener("click", async () => {
@@ -227,10 +355,7 @@ document.getElementById("add-person-btn")
     const name = document.getElementById("new-person-name").value.trim();
     const birthDate = document.getElementById("new-person-birthdate").value;
 
-    if (!name) {
-      alert("Name is required");
-      return;
-    }
+    if (!name) return alert("Name is required");
 
     await addDoc(collection(db, "people"), {
       name,
@@ -243,26 +368,19 @@ document.getElementById("add-person-btn")
     loadPeople();
   });
 
-/* ---------- Edit / Delete ---------- */
-
 function wirePeopleActions() {
-
   document.querySelectorAll(".edit-person").forEach(btn => {
-    btn.addEventListener("click", () => {
-      openEditPerson(btn.dataset.id);
-    });
+    btn.onclick = () => openEditPerson(btn.dataset.id);
   });
 
   document.querySelectorAll(".delete-person").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.onclick = async () => {
       if (!confirm("Delete this person permanently?")) return;
       await deleteDoc(doc(db, "people", btn.dataset.id));
       loadPeople();
-    });
+    };
   });
 }
-
-/* ---------- Edit modal ---------- */
 
 async function openEditPerson(id) {
   const ref = doc(db, "people", id);
@@ -280,14 +398,12 @@ async function openEditPerson(id) {
     .classList.remove("hidden");
 }
 
-function closeEditPerson() {
-  document.getElementById("edit-person-modal")
-    .classList.add("hidden");
-  currentPersonId = null;
-}
-
 document.getElementById("cancel-person-btn")
-  ?.addEventListener("click", closeEditPerson);
+  ?.addEventListener("click", () => {
+    document.getElementById("edit-person-modal")
+      .classList.add("hidden");
+    currentPersonId = null;
+  });
 
 document.getElementById("save-person-btn")
   ?.addEventListener("click", async () => {
@@ -302,27 +418,13 @@ document.getElementById("save-person-btn")
       return;
     }
 
-    const duplicates =
-      cachedPeopleNames.filter(n =>
-        n.toLowerCase() === name.toLowerCase()
-      ).length > 1;
-
-    if (duplicates) {
-      warning.textContent =
-        "Warning: another person with this name exists";
-      warning.style.display = "block";
-    } else if (!birthDate) {
-      warning.textContent = "Warning: birth date missing";
-      warning.style.display = "block";
-    } else {
-      warning.style.display = "none";
-    }
-
     await updateDoc(doc(db, "people", currentPersonId), {
       name,
       birthDate
     });
 
-    closeEditPerson();
+    document.getElementById("edit-person-modal")
+      .classList.add("hidden");
+
     loadPeople();
   });
