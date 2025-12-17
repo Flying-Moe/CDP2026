@@ -215,3 +215,19 @@ footer {
   overflow: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.modal table {
+  width: 100%;
+  border-collapse: collapse;
+}
