@@ -245,6 +245,9 @@ async function loadPlayers() {
           <button class="minus-btn" data-id="${docu.id}">−1</button>
           <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
           <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
+          <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
+          <button class="delete-player-btn" data-id="${docu.id}">Delete</button>
+
         </td>
       </tr>
     `;
@@ -299,6 +302,12 @@ if (pick.status === "pending") {
 if (pick.status === "rejected") {
   actions = `
     <button data-i="${i}" data-a="pending">Back to pending</button>
+    <button data-i="${i}" data-a="delete">Delete</button>
+  `;
+}
+  
+if (pick.status === "approved") {
+  actions = `
     <button data-i="${i}" data-a="delete">Delete</button>
   `;
 }
@@ -381,10 +390,16 @@ async function handlePickAction(index, action) {
   const picks = snap.data().entries["2026"].picks;
 
   /* ===== DELETE ===== */
-  if (action === "delete") {
-    if (!confirm("Delete this pick permanently?")) return;
-    picks.splice(index, 1);
-  }
+if (action === "delete") {
+  const label =
+    picks[index].normalizedName ||
+    picks[index].raw ||
+    "this pick";
+
+  if (!confirm(`Delete "${label}" permanently?`)) return;
+  picks.splice(index, 1);
+}
+
 
   /* ===== BACK TO PENDING ===== */
   if (action === "pending") {
