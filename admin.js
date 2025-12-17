@@ -180,6 +180,15 @@ document.addEventListener("DOMContentLoaded", () => {
       loadPlayers();
     };
   }
+  
+const closeValidateBtn = document.getElementById("close-validate-btn");
+if (closeValidateBtn) {
+  closeValidateBtn.addEventListener("click", () => {
+    document
+      .getElementById("validate-picks-modal")
+      .classList.add("hidden");
+  });
+}
 
 });
 
