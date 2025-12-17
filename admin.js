@@ -1,7 +1,6 @@
 import { auth, db } from "./firebase.js";
 
 /* ========= AUTH ========= */
-
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -9,7 +8,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 /* ========= FIRESTORE ========= */
-
 import {
   doc,
   getDoc,
@@ -37,12 +35,6 @@ function parseToISO(input) {
   return `${y}-${mth.padStart(2, "0")}-${d.padStart(2, "0")}`;
 }
 
-function isoToDisplay(iso) {
-  if (!iso) return "";
-  const [y, m, d] = iso.split("-");
-  return `${d}-${m}-${y}`;
-}
-
 /* =====================================================
    DOM + AUTH
 ===================================================== */
@@ -59,38 +51,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("password");
 
   async function handleLogin() {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!email || !password) {
+    if (!emailInput.value || !passwordInput.value) {
       errorEl.textContent = "Please enter email and password";
       return;
     }
 
-    errorEl.textContent = "";
-
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(
+        auth,
+        emailInput.value.trim(),
+        passwordInput.value
+      );
     } catch {
       errorEl.textContent = "Login failed";
     }
   }
 
-  loginBtn.addEventListener("click", handleLogin);
+  loginBtn.onclick = handleLogin;
+  emailInput.onkeydown = passwordInput.onkeydown = e => {
+    if (e.key === "Enter") handleLogin();
+  };
 
-  function onEnter(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleLogin();
-    }
-  }
-
-  emailInput.addEventListener("keydown", onEnter);
-  passwordInput.addEventListener("keydown", onEnter);
-
-  logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-  });
+  logoutBtn.onclick = () => signOut(auth);
 
   onAuthStateChanged(auth, async user => {
     if (!user) {
@@ -99,11 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const adminRef = doc(db, "admins", user.email);
-    const snap = await getDoc(adminRef);
-
+    const snap = await getDoc(doc(db, "admins", user.email));
     if (!snap.exists() || snap.data().active !== true) {
-      errorEl.textContent = "Not authorized";
       await signOut(auth);
       return;
     }
@@ -123,20 +102,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function setupTabs() {
   document.querySelectorAll("#admin-tabs button").forEach(btn => {
-    btn.addEventListener("click", () => {
-
+    btn.onclick = () => {
       document.querySelectorAll("#admin-tabs button")
         .forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      const tab = btn.dataset.tab;
-
       document.querySelectorAll(".tab-content")
-        .forEach(c => (c.style.display = "none"));
+        .forEach(c => c.style.display = "none");
 
-      const el = document.getElementById(`tab-${tab}`);
-      if (el) el.style.display = "block";
-    });
+      document.getElementById(`tab-${btn.dataset.tab}`).style.display = "block";
+    };
   });
 
   document.querySelector('[data-tab="players"]').click();
@@ -149,282 +124,178 @@ function setupTabs() {
 async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
   const tbody = document.querySelector("#players-table tbody");
-  if (!tbody) return;
-
   tbody.innerHTML = "";
 
   snap.forEach(docu => {
-    const player = docu.data();
-    const entry = player.entries?.["2026"];
-    const picks = entry?.picks || [];
+    const p = docu.data();
+    const picks = p.entries?.["2026"]?.picks || [];
 
-    let approved = 0;
-    let pending = 0;
-    let rejected = 0;
-
-    picks.forEach(p => {
-      if (p.status === "approved") approved++;
-      else if (p.status === "rejected") rejected++;
+    let approved = 0, pending = 0, rejected = 0;
+    picks.forEach(x => {
+      if (x.status === "approved") approved++;
+      else if (x.status === "rejected") rejected++;
       else pending++;
     });
 
-    const tr = document.createElement("tr");
-    if (player.active === false) tr.style.opacity = "0.5";
-
-    tr.innerHTML = `
-      <td>${player.name}</td>
-      <td>${approved}</td>
-      <td>${pending}</td>
-      <td>${rejected}</td>
-      <td>
-        <button class="validate-btn" data-id="${docu.id}">
-          Validate
-        </button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
+    tbody.innerHTML += `
+      <tr style="${p.active === false ? "opacity:.5" : ""}">
+        <td>${p.name}</td>
+        <td>${approved}</td>
+        <td>${pending}</td>
+        <td>${rejected}</td>
+        <td><button class="validate-btn" data-id="${docu.id}">Validate</button></td>
+      </tr>`;
   });
 
-  document.querySelectorAll(".validate-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      openValidateModal(btn.dataset.id);
-    });
-  });
+  document.querySelectorAll(".validate-btn").forEach(b =>
+    b.onclick = () => openValidateModal(b.dataset.id)
+  );
 }
 
 /* =====================================================
    VALIDATE PICKS
 ===================================================== */
 
+let currentValidatePlayerId = null;
+
 async function openValidateModal(playerId) {
+  currentValidatePlayerId = playerId;
+
   const snap = await getDoc(doc(db, "players", playerId));
-  if (!snap.exists()) return;
-
-  const modal = document.getElementById("validate-picks-modal");
-  const tbody = document.querySelector("#validate-picks-table tbody");
-
   const picks = snap.data().entries["2026"].picks || [];
+
+  const order = { approved: 0, pending: 1, rejected: 2 };
+  picks.sort((a, b) => order[a.status] - order[b.status]);
+
+  const tbody = document.querySelector("#validate-picks-table tbody");
   tbody.innerHTML = "";
 
-  picks
-    .sort((a, b) =>
-      ["approved", "pending", "rejected"].indexOf(a.status) -
-      ["approved", "pending", "rejected"].indexOf(b.status)
-    )
-    .forEach((pick, index) => {
-
-      const tr = document.createElement("tr");
-      if (pick.status === "rejected") tr.style.opacity = "0.4";
-
-      tr.innerHTML = `
-        <td>${pick.name}</td>
+  picks.forEach((pick, i) => {
+    tbody.innerHTML += `
+      <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
+        <td>
+          <input type="text" value="${pick.normalizedName || pick.raw || ""}"
+                 data-i="${i}" class="name-input">
+        </td>
         <td>
           <input type="date" value="${pick.birthDate || ""}"
-                 data-index="${index}">
+                 data-i="${i}" class="date-input">
         </td>
         <td>${pick.status}</td>
         <td>
-          <button data-action="approve" data-index="${index}">
-            Approve
-          </button>
-          <button data-action="reject" data-index="${index}">
-            Reject
-          </button>
+          <button data-i="${i}" data-a="approve">Approve</button>
+          <button data-i="${i}" data-a="reject">Reject</button>
         </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
-
-  tbody.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      handlePickAction(
-        playerId,
-        btn.dataset.action,
-        btn.dataset.index
-      );
-    });
+      </tr>`;
   });
 
-  modal.classList.remove("hidden");
+  tbody.querySelectorAll("button").forEach(b =>
+    b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
+  );
+
+  document.getElementById("validate-picks-modal").classList.remove("hidden");
 }
 
-async function handlePickAction(playerId, action, index) {
-  const ref = doc(db, "players", playerId);
+async function handlePickAction(index, action) {
+  const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   const picks = snap.data().entries["2026"].picks;
 
-  const input = document.querySelector(
-    `input[data-index="${index}"]`
+  const name = document.querySelector(`.name-input[data-i="${index}"]`).value.trim();
+  const iso = parseToISO(
+    document.querySelector(`.date-input[data-i="${index}"]`).value
   );
 
-  const iso = parseToISO(input.value);
-
   if (action === "approve") {
-    if (!iso) {
-      alert("Birth date required");
-      return;
-    }
+    if (!name || !iso) return alert("Name and birth date required");
 
     const q = query(
       collection(db, "people"),
-      where("name", "==", picks[index].name),
+      where("name", "==", name),
       where("birthDate", "==", iso)
     );
 
     const existing = await getDocs(q);
-
     let personId;
+
     if (existing.empty) {
-      const newDoc = await addDoc(collection(db, "people"), {
-        name: picks[index].name,
+      personId = (await addDoc(collection(db, "people"), {
+        name,
         birthDate: iso
-      });
-      personId = newDoc.id;
+      })).id;
     } else {
       personId = existing.docs[0].id;
     }
 
-    picks[index].status = "approved";
-    picks[index].birthDate = iso;
-    picks[index].personId = personId;
+    picks[index] = {
+      ...picks[index],
+      normalizedName: name,
+      birthDate: iso,
+      personId,
+      status: "approved"
+    };
   }
 
   if (action === "reject") {
     picks[index].status = "rejected";
   }
 
-  await updateDoc(ref, {
-    "entries.2026.picks": picks
-  });
+  await updateDoc(ref, { "entries.2026.picks": picks });
 
-  openValidateModal(playerId);
+  openValidateModal(currentValidatePlayerId);
   loadPlayers();
 }
 
-document.getElementById("close-validate-btn")
-  ?.addEventListener("click", () => {
-    document.getElementById("validate-picks-modal")
-      .classList.add("hidden");
-  });
+document.getElementById("close-validate-btn").onclick =
+  () => document.getElementById("validate-picks-modal").classList.add("hidden");
 
 /* =====================================================
-   PEOPLE (UÆNDRET LOGIK)
+   PEOPLE (UÆNDRET)
 ===================================================== */
 
 let currentPersonId = null;
-let cachedPeopleNames = [];
 
 async function loadPeople() {
   const snap = await getDocs(collection(db, "people"));
   const tbody = document.querySelector("#people-table tbody");
-  if (!tbody) return;
-
   tbody.innerHTML = "";
-  cachedPeopleNames = [];
 
-  snap.forEach(docu => {
-    const p = docu.data();
-    cachedPeopleNames.push(p.name);
-
-    const tr = document.createElement("tr");
-    const hasBirth = !!p.birthDate;
-
-    tr.innerHTML = `
-      <td>${p.name}</td>
-      <td>${p.birthDate || "—"}</td>
-      <td>${hasBirth ? "OK" : "Missing birth date"}</td>
-      <td>
-        <button class="edit-person" data-id="${docu.id}">Edit</button>
-        <button class="delete-person" data-id="${docu.id}">Delete</button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-
-  wirePeopleActions();
-}
-
-/* ---------- People actions ---------- */
-
-document.getElementById("add-person-btn")
-  ?.addEventListener("click", async () => {
-
-    const name = document.getElementById("new-person-name").value.trim();
-    const birthDate = document.getElementById("new-person-birthdate").value;
-
-    if (!name) return alert("Name is required");
-
-    await addDoc(collection(db, "people"), {
-      name,
-      birthDate: birthDate || ""
-    });
-
-    document.getElementById("new-person-name").value = "";
-    document.getElementById("new-person-birthdate").value = "";
-
-    loadPeople();
-  });
-
-function wirePeopleActions() {
-  document.querySelectorAll(".edit-person").forEach(btn => {
-    btn.onclick = () => openEditPerson(btn.dataset.id);
-  });
-
-  document.querySelectorAll(".delete-person").forEach(btn => {
-    btn.onclick = async () => {
-      if (!confirm("Delete this person permanently?")) return;
-      await deleteDoc(doc(db, "people", btn.dataset.id));
-      loadPeople();
-    };
+  snap.forEach(d => {
+    const p = d.data();
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.birthDate || "—"}</td>
+        <td>${p.birthDate ? "OK" : "Missing"}</td>
+        <td>
+          <button onclick="openEditPerson('${d.id}')">Edit</button>
+          <button onclick="deletePerson('${d.id}')">Delete</button>
+        </td>
+      </tr>`;
   });
 }
 
-async function openEditPerson(id) {
-  const ref = doc(db, "people", id);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
+window.deletePerson = async id => {
+  if (!confirm("Delete permanently?")) return;
+  await deleteDoc(doc(db, "people", id));
+  loadPeople();
+};
 
-  const p = snap.data();
+window.openEditPerson = async id => {
+  const snap = await getDoc(doc(db, "people", id));
   currentPersonId = id;
 
-  document.getElementById("edit-person-name").value = p.name;
-  document.getElementById("edit-person-birthdate").value = p.birthDate || "";
-  document.getElementById("person-warning").style.display = "none";
+  document.getElementById("edit-person-name").value = snap.data().name;
+  document.getElementById("edit-person-birthdate").value = snap.data().birthDate || "";
+  document.getElementById("edit-person-modal").classList.remove("hidden");
+};
 
-  document.getElementById("edit-person-modal")
-    .classList.remove("hidden");
-}
-
-document.getElementById("cancel-person-btn")
-  ?.addEventListener("click", () => {
-    document.getElementById("edit-person-modal")
-      .classList.add("hidden");
-    currentPersonId = null;
+document.getElementById("save-person-btn").onclick = async () => {
+  await updateDoc(doc(db, "people", currentPersonId), {
+    name: document.getElementById("edit-person-name").value.trim(),
+    birthDate: document.getElementById("edit-person-birthdate").value
   });
 
-document.getElementById("save-person-btn")
-  ?.addEventListener("click", async () => {
-
-    const name = document.getElementById("edit-person-name").value.trim();
-    const birthDate = document.getElementById("edit-person-birthdate").value;
-    const warning = document.getElementById("person-warning");
-
-    if (!name) {
-      warning.textContent = "Name is required";
-      warning.style.display = "block";
-      return;
-    }
-
-    await updateDoc(doc(db, "people", currentPersonId), {
-      name,
-      birthDate
-    });
-
-    document.getElementById("edit-person-modal")
-      .classList.add("hidden");
-
-    loadPeople();
-  });
+  document.getElementById("edit-person-modal").classList.add("hidden");
+  loadPeople();
+};
