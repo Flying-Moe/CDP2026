@@ -147,6 +147,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // =========================
+  // ADD PLAYER (KORREKT PLACERET)
+  // =========================
+  const addPlayerBtn = document.getElementById("add-player-btn");
+  if (addPlayerBtn) {
+    addPlayerBtn.onclick = async () => {
+      const input = document.getElementById("new-player-name");
+      const name = input.value.trim();
+
+      if (!name) {
+        alert("Player name required");
+        return;
+      }
+
+      await addDoc(collection(db, "players"), {
+        name,
+        active: true,
+        locked: false,
+        score: 0,
+        scoreHistory: [],
+        firstBlood: false,
+        entries: {
+          "2026": {
+            picks: []
+          }
+        },
+        createdAt: new Date().toISOString()
+      });
+
+      input.value = "";
+      loadPlayers();
+    };
+  }
+
 });
 
 /* =====================================================
@@ -231,37 +265,6 @@ async function loadPlayers() {
   document.querySelectorAll(".undo-minus-btn").forEach(b =>
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
-}
-
-const addPlayerBtn = document.getElementById("add-player-btn");
-if (addPlayerBtn) {
-  addPlayerBtn.onclick = async () => {
-    const input = document.getElementById("new-player-name");
-    const name = input.value.trim();
-
-    if (!name) {
-      alert("Player name required");
-      return;
-    }
-
-    await addDoc(collection(db, "players"), {
-      name,
-      active: true,
-      locked: false,
-      score: 0,
-      scoreHistory: [],
-      firstBlood: false,
-      entries: {
-        "2026": {
-          picks: []
-        }
-      },
-      createdAt: new Date().toISOString()
-    });
-
-    input.value = "";
-    loadPlayers();
-  };
 }
 
 /* =====================================================
