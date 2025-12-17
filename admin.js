@@ -288,18 +288,20 @@ async function openValidateModal(playerId) {
 picks.forEach((pick, i) => {
   let actions = "";
 
-  if (pick.status === "pending") {
-    actions = `
-      <button data-i="${i}" data-a="approve">Approve</button>
-      <button data-i="${i}" data-a="reject">Reject</button>
-    `;
-  }
+if (pick.status === "pending") {
+  actions = `
+    <button data-i="${i}" data-a="approve">Approve</button>
+    <button data-i="${i}" data-a="reject">Reject</button>
+    <button data-i="${i}" data-a="delete">Delete</button>
+  `;
+}
 
-  if (pick.status === "rejected") {
-    actions = `
-      <button data-i="${i}" data-a="pending">Back to pending</button>
-    `;
-  }
+if (pick.status === "rejected") {
+  actions = `
+    <button data-i="${i}" data-a="pending">Back to pending</button>
+    <button data-i="${i}" data-a="delete">Delete</button>
+  `;
+}
 
   tbody.innerHTML += `
     <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
@@ -378,17 +380,40 @@ async function handlePickAction(index, action) {
 
   const picks = snap.data().entries["2026"].picks;
 
-const nameInput = document.querySelector(
-  `.name-input[data-i="${index}"]`
-);
-const dateInput = document.querySelector(
-  `.date-input[data-i="${index}"]`
-);
+  /* ===== DELETE ===== */
+  if (action === "delete") {
+    if (!confirm("Delete this pick permanently?")) return;
+    picks.splice(index, 1);
+  }
 
-const name = nameInput ? nameInput.value.trim() : "";
-const iso  = dateInput ? parseToISO(dateInput.value) : "";
+  /* ===== BACK TO PENDING ===== */
+  if (action === "pending") {
+    picks[index].status = "pending";
+  }
 
+  /* ===== REJECT ===== */
+  if (action === "reject") {
+    picks[index].status = "rejected";
+  }
+
+  /* ===== APPROVE ===== */
   if (action === "approve") {
+    const approvedCount = picks.filter(p => p.status === "approved").length;
+    if (approvedCount >= 20) {
+      alert("This player already has 20 approved picks");
+      return;
+    }
+
+    const nameInput = document.querySelector(
+      `.name-input[data-i="${index}"]`
+    );
+    const dateInput = document.querySelector(
+      `.date-input[data-i="${index}"]`
+    );
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    const iso  = dateInput ? parseToISO(dateInput.value) : "";
+
     if (!name || !iso) {
       alert("Name and birth date required");
       return;
@@ -421,14 +446,7 @@ const iso  = dateInput ? parseToISO(dateInput.value) : "";
     };
   }
 
-  if (action === "reject") {
-    picks[index].status = "rejected";
-  }
-  
-if (action === "pending") {
-  picks[index].status = "pending";
-}
-
+  /* ===== SAVE ===== */
   await updateDoc(ref, {
     "entries.2026.picks": picks
   });
