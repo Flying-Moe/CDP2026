@@ -20,9 +20,9 @@ import {
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* -----------------------
+/* =====================================================
    DOM + AUTH
------------------------- */
+===================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -88,13 +88,42 @@ document.addEventListener("DOMContentLoaded", () => {
     loginSection.style.display = "none";
     adminSection.style.display = "block";
 
+    setupTabs();
+    loadPlayers();
     loadPeople();
   });
 });
 
-/* -----------------------
+/* =====================================================
+   TABS
+===================================================== */
+
+function setupTabs() {
+  document.querySelectorAll("#admin-tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll("#admin-tabs button")
+        .forEach(b => b.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      const tab = btn.dataset.tab;
+      document
+        .querySelectorAll(".tab-content")
+        .forEach(c => (c.style.display = "none"));
+
+      const el = document.getElementById(`tab-${tab}`);
+      if (el) el.style.display = "block";
+    });
+  });
+
+  // Default = Players
+  document.querySelector('[data-tab="players"]').click();
+}
+
+/* =====================================================
    PLAYERS – OVERBLIK
------------------------- */
+===================================================== */
 
 async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
@@ -111,18 +140,12 @@ async function loadPlayers() {
     let pending = 0;
     let rejected = 0;
 
-    // === NY STRUKTUR ===
     if (entry?.picks && Array.isArray(entry.picks)) {
       entry.picks.forEach(p => {
         if (p.status === "approved") approved++;
         else if (p.status === "rejected") rejected++;
         else pending++;
       });
-    }
-
-    // === GAMMEL STRUKTUR (fallback) ===
-    else if (entry?.lists?.initial) {
-      pending = entry.lists.initial.length;
     }
 
     const tr = document.createElement("tr");
@@ -133,12 +156,12 @@ async function loadPlayers() {
 
     tr.innerHTML = `
       <td>${player.name}</td>
-      <td>${approved} / 20</td>
+      <td>${approved}</td>
       <td>${pending}</td>
       <td>${rejected}</td>
       <td>
         <button class="validate-btn" data-id="${docu.id}">
-          Validate picks
+          Validate
         </button>
       </td>
     `;
@@ -153,17 +176,14 @@ function wireValidateButtons() {
   document.querySelectorAll(".validate-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const playerId = btn.dataset.id;
-      console.log("Validate picks for player:", playerId);
-
-      // NÆSTE TRIN:
-      // Åbn Validate Picks-modal for denne player
+      console.log("TODO: open validate modal for player", playerId);
     });
   });
 }
 
-/* -----------------------
+/* =====================================================
    PEOPLE
------------------------- */
+===================================================== */
 
 let currentPersonId = null;
 let cachedPeopleNames = [];
@@ -180,9 +200,8 @@ async function loadPeople() {
     const p = docu.data();
     cachedPeopleNames.push(p.name);
 
-    const tr = document.createElement("tr");
-
     const hasBirth = !!p.birthDate;
+    const tr = document.createElement("tr");
 
     tr.innerHTML = `
       <td>${p.name}</td>
@@ -202,25 +221,27 @@ async function loadPeople() {
 
 /* ---------- Add person ---------- */
 
-document.getElementById("add-person-btn")?.addEventListener("click", async () => {
-  const name = document.getElementById("new-person-name").value.trim();
-  const birthDate = document.getElementById("new-person-birthdate").value;
+document.getElementById("add-person-btn")
+  ?.addEventListener("click", async () => {
 
-  if (!name) {
-    alert("Name is required");
-    return;
-  }
+    const name = document.getElementById("new-person-name").value.trim();
+    const birthDate = document.getElementById("new-person-birthdate").value;
 
-  await addDoc(collection(db, "people"), {
-    name,
-    birthDate: birthDate || ""
+    if (!name) {
+      alert("Name is required");
+      return;
+    }
+
+    await addDoc(collection(db, "people"), {
+      name,
+      birthDate: birthDate || ""
+    });
+
+    document.getElementById("new-person-name").value = "";
+    document.getElementById("new-person-birthdate").value = "";
+
+    loadPeople();
   });
-
-  document.getElementById("new-person-name").value = "";
-  document.getElementById("new-person-birthdate").value = "";
-
-  loadPeople();
-});
 
 /* ---------- Edit / Delete ---------- */
 
@@ -255,19 +276,21 @@ async function openEditPerson(id) {
   document.getElementById("edit-person-birthdate").value = p.birthDate || "";
   document.getElementById("person-warning").style.display = "none";
 
-  document.getElementById("edit-person-modal").classList.remove("hidden");
+  document.getElementById("edit-person-modal")
+    .classList.remove("hidden");
 }
 
 function closeEditPerson() {
-  document.getElementById("edit-person-modal").classList.add("hidden");
+  document.getElementById("edit-person-modal")
+    .classList.add("hidden");
   currentPersonId = null;
 }
 
 document.getElementById("cancel-person-btn")
-  .addEventListener("click", closeEditPerson);
+  ?.addEventListener("click", closeEditPerson);
 
 document.getElementById("save-person-btn")
-  .addEventListener("click", async () => {
+  ?.addEventListener("click", async () => {
 
     const name = document.getElementById("edit-person-name").value.trim();
     const birthDate = document.getElementById("edit-person-birthdate").value;
