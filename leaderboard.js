@@ -1,98 +1,137 @@
-console.log("Leaderboard loaded");
+console.log("Leaderboard loaded (Firestore)");
 
-async function loadJSON(path) {
-  const res = await fetch(path);
-  return res.json();
-}
+import { db } from "./firebase.js";
 
-function getActiveList(entry) {
-  if (entry.lists.july && entry.lists.july.length > 0) {
-    return entry.lists.july;
-  }
-  return entry.lists.initial;
-}
+import {
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function calculateAgeAtDeath(birthDate, deathDate) {
-  const b = new Date(birthDate);
-  const d = new Date(deathDate);
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function calculateAgeAtDeath(birthISO, deathISO) {
+  const b = new Date(birthISO);
+  const d = new Date(deathISO);
+
   let age = d.getFullYear() - b.getFullYear();
   const m = d.getMonth() - b.getMonth();
+
   if (m < 0 || (m === 0 && d.getDate() < b.getDate())) {
     age--;
   }
   return age;
 }
 
-function calculatePoints(age, scoring) {
-  if (age >= scoring.minAgeForMinPoints) {
-    return scoring.minPoints;
-  }
-  return scoring.base - age;
+function calculatePoints(age) {
+  if (age >= 99) return 1;
+  return Math.max(1, 100 - age);
 }
 
+/* =====================================================
+   LOAD + RENDER LEADERBOARD
+===================================================== */
+
 async function renderLeaderboard() {
-  const people = await loadJSON("data/people.json");
-  const players = await loadJSON("data/players.json");
-  const deaths = await loadJSON("data/deaths.json");
-  const config = await loadJSON("data/config.json");
 
-  const peopleMap = Object.fromEntries(
-    people.map(p => [p.id, p])
+  const playersSnap = await getDocs(collection(db, "players"));
+  const peopleSnap = await getDocs(collection(db, "people"));
+  const deathsSnap = await getDocs(
+    query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  const deathMap = Object.fromEntries(
-    deaths.map(d => [d.personId, d])
-  );
+  /* ---------- Maps ---------- */
+
+  const peopleMap = {};
+  peopleSnap.forEach(d => {
+    peopleMap[d.id] = d.data();
+  });
+
+  const deathsByPlayer = {};
+  deathsSnap.forEach(d => {
+    const death = d.data();
+    if (!deathsByPlayer[death.playerId]) {
+      deathsByPlayer[death.playerId] = [];
+    }
+    deathsByPlayer[death.playerId].push(death);
+  });
+
+  /* ---------- Calculate results ---------- */
 
   const results = [];
 
-  players.forEach(player => {
-    const entry = player.entries["2026"];
-    if (!entry) return;
+  playersSnap.forEach(pDoc => {
+    const p = pDoc.data();
+    if (p.active === false) return;
 
-    const activeList = getActiveList(entry);
-    let points = 0;
+    let points = p.score || 0;
     let hits = 0;
 
-    activeList.forEach(pid => {
-      const death = deathMap[pid];
-      if (!death || !death.approved) return;
+    const playerDeaths = deathsByPlayer[pDoc.id] || [];
 
-      const person = peopleMap[pid];
-      if (!person) return;
+    playerDeaths.forEach(d => {
+      const person = peopleMap[d.personId];
+      if (!person || !person.birthDate) return;
 
       const age = calculateAgeAtDeath(
         person.birthDate,
-        death.deathDate
+        d.dateOfDeath
       );
 
-      points += calculatePoints(age, config.scoring);
+      points += calculatePoints(age);
       hits++;
     });
 
-    results.push({ name: player.name, points, hits });
+    results.push({
+      id: pDoc.id,
+      name: p.name,
+      points,
+      hits,
+      firstBlood: p.firstBlood === true
+    });
   });
+
+  /* ---------- Sort ---------- */
 
   results.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
-    return b.hits - a.hits;
+    if (b.hits !== a.hits) return b.hits - a.hits;
+    return 0;
   });
+
+  /* ---------- Render ---------- */
 
   const tbody = document.querySelector("#leaderboard tbody");
   tbody.innerHTML = "";
 
-  results.forEach((r, i) => {
+  results.forEach((r, index) => {
     const tr = document.createElement("tr");
-    if (i === 0 && r.points > 0) tr.classList.add("leader");
+
+    if (index === 0 && r.points > 0) {
+      tr.classList.add("leader");
+    }
 
     tr.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${r.name}</td>
+      <td>${index + 1}</td>
+      <td>
+        ${r.name}
+        ${r.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
+      </td>
       <td>${r.points}</td>
       <td>${r.hits}</td>
     `;
+
     tbody.appendChild(tr);
   });
 }
+
+/* =====================================================
+   INIT
+===================================================== */
 
 renderLeaderboard();
