@@ -138,7 +138,9 @@ function setupTabs() {
     };
   });
 
-  document.querySelector('[data-tab="players"]').click();
+  const defaultTab = document.querySelector('[data-tab="players"]');
+if (defaultTab) defaultTab.click();
+
 }
 
 /* =====================================================
@@ -148,7 +150,9 @@ function setupTabs() {
 async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
   const tbody = document.querySelector("#players-table tbody");
-  tbody.innerHTML = "";
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
 
   snap.forEach(docu => {
     const p = docu.data();
@@ -316,9 +320,14 @@ async function handlePickAction(index, action) {
   loadPlayers();
 }
 
-document.getElementById("close-validate-btn").onclick =
-  () => document.getElementById("validate-picks-modal")
-    .classList.add("hidden");
+const closeValidateBtn = document.getElementById("close-validate-btn");
+if (closeValidateBtn) {
+  closeValidateBtn.onclick = () => {
+    const modal = document.getElementById("validate-picks-modal");
+    if (modal) modal.classList.add("hidden");
+  };
+}
+
 
 /* =====================================================
    PEOPLE
