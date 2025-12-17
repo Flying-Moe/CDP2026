@@ -247,10 +247,14 @@ async function importPicks(rawText) {
   loadPlayers();
 }
 
-document.getElementById("import-picks-btn")?.onclick = () => {
-  const text = document.getElementById("import-picks").value;
-  importPicks(text);
-};
+const importBtn = document.getElementById("import-picks-btn");
+if (importBtn) {
+  importBtn.onclick = () => {
+    const input = document.getElementById("import-picks");
+    const text = input ? input.value : "";
+    importPicks(text);
+  };
+}
 
 /* -------- APPROVE / REJECT -------- */
 
