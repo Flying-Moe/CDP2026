@@ -285,28 +285,48 @@ async function openValidateModal(playerId) {
   const tbody = document.querySelector("#validate-picks-table tbody");
   tbody.innerHTML = "";
 
-  picks.forEach((pick, i) => {
-    tbody.innerHTML += `
-      <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
-        <td>
-          <input type="text"
-            value="${pick.normalizedName || pick.raw || ""}"
-            data-i="${i}"
-            class="name-input">
-        </td>
-        <td>
-          <input type="date"
-            value="${pick.birthDate || ""}"
-            data-i="${i}"
-            class="date-input">
-        </td>
-        <td>${pick.status}</td>
-        <td>
-          <button data-i="${i}" data-a="approve">Approve</button>
-          <button data-i="${i}" data-a="reject">Reject</button>
-        </td>
-      </tr>`;
-  });
+picks.forEach((pick, i) => {
+  let actions = "";
+
+  if (pick.status === "pending") {
+    actions = `
+      <button data-i="${i}" data-a="approve">Approve</button>
+      <button data-i="${i}" data-a="reject">Reject</button>
+    `;
+  }
+
+  if (pick.status === "rejected") {
+    actions = `
+      <button data-i="${i}" data-a="pending">Back to pending</button>
+    `;
+  }
+
+  tbody.innerHTML += `
+    <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
+      <td>
+        <input
+          type="text"
+          value="${pick.normalizedName || pick.raw || ""}"
+          data-i="${i}"
+          class="name-input"
+          ${pick.status === "approved" ? "disabled" : ""}
+        >
+      </td>
+      <td>
+        <input
+          type="date"
+          value="${pick.birthDate || ""}"
+          data-i="${i}"
+          class="date-input"
+          ${pick.status === "approved" ? "disabled" : ""}
+        >
+      </td>
+      <td>${pick.status}</td>
+      <td>${actions}</td>
+    </tr>
+  `;
+});
+
 
   tbody.querySelectorAll("button").forEach(b =>
       b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
@@ -321,14 +341,20 @@ async function importPicks(rawText) {
   if (!currentValidatePlayerId) return;
 
   const lines = splitLines(rawText);
-  if (!lines.length) return alert("No valid lines found");
+  if (!lines.length) return;
 
-  const picks = lines.map(parsePickLine);
+  const ref = doc(db, "players", currentValidatePlayerId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
 
-  await updateDoc(
-    doc(db, "players", currentValidatePlayerId),
-    { "entries.2026.picks": picks }
-  );
+  const existingPicks = snap.data().entries["2026"].picks || [];
+  const newPicks = lines.map(parsePickLine);
+
+  await updateDoc(ref, {
+    "entries.2026.picks": [...existingPicks, ...newPicks]
+  });
+
+  document.getElementById("import-picks").value = "";
 
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
@@ -352,15 +378,15 @@ async function handlePickAction(index, action) {
 
   const picks = snap.data().entries["2026"].picks;
 
-  const name = document.querySelector(
-    `.name-input[data-i="${index}"]`
-  ).value.trim();
+const nameInput = document.querySelector(
+  `.name-input[data-i="${index}"]`
+);
+const dateInput = document.querySelector(
+  `.date-input[data-i="${index}"]`
+);
 
-  const iso = parseToISO(
-    document.querySelector(
-      `.date-input[data-i="${index}"]`
-    ).value
-  );
+const name = nameInput ? nameInput.value.trim() : "";
+const iso  = dateInput ? parseToISO(dateInput.value) : "";
 
   if (action === "approve") {
     if (!name || !iso) {
@@ -398,6 +424,10 @@ async function handlePickAction(index, action) {
   if (action === "reject") {
     picks[index].status = "rejected";
   }
+  
+if (action === "pending") {
+  picks[index].status = "pending";
+}
 
   await updateDoc(ref, {
     "entries.2026.picks": picks
