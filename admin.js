@@ -362,11 +362,17 @@ async function handlePickAction(index, action) {
     picks[index].status = "rejected";
   }
 
-   "entries.2026.picks": picks });
+// Save updated picks
+await updateDoc(
+  doc(db, "players", currentValidatePlayerId),
+  {
+    "entries.2026.picks": picks
+  }
+);
 
-  openValidateModal(currentValidatePlayerId);
-  loadPlayers();
-}
+openValidateModal(currentValidatePlayerId);
+loadPlayers();
+
 
 const closeValidateBtn = document.getElementById("close-validate-btn");
 if (closeValidateBtn) {
