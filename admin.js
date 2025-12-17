@@ -274,7 +274,7 @@ async function openValidateModal(playerId) {
   });
 
   tbody.querySelectorAll("button").forEach(b =>
-    b.onclick = () => (b.dataset.i, b.dataset.a)
+      b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
   );
 
   document.getElementById("validate-picks-modal").classList.remove("hidden");
