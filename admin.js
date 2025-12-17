@@ -93,6 +93,75 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* -----------------------
+   PLAYERS – OVERBLIK
+------------------------ */
+
+async function loadPlayers() {
+  const snap = await getDocs(collection(db, "players"));
+  const tbody = document.querySelector("#players-table tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  snap.forEach(docu => {
+    const player = docu.data();
+    const entry = player.entries?.["2026"];
+
+    let approved = 0;
+    let pending = 0;
+    let rejected = 0;
+
+    // === NY STRUKTUR ===
+    if (entry?.picks && Array.isArray(entry.picks)) {
+      entry.picks.forEach(p => {
+        if (p.status === "approved") approved++;
+        else if (p.status === "rejected") rejected++;
+        else pending++;
+      });
+    }
+
+    // === GAMMEL STRUKTUR (fallback) ===
+    else if (entry?.lists?.initial) {
+      pending = entry.lists.initial.length;
+    }
+
+    const tr = document.createElement("tr");
+
+    if (player.active === false) {
+      tr.style.opacity = "0.5";
+    }
+
+    tr.innerHTML = `
+      <td>${player.name}</td>
+      <td>${approved} / 20</td>
+      <td>${pending}</td>
+      <td>${rejected}</td>
+      <td>
+        <button class="validate-btn" data-id="${docu.id}">
+          Validate picks
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  wireValidateButtons();
+}
+
+function wireValidateButtons() {
+  document.querySelectorAll(".validate-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const playerId = btn.dataset.id;
+      console.log("Validate picks for player:", playerId);
+
+      // NÆSTE TRIN:
+      // Åbn Validate Picks-modal for denne player
+    });
+  });
+}
+
+/* -----------------------
    PEOPLE
 ------------------------ */
 
