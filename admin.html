@@ -136,7 +136,13 @@
   <div class="modal-content">
 
     <h3 id="validate-title">Validate picks</h3>
-
+    
+<div
+  id="validate-stats"
+  style="margin-bottom:10px; font-weight:bold;"
+>
+</div>
+    
     <!-- ===== IMPORT SECTION ===== -->
 
     <h4>Import player list</h4>
@@ -145,12 +151,12 @@
       Nothing is overwritten. New picks are added as <em>pending</em>.
     </p>
 
-    <textarea
-      id="import-picks-text"
-      rows="6"
-      style="width:100%; font-family:monospace;"
-      placeholder="Amanda Bynes 1986&#10;Lil Dwjayne 27-09-1982&#10;Bam Margerao">
-    </textarea>
+<textarea
+  id="import-picks"
+  rows="6"
+  style="width:100%; font-family:monospace;"
+  placeholder="Amanda Bynes 1986&#10;Lil Dwayne 27-09-1982&#10;Bam Margera">
+</textarea>
 
     <br /><br />
 
@@ -163,7 +169,7 @@
     <table id="validate-picks-table">
       <thead>
         <tr>
-          <th>Pick</th>
+          <th>Name</th>
           <th>Birth date</th>
           <th>Status</th>
           <th>Actions</th>
