@@ -313,6 +313,8 @@ if (importBtn) {
 async function handlePickAction(index, action) {
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
   const picks = snap.data().entries["2026"].picks;
 
   const name = document.querySelector(
@@ -369,15 +371,6 @@ async function handlePickAction(index, action) {
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
 }
-
-const closeValidateBtn = document.getElementById("close-validate-btn");
-if (closeValidateBtn) {
-  closeValidateBtn.onclick = () => {
-    const modal = document.getElementById("validate-picks-modal");
-    if (modal) modal.classList.add("hidden");
-  };
-}
-
 
 /* =====================================================
    PEOPLE
