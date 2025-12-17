@@ -233,6 +233,37 @@ async function loadPlayers() {
   );
 }
 
+const addPlayerBtn = document.getElementById("add-player-btn");
+if (addPlayerBtn) {
+  addPlayerBtn.onclick = async () => {
+    const input = document.getElementById("new-player-name");
+    const name = input.value.trim();
+
+    if (!name) {
+      alert("Player name required");
+      return;
+    }
+
+    await addDoc(collection(db, "players"), {
+      name,
+      active: true,
+      locked: false,
+      score: 0,
+      scoreHistory: [],
+      firstBlood: false,
+      entries: {
+        "2026": {
+          picks: []
+        }
+      },
+      createdAt: new Date().toISOString()
+    });
+
+    input.value = "";
+    loadPlayers();
+  };
+}
+
 /* =====================================================
    VALIDATE PICKS + IMPORT
 ===================================================== */
