@@ -42,7 +42,7 @@ function splitLines(text) {
     .filter(Boolean);
 }
 
-function parseLine(line) {
+function parsePickLine(line) {
   const iso = parseToISO(line);
   const name = line
     .replace(/\d{1,2}[./-]\d{1,2}[./-]\d{4}/, "")
@@ -116,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupTabs();
     loadPlayers();
     loadPeople();
+    loadDeaths();
   });
 });
 
@@ -224,11 +225,10 @@ async function openValidateModal(playerId) {
     b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
   );
 
-  document.getElementById("validate-picks-modal")
-    .classList.remove("hidden");
+  document.getElementById("validate-picks-modal").classList.remove("hidden");
 }
 
-/* -------- IMPORT LIST -------- */
+/* -------- IMPORT LIST (RAW TEXT / CSV) -------- */
 
 async function importPicks(rawText) {
   if (!currentValidatePlayerId) return;
@@ -236,7 +236,7 @@ async function importPicks(rawText) {
   const lines = splitLines(rawText);
   if (!lines.length) return alert("No valid lines found");
 
-  const picks = lines.map(parseLine);
+  const picks = lines.map(parsePickLine);
 
   await updateDoc(
     doc(db, "players", currentValidatePlayerId),
@@ -317,7 +317,7 @@ document.getElementById("close-validate-btn").onclick =
     .classList.add("hidden");
 
 /* =====================================================
-   PEOPLE (UÆNDRET)
+   PEOPLE
 ===================================================== */
 
 let currentPersonId = null;
@@ -356,8 +356,7 @@ window.openEditPerson = async id => {
   document.getElementById("edit-person-birthdate").value =
     snap.data().birthDate || "";
 
-  document.getElementById("edit-person-modal")
-    .classList.remove("hidden");
+  document.getElementById("edit-person-modal").classList.remove("hidden");
 };
 
 document.getElementById("save-person-btn").onclick = async () => {
@@ -366,8 +365,17 @@ document.getElementById("save-person-btn").onclick = async () => {
     birthDate: document.getElementById("edit-person-birthdate").value
   });
 
-  document.getElementById("edit-person-modal")
-    .classList.add("hidden");
-
+  document.getElementById("edit-person-modal").classList.add("hidden");
   loadPeople();
 };
+
+/* =====================================================
+   DEATHS (KLAR STRUKTUR – LOGIK KOMMER SENERE)
+===================================================== */
+
+async function loadDeaths() {
+  const tbody = document.querySelector("#deaths-table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  // bevidst tom – validerede dødsfald kommer her
+}
