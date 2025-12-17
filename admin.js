@@ -414,48 +414,40 @@ if (importBtn) {
 
 /* -------- APPROVE / REJECT -------- */
 
-async function handlePickAction(index, action) {
+async function handlePickAction(actionId, action) {
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
-  const picks = snap.data().entries["2026"].picks;
+  const picks = snap.data().entries["2026"].picks || [];
+  const pickIndex = picks.findIndex(p => p.id === actionId);
+  if (pickIndex === -1) return;
+
+  const pick = picks[pickIndex];
 
   /* ===== DELETE ===== */
-if (action === "delete") {
-  const label =
-    picks[index].normalizedName ||
-    picks[index].raw ||
-    "this pick";
-
-  if (!confirm(`Delete "${label}" permanently?`)) return;
-  picks.splice(index, 1);
-}
-
+  if (action === "delete") {
+    if (!confirm(`Delete pick: "${pick.normalizedName || pick.raw}" ?`)) return;
+    picks.splice(pickIndex, 1);
+  }
 
   /* ===== BACK TO PENDING ===== */
   if (action === "pending") {
-    picks[index].status = "pending";
+    pick.status = "pending";
   }
 
   /* ===== REJECT ===== */
   if (action === "reject") {
-    picks[index].status = "rejected";
+    pick.status = "rejected";
   }
 
   /* ===== APPROVE ===== */
   if (action === "approve") {
-    const approvedCount = picks.filter(p => p.status === "approved").length;
-    if (approvedCount >= 20) {
-      alert("This player already has 20 approved picks");
-      return;
-    }
-
     const nameInput = document.querySelector(
-      `.name-input[data-i="${index}"]`
+      `.name-input[data-id="${actionId}"]`
     );
     const dateInput = document.querySelector(
-      `.date-input[data-i="${index}"]`
+      `.date-input[data-id="${actionId}"]`
     );
 
     const name = nameInput ? nameInput.value.trim() : "";
@@ -466,35 +458,37 @@ if (action === "delete") {
       return;
     }
 
+    let personId = pick.personId || null;
 
-    const q = query(
-      collection(db, "people"),
-      where("name", "==", name),
-      where("birthDate", "==", iso)
-    );
+    // kun opret / find person hvis der ER fødselsdato
+    if (iso) {
+      const q = query(
+        collection(db, "people"),
+        where("name", "==", name),
+        where("birthDate", "==", iso)
+      );
 
-    const existing = await getDocs(q);
-    let personId;
+      const existing = await getDocs(q);
 
-    if (existing.empty) {
-      personId = (await addDoc(collection(db, "people"), {
-        name,
-        birthDate: iso
-      })).id;
-    } else {
-      personId = existing.docs[0].id;
+      if (existing.empty) {
+        personId = (await addDoc(collection(db, "people"), {
+          name,
+          birthDate: iso
+        })).id;
+      } else {
+        personId = existing.docs[0].id;
+      }
     }
 
-    picks[index] = {
-      ...picks[index],
+    picks[pickIndex] = {
+      ...pick,
       normalizedName: name,
-      birthDate: iso,
+      birthDate: iso || "",
       personId,
       status: "approved"
     };
   }
 
-  /* ===== SAVE ===== */
   await updateDoc(ref, {
     "entries.2026.picks": picks
   });
