@@ -171,21 +171,23 @@ async function loadPlayers() {
     const minusPoints =
       (p.scoreHistory || []).filter(h => h.delta === -1).length;
 
-    tbody.innerHTML += `
-      <tr style="${p.active === false ? "opacity:.5" : ""}">
-        <td>${p.name}</td>
-        <td>${approved}</td>
-        <td>${pending}</td>
-        <td>${rejected}</td>
-          <td>
-            <button class="validate-btn" data-id="${docu.id}">Validate</button>
-            <button class="minus-btn" data-id="${docu.id}">−1</button>
-            <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-            <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
-          </td>
-      </tr>
-    `;
-  });
+tbody.innerHTML += `
+  <tr style="${p.active === false ? "opacity:.5" : ""}">
+    <td>
+      ${p.name}
+      ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
+    </td>
+    <td>${approved}</td>
+    <td>${pending}</td>
+    <td>${rejected}</td>
+    <td>
+      <button class="validate-btn" data-id="${docu.id}">Validate</button>
+      <button class="minus-btn" data-id="${docu.id}">−1</button>
+      <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+      <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
+    </td>
+  </tr>
+`;
 
   document.querySelectorAll(".firstblood-btn").forEach(b =>
   b.onclick = () => setFirstBlood(b.dataset.id)
@@ -645,21 +647,38 @@ async function undoMinusPoint(playerId) {
 ===================================================== */
 
 async function setFirstBlood(playerId) {
-  if (!confirm("Set this player as First Blood winner?")) return;
-
   const ref = doc(db, "meta", "firstBlood");
-  const existing = await getDoc(ref);
+  const snap = await getDoc(ref);
 
-  if (existing.exists()) {
-    alert("First Blood is already set");
-    return;
+  if (snap.exists()) {
+    const existing = snap.data();
+    if (existing.playerId === playerId) {
+      if (!confirm("Remove First Blood from this player?")) return;
+
+      await deleteDoc(ref);
+      await updateDoc(doc(db, "players", playerId), {
+        firstBlood: false
+      });
+
+      loadPlayers();
+      return;
+    } else {
+      if (!confirm("Change First Blood to this player instead?")) return;
+
+      await updateDoc(doc(db, "players", existing.playerId), {
+        firstBlood: false
+      });
+    }
   }
 
-await setDoc(ref, {
-  playerId,
-  setAt: new Date().toISOString()
-});
+  await setDoc(ref, {
+    playerId,
+    setAt: new Date().toISOString()
+  });
 
-  alert("First Blood set");
+  await updateDoc(doc(db, "players", playerId), {
+    firstBlood: true
+  });
+
   loadPlayers();
 }
