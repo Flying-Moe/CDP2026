@@ -70,6 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
   const errorEl = document.getElementById("login-error");
 
+  document.getElementById("validate-picks-modal")?.classList.add("hidden");
+
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
 
