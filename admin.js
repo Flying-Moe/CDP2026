@@ -152,9 +152,9 @@ if (defaultTab) defaultTab.click();
 async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
   const tbody = document.querySelector("#players-table tbody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
+  if (!tbody) return;
 
+  tbody.innerHTML = "";
 
   snap.forEach(docu => {
     const p = docu.data();
@@ -167,6 +167,9 @@ async function loadPlayers() {
       else pending++;
     });
 
+    const minusPoints =
+      (p.scoreHistory || []).filter(h => h.delta === -1).length;
+
     tbody.innerHTML += `
       <tr style="${p.active === false ? "opacity:.5" : ""}">
         <td>${p.name}</td>
@@ -174,15 +177,25 @@ async function loadPlayers() {
         <td>${pending}</td>
         <td>${rejected}</td>
         <td>
-          <button class="validate-btn" data-id="${docu.id}">
-            Validate
-          </button>
+          <button class="validate-btn" data-id="${docu.id}">Validate</button>
+          <button class="minus-btn" data-id="${docu.id}">−1</button>
+          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+          <span style="opacity:.6">(${minusPoints})</span>
         </td>
-      </tr>`;
+      </tr>
+    `;
   });
 
   document.querySelectorAll(".validate-btn").forEach(b =>
     b.onclick = () => openValidateModal(b.dataset.id)
+  );
+
+  document.querySelectorAll(".minus-btn").forEach(b =>
+    b.onclick = () => giveMinusPoint(b.dataset.id)
+  );
+
+  document.querySelectorAll(".undo-minus-btn").forEach(b =>
+    b.onclick = () => undoMinusPoint(b.dataset.id)
   );
 }
 
@@ -588,4 +601,47 @@ async function applyScore(playerId, delta) {
       }
     ]
   });
+}
+async function giveMinusPoint(playerId) {
+  if (!confirm("Give -1 point to this player?")) return;
+
+  const ref = doc(db, "players", playerId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const p = snap.data();
+
+  await updateDoc(ref, {
+    score: (p.score || 0) - 1,
+    scoreHistory: [
+      ...(p.scoreHistory || []),
+      { delta: -1, at: new Date().toISOString(), reason: "admin" }
+    ]
+  });
+
+  loadPlayers();
+}
+
+async function undoMinusPoint(playerId) {
+  const ref = doc(db, "players", playerId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const history = [...(snap.data().scoreHistory || [])];
+  const index = [...history].reverse().findIndex(h => h.delta === -1);
+
+  if (index === -1) {
+    alert("No minus point to undo");
+    return;
+  }
+
+  const realIndex = history.length - 1 - index;
+  history.splice(realIndex, 1);
+
+  await updateDoc(ref, {
+    score: (snap.data().score || 0) + 1,
+    scoreHistory: history
+  });
+
+  loadPlayers();
 }
