@@ -52,13 +52,15 @@ function parsePickLine(line) {
     .replace(/\d{4}/, "")
     .trim();
 
-  return {
-    raw: line,
-    normalizedName: name,
-    birthDate: iso || "",
-    status: "pending",
-    personId: null
-  };
+return {
+  id: crypto.randomUUID(),
+  raw: line,
+  normalizedName: name,
+  birthDate: iso || "",
+  status: "pending",
+  personId: null
+};
+
 }
 
 /* =====================================================
