@@ -279,6 +279,27 @@ async function loadPlayers() {
   document.querySelectorAll(".undo-minus-btn").forEach(b =>
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
+  document.querySelectorAll(".delete-player-btn").forEach(btn => {
+  btn.onclick = async () => {
+    if (!confirm("Deactivate this player?")) return;
+    await updateDoc(doc(db, "players", btn.dataset.id), {
+      active: false
+    });
+    loadPlayers();
+  };
+});
+
+document.querySelectorAll(".edit-player-btn").forEach(btn => {
+  btn.onclick = async () => {
+    const newName = prompt("New player name?");
+    if (!newName) return;
+    await updateDoc(doc(db, "players", btn.dataset.id), {
+      name: newName.trim()
+    });
+    loadPlayers();
+  };
+});
+
 }
 
 /* =====================================================
@@ -304,22 +325,22 @@ picks.forEach((pick, i) => {
 
 if (pick.status === "pending") {
   actions = `
-    <button data-i="${i}" data-a="approve">Approve</button>
-    <button data-i="${i}" data-a="reject">Reject</button>
-    <button data-i="${i}" data-a="delete">Delete</button>
+    <button data-id="${pick.id}" data-a="approve">Approve</button>
+    <button data-id="${pick.id}" data-a="reject">Reject</button>
+    <button data-id="${pick.id}" data-a="delete">Delete</button>
   `;
 }
 
 if (pick.status === "rejected") {
   actions = `
-    <button data-i="${i}" data-a="pending">Back to pending</button>
-    <button data-i="${i}" data-a="delete">Delete</button>
+    <button data-id="${pick.id}" data-a="pending">Back to pending</button>
+    <button data-id="${pick.id}" data-a="delete">Delete</button>
   `;
 }
   
 if (pick.status === "approved") {
   actions = `
-    <button data-i="${i}" data-a="delete">Delete</button>
+    <button data-id="${pick.id}" data-a="delete">Delete</button>
   `;
 }
 
@@ -329,7 +350,7 @@ if (pick.status === "approved") {
         <input
           type="text"
           value="${pick.normalizedName || pick.raw || ""}"
-          data-i="${i}"
+          data-id="${pick.id}"
           class="name-input"
           ${pick.status === "approved" ? "disabled" : ""}
         >
@@ -338,7 +359,7 @@ if (pick.status === "approved") {
         <input
           type="date"
           value="${pick.birthDate || ""}"
-          data-i="${i}"
+          data-id="${pick.id}"
           class="date-input"
           ${pick.status === "approved" ? "disabled" : ""}
         >
@@ -440,10 +461,11 @@ if (action === "delete") {
     const name = nameInput ? nameInput.value.trim() : "";
     const iso  = dateInput ? parseToISO(dateInput.value) : "";
 
-    if (!name || !iso) {
-      alert("Name and birth date required");
+    if (!name) {
+      alert("Name required");
       return;
     }
+
 
     const q = query(
       collection(db, "people"),
