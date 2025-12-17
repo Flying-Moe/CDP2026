@@ -230,7 +230,7 @@ tbody.innerHTML += `
   document.querySelectorAll(".undo-minus-btn").forEach(b =>
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
-}
+});
 
 /* =====================================================
    VALIDATE PICKS + IMPORT
