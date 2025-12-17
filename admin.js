@@ -324,7 +324,7 @@ async function handlePickAction(index, action) {
       `.date-input[data-i="${index}"]`
     ).value
   );
-}
+
   if (action === "approve") {
     if (!name || !iso) {
       alert("Name and birth date required");
@@ -362,17 +362,13 @@ async function handlePickAction(index, action) {
     picks[index].status = "rejected";
   }
 
-// Save updated picks
-await updateDoc(
-  doc(db, "players", currentValidatePlayerId),
-  {
+  await updateDoc(ref, {
     "entries.2026.picks": picks
-  }
-);
+  });
 
-openValidateModal(currentValidatePlayerId);
-loadPlayers();
-
+  openValidateModal(currentValidatePlayerId);
+  loadPlayers();
+}
 
 const closeValidateBtn = document.getElementById("close-validate-btn");
 if (closeValidateBtn) {
