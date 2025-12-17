@@ -274,7 +274,7 @@ async function openValidateModal(playerId) {
   });
 
   tbody.querySelectorAll("button").forEach(b =>
-    b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
+    b.onclick = () => (b.dataset.i, b.dataset.a)
   );
 
   document.getElementById("validate-picks-modal").classList.remove("hidden");
@@ -324,7 +324,7 @@ async function handlePickAction(index, action) {
       `.date-input[data-i="${index}"]`
     ).value
   );
-
+}
   if (action === "approve") {
     if (!name || !iso) {
       alert("Name and birth date required");
