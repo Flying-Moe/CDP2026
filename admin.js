@@ -176,15 +176,19 @@ async function loadPlayers() {
         <td>${approved}</td>
         <td>${pending}</td>
         <td>${rejected}</td>
-        <td>
-          <button class="validate-btn" data-id="${docu.id}">Validate</button>
-          <button class="minus-btn" data-id="${docu.id}">−1</button>
-          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-          <span style="opacity:.6">(${minusPoints})</span>
-        </td>
+          <td>
+            <button class="validate-btn" data-id="${docu.id}">Validate</button>
+            <button class="minus-btn" data-id="${docu.id}">−1</button>
+            <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+            <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
+          </td>
       </tr>
     `;
   });
+
+  document.querySelectorAll(".firstblood-btn").forEach(b =>
+  b.onclick = () => setFirstBlood(b.dataset.id)
+);
 
   document.querySelectorAll(".validate-btn").forEach(b =>
     b.onclick = () => openValidateModal(b.dataset.id)
@@ -643,5 +647,29 @@ async function undoMinusPoint(playerId) {
     scoreHistory: history
   });
 
+  loadPlayers();
+}
+
+/* =====================================================
+   SCORE ADJUSTMENTS (MINUSPOINTS)
+===================================================== */
+
+async function setFirstBlood(playerId) {
+  if (!confirm("Set this player as First Blood winner?")) return;
+
+  const ref = doc(db, "meta", "firstBlood");
+  const existing = await getDoc(ref);
+
+  if (existing.exists()) {
+    alert("First Blood is already set");
+    return;
+  }
+
+  await updateDoc(ref, {
+    playerId,
+    setAt: new Date().toISOString()
+  });
+
+  alert("First Blood set");
   loadPlayers();
 }
