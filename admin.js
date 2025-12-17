@@ -193,31 +193,32 @@ async function loadPlayers() {
       else if (x.status === "rejected") rejected++;
       else pending++;
     });
-  )}
+
     const minusPoints =
       (p.scoreHistory || []).filter(h => h.delta === -1).length;
 
-tbody.innerHTML += `
-  <tr style="${p.active === false ? "opacity:.5" : ""}">
-    <td>
-      ${p.name}
-      ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
-    </td>
-    <td>${approved}</td>
-    <td>${pending}</td>
-    <td>${rejected}</td>
-    <td>
-      <button class="validate-btn" data-id="${docu.id}">Validate</button>
-      <button class="minus-btn" data-id="${docu.id}">−1</button>
-      <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-      <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
-    </td>
-  </tr>
-`;
+    tbody.innerHTML += `
+      <tr style="${p.active === false ? "opacity:.5" : ""}">
+        <td>
+          ${p.name}
+          ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
+        </td>
+        <td>${approved}</td>
+        <td>${pending}</td>
+        <td>${rejected}</td>
+        <td>
+          <button class="validate-btn" data-id="${docu.id}">Validate</button>
+          <button class="minus-btn" data-id="${docu.id}">−1</button>
+          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+          <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
+        </td>
+      </tr>
+    `;
+  });
 
   document.querySelectorAll(".firstblood-btn").forEach(b =>
-  b.onclick = () => setFirstBlood(b.dataset.id)
-);
+    b.onclick = () => setFirstBlood(b.dataset.id)
+  );
 
   document.querySelectorAll(".validate-btn").forEach(b =>
     b.onclick = () => openValidateModal(b.dataset.id)
@@ -230,7 +231,7 @@ tbody.innerHTML += `
   document.querySelectorAll(".undo-minus-btn").forEach(b =>
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
-});
+}
 
 /* =====================================================
    VALIDATE PICKS + IMPORT
