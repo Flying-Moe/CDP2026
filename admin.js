@@ -35,6 +35,29 @@ function parseToISO(input) {
   return `${y}-${mth.padStart(2, "0")}-${d.padStart(2, "0")}`;
 }
 
+function splitLines(text) {
+  return text
+    .split(/\r?\n|,/)
+    .map(l => l.trim())
+    .filter(Boolean);
+}
+
+function parseLine(line) {
+  const iso = parseToISO(line);
+  const name = line
+    .replace(/\d{1,2}[./-]\d{1,2}[./-]\d{4}/, "")
+    .replace(/\d{4}/, "")
+    .trim();
+
+  return {
+    raw: line,
+    normalizedName: name,
+    birthDate: iso || "",
+    status: "pending",
+    personId: null
+  };
+}
+
 /* =====================================================
    DOM + AUTH
 ===================================================== */
@@ -143,7 +166,11 @@ async function loadPlayers() {
         <td>${approved}</td>
         <td>${pending}</td>
         <td>${rejected}</td>
-        <td><button class="validate-btn" data-id="${docu.id}">Validate</button></td>
+        <td>
+          <button class="validate-btn" data-id="${docu.id}">
+            Validate
+          </button>
+        </td>
       </tr>`;
   });
 
@@ -153,7 +180,7 @@ async function loadPlayers() {
 }
 
 /* =====================================================
-   VALIDATE PICKS
+   VALIDATE PICKS + IMPORT
 ===================================================== */
 
 let currentValidatePlayerId = null;
@@ -174,12 +201,16 @@ async function openValidateModal(playerId) {
     tbody.innerHTML += `
       <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
         <td>
-          <input type="text" value="${pick.normalizedName || pick.raw || ""}"
-                 data-i="${i}" class="name-input">
+          <input type="text"
+            value="${pick.normalizedName || pick.raw || ""}"
+            data-i="${i}"
+            class="name-input">
         </td>
         <td>
-          <input type="date" value="${pick.birthDate || ""}"
-                 data-i="${i}" class="date-input">
+          <input type="date"
+            value="${pick.birthDate || ""}"
+            data-i="${i}"
+            class="date-input">
         </td>
         <td>${pick.status}</td>
         <td>
@@ -193,21 +224,56 @@ async function openValidateModal(playerId) {
     b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
   );
 
-  document.getElementById("validate-picks-modal").classList.remove("hidden");
+  document.getElementById("validate-picks-modal")
+    .classList.remove("hidden");
 }
+
+/* -------- IMPORT LIST -------- */
+
+async function importPicks(rawText) {
+  if (!currentValidatePlayerId) return;
+
+  const lines = splitLines(rawText);
+  if (!lines.length) return alert("No valid lines found");
+
+  const picks = lines.map(parseLine);
+
+  await updateDoc(
+    doc(db, "players", currentValidatePlayerId),
+    { "entries.2026.picks": picks }
+  );
+
+  openValidateModal(currentValidatePlayerId);
+  loadPlayers();
+}
+
+document.getElementById("import-picks-btn")?.onclick = () => {
+  const text = document.getElementById("import-picks").value;
+  importPicks(text);
+};
+
+/* -------- APPROVE / REJECT -------- */
 
 async function handlePickAction(index, action) {
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   const picks = snap.data().entries["2026"].picks;
 
-  const name = document.querySelector(`.name-input[data-i="${index}"]`).value.trim();
+  const name = document.querySelector(
+    `.name-input[data-i="${index}"]`
+  ).value.trim();
+
   const iso = parseToISO(
-    document.querySelector(`.date-input[data-i="${index}"]`).value
+    document.querySelector(
+      `.date-input[data-i="${index}"]`
+    ).value
   );
 
   if (action === "approve") {
-    if (!name || !iso) return alert("Name and birth date required");
+    if (!name || !iso) {
+      alert("Name and birth date required");
+      return;
+    }
 
     const q = query(
       collection(db, "people"),
@@ -247,7 +313,8 @@ async function handlePickAction(index, action) {
 }
 
 document.getElementById("close-validate-btn").onclick =
-  () => document.getElementById("validate-picks-modal").classList.add("hidden");
+  () => document.getElementById("validate-picks-modal")
+    .classList.add("hidden");
 
 /* =====================================================
    PEOPLE (UÆNDRET)
@@ -286,8 +353,11 @@ window.openEditPerson = async id => {
   currentPersonId = id;
 
   document.getElementById("edit-person-name").value = snap.data().name;
-  document.getElementById("edit-person-birthdate").value = snap.data().birthDate || "";
-  document.getElementById("edit-person-modal").classList.remove("hidden");
+  document.getElementById("edit-person-birthdate").value =
+    snap.data().birthDate || "";
+
+  document.getElementById("edit-person-modal")
+    .classList.remove("hidden");
 };
 
 document.getElementById("save-person-btn").onclick = async () => {
@@ -296,6 +366,8 @@ document.getElementById("save-person-btn").onclick = async () => {
     birthDate: document.getElementById("edit-person-birthdate").value
   });
 
-  document.getElementById("edit-person-modal").classList.add("hidden");
+  document.getElementById("edit-person-modal")
+    .classList.add("hidden");
+
   loadPeople();
 };
