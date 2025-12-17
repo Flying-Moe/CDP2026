@@ -60,67 +60,91 @@ function parsePickLine(line) {
 }
 
 /* =====================================================
-   DOM + AUTH
+   DOM + AUTH (STABIL VERSION)
 ===================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  const loginSection = document.getElementById("login-section");
-  const adminSection = document.getElementById("admin-section");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const errorEl = document.getElementById("login-error");
-
-  document.getElementById("validate-picks-modal")?.classList.add("hidden");
-
-  const emailInput = document.getElementById("email");
+  const loginSection  = document.getElementById("login-section");
+  const adminSection  = document.getElementById("admin-section");
+  const loginBtn      = document.getElementById("loginBtn");
+  const logoutBtn     = document.getElementById("logoutBtn");
+  const errorEl       = document.getElementById("login-error");
+  const emailInput    = document.getElementById("email");
   const passwordInput = document.getElementById("password");
 
+  // Defensive: modal kan eksistere eller ej
+  document
+    .getElementById("validate-picks-modal")
+    ?.classList.add("hidden");
+
   async function handleLogin() {
-    if (!emailInput.value || !passwordInput.value) {
+    errorEl.textContent = "";
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
       errorEl.textContent = "Please enter email and password";
       return;
     }
 
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        emailInput.value.trim(),
-        passwordInput.value
-      );
-    } catch {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
       errorEl.textContent = "Login failed";
     }
   }
 
-  loginBtn.onclick = handleLogin;
-  emailInput.onkeydown = passwordInput.onkeydown = e => {
+  // 🔐 Login handling
+  loginBtn.addEventListener("click", handleLogin);
+
+  emailInput.addEventListener("keydown", e => {
     if (e.key === "Enter") handleLogin();
-  };
+  });
 
-  logoutBtn.onclick = () => signOut(auth);
+  passwordInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") handleLogin();
+  });
 
+  // 🔓 Logout
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth);
+  });
+
+  // 🔁 Auth state observer
   onAuthStateChanged(auth, async user => {
+
     if (!user) {
       loginSection.style.display = "block";
       adminSection.style.display = "none";
       return;
     }
 
-    const snap = await getDoc(doc(db, "admins", user.email));
-    if (!snap.exists() || snap.data().active !== true) {
+    try {
+      const snap = await getDoc(doc(db, "admins", user.email));
+
+      if (!snap.exists() || snap.data().active !== true) {
+        errorEl.textContent = "Not authorized";
+        await signOut(auth);
+        return;
+      }
+
+      // ✅ Auth OK
+      loginSection.style.display = "none";
+      adminSection.style.display = "block";
+
+      setupTabs();
+      loadPlayers();
+      loadPeople();
+      loadDeaths();
+
+    } catch (err) {
+      errorEl.textContent = "Authorization error";
       await signOut(auth);
-      return;
     }
-
-    loginSection.style.display = "none";
-    adminSection.style.display = "block";
-
-    setupTabs();
-    loadPlayers();
-    loadPeople();
-    loadDeaths();
   });
+
 });
 
 /* =====================================================
