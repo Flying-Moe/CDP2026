@@ -19,7 +19,7 @@
   <a href="admin.html" class="grim-link">Grim Reaper</a>
 </nav>
 
-<!-- ================= LOGIN (ALTID SYNLIG) ================= -->
+<!-- ================= LOGIN ================= -->
 
 <div id="login-section">
   <h2>Admin login</h2>
@@ -29,7 +29,7 @@
   <p id="login-error" style="color:red;"></p>
 </div>
 
-<!-- ================= ADMIN (SKJULT FØR LOGIN) ================= -->
+<!-- ================= ADMIN ================= -->
 
 <div id="admin-section" style="display:none;">
 
@@ -44,11 +44,32 @@
 
   <!-- ================= TABS ================= -->
 
-<div id="admin-tabs">
-  <button data-tab="players" class="active">Players</button>
-  <button data-tab="people">People</button>
-  <button data-tab="deaths">Deaths</button>
-</div>
+  <div id="admin-tabs">
+    <button data-tab="players" class="active">Players</button>
+    <button data-tab="people">People</button>
+    <button data-tab="deaths">Deaths</button>
+  </div>
+
+  <!-- ================= PLAYERS TAB ================= -->
+
+  <div id="tab-players" class="tab-content" style="display:none;">
+    <h2>Players</h2>
+
+    <table id="players-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Approved</th>
+          <th>Pending</th>
+          <th>Rejected</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- injected by admin.js -->
+      </tbody>
+    </table>
+  </div>
 
   <!-- ================= PEOPLE TAB ================= -->
 
@@ -66,9 +87,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- injected by admin.js -->
-      </tbody>
+      <tbody></tbody>
     </table>
 
     <hr />
@@ -93,28 +112,6 @@
 
   </div>
 
-  <!-- ================= PLAYERS TAB ================= -->
-
-  <div id="tab-players" class="tab-content" style="display:none;">
-    <h2>Players</h2>
-
-    <table id="players-table">
-<thead>
-  <tr>
-    <th>Name</th>
-    <th>Approved</th>
-    <th>Pending</th>
-    <th>Rejected</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-
-      <tbody>
-        <!-- injected by admin.js -->
-      </tbody>
-    </table>
-  </div>
-
   <!-- ================= DEATHS TAB ================= -->
 
   <div id="tab-deaths" class="tab-content" style="display:none;">
@@ -122,80 +119,37 @@
     <p>Approve registered deaths.</p>
   </div>
 
-  <!-- ================= EDIT PERSON MODAL ================= -->
+</div>
 
-  <div id="edit-person-modal" class="modal hidden">
-    <div class="modal-content">
-
-      <h3>Edit Person</h3>
-
-      <label>
-        Name<br />
-        <input type="text" id="edit-person-name" />
-      </label>
-
-      <br /><br />
-
-      <label>
-        Birth date (YYYY-MM-DD)<br />
-        <input type="date" id="edit-person-birthdate" />
-      </label>
-
-      <div id="person-warning"
-           style="color:red; margin-top:0.5rem; display:none;"></div>
-
-      <div class="modal-actions">
-        <button id="save-person-btn">Save</button>
-        <button id="cancel-person-btn">Cancel</button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ================= EDIT PLAYER MODAL ================= -->
-
-  <div id="edit-player-modal" class="modal hidden">
-    <div class="modal-content">
-
-      <h3>Edit Player</h3>
-
-      <label>
-        Name<br />
-        <input type="text" id="edit-player-name" />
-      </label>
-
-      <br /><br />
-
-      <label>
-        <input type="checkbox" id="edit-player-active" />
-        Active
-      </label>
-
-      <h4>Picks</h4>
-
-      <div id="pick-warning" style="color:red; display:none;"></div>
-
-      <ul id="edit-player-picks"></ul>
-
-      <select id="add-pick-select">
-        <option value="">Add person…</option>
-      </select>
-      <button id="add-pick-btn">Add</button>
-
-      <div class="modal-actions">
-        <button id="save-player-btn">Save</button>
-        <button onclick="closeEditPlayer()">Cancel</button>
-      </div>
-
-    </div>
-  </div>
-  
 <!-- ================= VALIDATE PICKS MODAL ================= -->
 
 <div id="validate-picks-modal" class="modal hidden">
   <div class="modal-content">
 
     <h3 id="validate-title">Validate picks</h3>
+
+    <!-- ===== IMPORT SECTION ===== -->
+
+    <h4>Import player list</h4>
+    <p style="font-size:0.9em; color:#666;">
+      Paste raw list (one name per line, optional birth date).  
+      Nothing is overwritten. New picks are added as <em>pending</em>.
+    </p>
+
+    <textarea
+      id="import-picks-text"
+      rows="6"
+      style="width:100%; font-family:monospace;"
+      placeholder="Amanda Bynes 1986&#10;Lil Dwjayne 27-09-1982&#10;Bam Margerao">
+    </textarea>
+
+    <br /><br />
+
+    <button id="import-picks-btn">Add as pending</button>
+
+    <hr />
+
+    <!-- ===== EXISTING PICKS ===== -->
 
     <table id="validate-picks-table">
       <thead>
@@ -206,9 +160,7 @@
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        <!-- injected by admin.js -->
-      </tbody>
+      <tbody></tbody>
     </table>
 
     <div class="modal-actions">
@@ -218,9 +170,7 @@
   </div>
 </div>
 
-</div> <!-- END admin-section -->
-
-<!-- ================= SCRIPTS & FOOTER ================= -->
+<!-- ================= SCRIPTS ================= -->
 
 <script type="module" src="admin.js"></script>
 
