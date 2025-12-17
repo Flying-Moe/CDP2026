@@ -416,15 +416,18 @@ window.openEditPerson = async id => {
   document.getElementById("edit-person-modal").classList.remove("hidden");
 };
 
-document.getElementById("save-person-btn").onclick = async () => {
-  await updateDoc(doc(db, "people", currentPersonId), {
-    name: document.getElementById("edit-person-name").value.trim(),
-    birthDate: document.getElementById("edit-person-birthdate").value
-  });
+const savePersonBtn = document.getElementById("save-person-btn");
+if (savePersonBtn) {
+  savePersonBtn.onclick = async () => {
+    await updateDoc(doc(db, "people", currentPersonId), {
+      name: document.getElementById("edit-person-name").value.trim(),
+      birthDate: document.getElementById("edit-person-birthdate").value
+    });
 
-  document.getElementById("edit-person-modal").classList.add("hidden");
-  loadPeople();
-};
+    document.getElementById("edit-person-modal").classList.add("hidden");
+    loadPeople();
+  };
+}
 
 /* =====================================================
    DEATHS – ADMIN FLOW (FULDT IMPLEMENTERET)
