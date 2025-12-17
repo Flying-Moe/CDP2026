@@ -193,7 +193,7 @@ async function loadPlayers() {
       else if (x.status === "rejected") rejected++;
       else pending++;
     });
-  }
+  )}
     const minusPoints =
       (p.scoreHistory || []).filter(h => h.delta === -1).length;
 
