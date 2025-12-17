@@ -15,6 +15,7 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  setDoc,
   deleteDoc,
   query,
   where
@@ -333,7 +334,7 @@ async function handlePickAction(index, action) {
     picks[index].status = "rejected";
   }
 
-  await updateDoc(ref, { "entries.2026.picks": picks });
+   "entries.2026.picks": picks });
 
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
@@ -400,17 +401,6 @@ document.getElementById("save-person-btn").onclick = async () => {
   document.getElementById("edit-person-modal").classList.add("hidden");
   loadPeople();
 };
-
-/* =====================================================
-   DEATHS (KLAR STRUKTUR – LOGIK KOMMER SENERE)
-===================================================== */
-
-async function loadDeaths() {
-  const tbody = document.querySelector("#deaths-table tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  // bevidst tom – validerede dødsfald kommer her
-}
 
 /* =====================================================
    DEATHS – ADMIN FLOW (FULDT IMPLEMENTERET)
@@ -665,10 +655,10 @@ async function setFirstBlood(playerId) {
     return;
   }
 
-  await updateDoc(ref, {
-    playerId,
-    setAt: new Date().toISOString()
-  });
+await setDoc(ref, {
+  playerId,
+  setAt: new Date().toISOString()
+});
 
   alert("First Blood set");
   loadPlayers();
