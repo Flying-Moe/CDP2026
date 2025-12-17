@@ -394,3 +394,198 @@ async function loadDeaths() {
   tbody.innerHTML = "";
   // bevidst tom – validerede dødsfald kommer her
 }
+
+/* =====================================================
+   DEATHS – ADMIN FLOW (FULDT IMPLEMENTERET)
+===================================================== */
+
+async function registerDeath(personId, playerId, dateOfDeathISO) {
+  await addDoc(collection(db, "deaths"), {
+    personId,
+    playerId,
+    dateOfDeath: dateOfDeathISO,
+    approved: false,
+    createdAt: new Date().toISOString()
+  });
+
+  loadDeaths();
+}
+
+/* ---------- Load deaths ---------- */
+
+async function loadDeaths() {
+  const container = document.getElementById("tab-deaths");
+  if (!container) return;
+
+  container.innerHTML = `
+    <h2>Deaths</h2>
+    <p>Approve registered deaths.</p>
+
+    <table id="deaths-table">
+      <thead>
+        <tr>
+          <th>Person</th>
+          <th>Player</th>
+          <th>Date of death</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  `;
+
+  const tbody = container.querySelector("tbody");
+  const snap = await getDocs(collection(db, "deaths"));
+
+  tbody.innerHTML = "";
+
+  for (const d of snap.docs) {
+    const death = d.data();
+
+    const personSnap = await getDoc(doc(db, "people", death.personId));
+    const playerSnap = await getDoc(doc(db, "players", death.playerId));
+
+    const personName = personSnap.exists()
+      ? personSnap.data().name
+      : "Unknown";
+
+    const playerName = playerSnap.exists()
+      ? playerSnap.data().name
+      : "Unknown";
+
+    tbody.innerHTML += `
+      <tr style="${death.approved ? "opacity:.5" : ""}">
+        <td>${personName}</td>
+        <td>${playerName}</td>
+        <td>${death.dateOfDeath}</td>
+        <td>${death.approved ? "Approved" : "Pending"}</td>
+        <td>
+          ${
+            death.approved
+              ? `<button data-id="${d.id}" class="undo-death">Undo</button>`
+              : `<button data-id="${d.id}" class="approve-death">Approve</button>`
+          }
+        </td>
+      </tr>
+    `;
+  }
+
+  container.querySelectorAll(".approve-death").forEach(btn => {
+    btn.onclick = () => approveDeath(btn.dataset.id);
+  });
+
+  container.querySelectorAll(".undo-death").forEach(btn => {
+    btn.onclick = () => undoDeath(btn.dataset.id);
+  });
+}
+
+/* ---------- Approve death ---------- */
+
+async function approveDeath(deathId) {
+  const ref = doc(db, "deaths", deathId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const death = snap.data();
+
+  const personSnap = await getDoc(doc(db, "people", death.personId));
+  if (!personSnap.exists()) return;
+
+  const birth = personSnap.data().birthDate;
+  const deathDate = new Date(death.dateOfDeath);
+  const birthDate = new Date(birth);
+
+  let age =
+    deathDate.getFullYear() -
+    birthDate.getFullYear() -
+    (deathDate <
+    new Date(
+      deathDate.getFullYear(),
+      birthDate.getMonth(),
+      birthDate.getDate()
+    )
+      ? 1
+      : 0);
+
+  let points = age >= 99 ? 1 : Math.max(1, 100 - age);
+
+  // First Blood?
+  const existingApproved = await getDocs(
+    query(collection(db, "deaths"), where("approved", "==", true))
+  );
+
+  const isFirstBlood = existingApproved.empty;
+
+  await updateDoc(ref, {
+    approved: true,
+    approvedAt: new Date().toISOString(),
+    pointsAwarded: points,
+    firstBlood: isFirstBlood
+  });
+
+  await applyScore(death.playerId, points);
+
+  if (isFirstBlood) {
+    await updateDoc(doc(db, "players", death.playerId), {
+      firstBlood: true
+    });
+  }
+
+  loadDeaths();
+  loadPlayers();
+}
+
+/* ---------- Undo death ---------- */
+
+async function undoDeath(deathId) {
+  const ref = doc(db, "deaths", deathId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const death = snap.data();
+
+  if (death.pointsAwarded) {
+    await applyScore(death.playerId, -death.pointsAwarded);
+  }
+
+  if (death.firstBlood) {
+    await updateDoc(doc(db, "players", death.playerId), {
+      firstBlood: false
+    });
+  }
+
+  await updateDoc(ref, {
+    approved: false,
+    approvedAt: null,
+    pointsAwarded: null,
+    firstBlood: false
+  });
+
+  loadDeaths();
+  loadPlayers();
+}
+
+/* =====================================================
+   SCORE ADJUSTMENTS (MINUSPOINTS)
+===================================================== */
+
+async function applyScore(playerId, delta) {
+  const ref = doc(db, "players", playerId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const p = snap.data();
+  const current = p.score || 0;
+
+  await updateDoc(ref, {
+    score: current + delta,
+    scoreHistory: [
+      ...(p.scoreHistory || []),
+      {
+        delta,
+        at: new Date().toISOString()
+      }
+    ]
+  });
+}
