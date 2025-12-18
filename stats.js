@@ -1,121 +1,185 @@
-console.log("Stats loaded");
+console.log("stats.js loaded");
 
-async function loadJSON(path) {
-  const res = await fetch(path);
-  return res.json();
-}
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function getActiveList(entry) {
-  if (entry.lists.july && entry.lists.july.length > 0) {
-    return entry.lists.july;
-  }
-  return entry.lists.initial;
-}
+/* =====================================================
+   HELPERS
+===================================================== */
 
-function calculateAgeAtDeath(birthDate, deathDate) {
-  const b = new Date(birthDate);
-  const d = new Date(deathDate);
+function calculateAge(birthISO, deathISO = null) {
+  const b = new Date(birthISO);
+  const d = deathISO ? new Date(deathISO) : new Date();
+
   let age = d.getFullYear() - b.getFullYear();
   const m = d.getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && d.getDate() < b.getDate())) {
-    age--;
-  }
+  if (m < 0 || (m === 0 && d.getDate() < b.getDate())) age--;
   return age;
 }
 
-async function renderStats() {
-  const people = await loadJSON("data/people.json");
-  const players = await loadJSON("data/players.json");
-  const deaths = await loadJSON("data/deaths.json");
-  const config = await loadJSON("data/config.json");
+function average(arr) {
+  if (!arr.length) return 0;
+  return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+}
 
-  const peopleMap = Object.fromEntries(
-    people.map(p => [p.id, p])
+/* =====================================================
+   LOAD + BUILD STATS
+===================================================== */
+
+async function renderStats() {
+  const container = document.getElementById("stats-container");
+  if (!container) return;
+
+  const playersSnap = await getDocs(
+    query(collection(db, "players"), where("active", "==", true))
+  );
+  const peopleSnap = await getDocs(collection(db, "people"));
+  const deathsSnap = await getDocs(
+    query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  // Collect all active picks
-  const allPicks = [];
-  players.forEach(player => {
-    const entry = player.entries["2026"];
-    if (!entry) return;
-    getActiveList(entry).forEach(pid => allPicks.push(pid));
+  /* ---------- Maps ---------- */
+
+  const peopleMap = {};
+  peopleSnap.forEach(d => (peopleMap[d.id] = d.data()));
+
+  const approvedDeathsByPlayer = {};
+  deathsSnap.forEach(d => {
+    const death = d.data();
+    if (!approvedDeathsByPlayer[death.playerId]) {
+      approvedDeathsByPlayer[death.playerId] = [];
+    }
+    approvedDeathsByPlayer[death.playerId].push(death);
   });
 
-  const pickCounter = {};
-  allPicks.forEach(pid => {
-    pickCounter[pid] = (pickCounter[pid] || 0) + 1;
-  });
+  const picksByPerson = {};
+  const picksByPlayer = {};
 
-  // Death statistics
-  const deathAges = [];
-  deaths.forEach(d => {
-    const person = peopleMap[d.personId];
-    if (!person) return;
-    deathAges.push(
-      calculateAgeAtDeath(person.birthDate, d.deathDate)
+  playersSnap.forEach(pDoc => {
+    const p = pDoc.data();
+    const picks = (p.entries?.["2026"]?.picks || []).filter(
+      x => x.status === "approved"
     );
+
+    picksByPlayer[pDoc.id] = picks;
+
+    picks.forEach(pick => {
+      if (!pick.personId) return;
+      if (!picksByPerson[pick.personId]) picksByPerson[pick.personId] = [];
+      picksByPerson[pick.personId].push(pDoc.id);
+    });
   });
 
-  const avgDeathAge =
-    deathAges.length > 0
-      ? (deathAges.reduce((a, b) => a + b, 0) / deathAges.length).toFixed(1)
-      : "–";
+  /* =====================================================
+     FUN STATS
+  ===================================================== */
 
-  const youngest = deathAges.length ? Math.min(...deathAges) : "–";
-  const oldest = deathAges.length ? Math.max(...deathAges) : "–";
+  // Most picked celebrity
+  const mostPicked = Object.entries(picksByPerson)
+    .map(([personId, players]) => ({
+      name: peopleMap[personId]?.name || "Unknown",
+      count: players.length
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 
-  // Missed opportunities (dead but never picked)
-  const pickedIds = new Set(allPicks);
-  const missed = deaths.filter(d => !pickedIds.has(d.personId));
+  // Youngest / oldest picks
+  let allAges = [];
+  Object.values(picksByPlayer).forEach(picks => {
+    picks.forEach(pick => {
+      const person = peopleMap[pick.personId];
+      if (person?.birthDate) {
+        allAges.push({
+          name: person.name,
+          age: calculateAge(person.birthDate)
+        });
+      }
+    });
+  });
 
-  // Most picked celebrities
-  const mostPicked = Object.entries(pickCounter)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([id, count]) => ({
-      name: peopleMap[id]?.name,
-      count
-    }));
+  const youngest = [...allAges].sort((a, b) => a.age - b.age)[0];
+  const oldest = [...allAges].sort((a, b) => b.age - a.age)[0];
 
-  const totalPlayers = players.length;
-  const totalPool = totalPlayers * config.game.entryFee;
+  /* =====================================================
+     COMPETITION STATS
+  ===================================================== */
 
-  const container = document.getElementById("stats");
+  const playerStats = [];
+
+  playersSnap.forEach(pDoc => {
+    const p = pDoc.data();
+    const picks = picksByPlayer[pDoc.id] || [];
+    const deaths = approvedDeathsByPlayer[pDoc.id] || [];
+
+    const ages = picks
+      .map(pick => peopleMap[pick.personId]?.birthDate)
+      .filter(Boolean)
+      .map(b => calculateAge(b));
+
+    playerStats.push({
+      name: p.name,
+      hits: deaths.length,
+      avgAge: average(ages),
+      totalPicks: picks.length
+    });
+  });
+
+  const mostHits = [...playerStats].sort((a, b) => b.hits - a.hits)[0];
+  const riskiest = [...playerStats].sort((a, b) => a.avgAge - b.avgAge)[0];
+  const safest = [...playerStats].sort((a, b) => b.avgAge - a.avgAge)[0];
+
+  /* =====================================================
+     RENDER
+  ===================================================== */
+
   container.innerHTML = `
-    <h2>Overview</h2>
-    <ul>
-      <li>Players: ${totalPlayers}</li>
-      <li>Celebrities in pool: ${people.length}</li>
-      <li>Total picks: ${allPicks.length}</li>
-      <li>Prize pool: ${totalPool} ${config.game.currency}</li>
-    </ul>
+    <section>
+      <h2>Fun stats</h2>
 
-    <h2>Death statistics</h2>
-    <ul>
-      <li>Confirmed deaths: ${deaths.length}</li>
-      <li>Average age at death: ${avgDeathAge}</li>
-      <li>Youngest death: ${youngest}</li>
-      <li>Oldest death: ${oldest}</li>
-    </ul>
-
-    <h2>Most picked celebrities</h2>
-    <ul>
-      ${mostPicked.length === 0
-        ? "<li>No picks yet</li>"
-        : mostPicked.map(p => `
-            <li>${p.name} (${p.count})</li>
+      <h3>Most picked celebrities</h3>
+      <table class="list-table">
+        <thead>
+          <tr><th>Name</th><th>Picked by</th></tr>
+        </thead>
+        <tbody>
+          ${mostPicked.map(x => `
+            <tr><td>${x.name}</td><td>${x.count}</td></tr>
           `).join("")}
-    </ul>
+        </tbody>
+      </table>
 
-    <h2>Missed opportunities</h2>
-    <ul>
-      ${missed.length === 0
-        ? "<li>None so far</li>"
-        : missed.map(d => `
-            <li>${peopleMap[d.personId]?.name}</li>
-          `).join("")}
-    </ul>
+      <h3>Age extremes</h3>
+      <table class="list-table">
+        <tbody>
+          <tr><td>Youngest pick</td><td>${youngest?.name || "—"} (${youngest?.age || "—"})</td></tr>
+          <tr><td>Oldest pick</td><td>${oldest?.name || "—"} (${oldest?.age || "—"})</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr />
+
+    <section>
+      <h2>Competition stats</h2>
+
+      <table class="list-table">
+        <tbody>
+          <tr><td>Most hits</td><td>${mostHits?.name || "—"} (${mostHits?.hits || 0})</td></tr>
+          <tr><td>Riskiest list</td><td>${riskiest?.name || "—"} (avg age ${riskiest?.avgAge || "—"})</td></tr>
+          <tr><td>Safest list</td><td>${safest?.name || "—"} (avg age ${safest?.avgAge || "—"})</td></tr>
+        </tbody>
+      </table>
+    </section>
   `;
 }
 
-renderStats();
+/* =====================================================
+   INIT
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", renderStats);
