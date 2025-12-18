@@ -29,65 +29,77 @@ function calculateAge(birthISO, refISO = new Date().toISOString()) {
 }
 
 /* =====================================================
-   BADGES
+   BADGE DEFINITIONS (CENTRAL)
 ===================================================== */
 
-function computeBadges(players) {
-  const out = {};
-  const give = (id, b) => (out[id] = [...(out[id] || []), b]);
-
-  const byScore = [...players].sort((a, b) => b.score - a.score);
-  if (byScore[0]?.score > 0)
-    give(byScore[0].id, { icon: "🥇", name: "Grim’s Favorite", reason: "Highest score" });
-
-  const byHits = [...players].sort((a, b) => b.hits - a.hits);
-  if (byHits[0]?.hits > 0)
-    give(byHits[0].id, { icon: "☠️", name: "The Undertaker", reason: "Most confirmed deaths" });
-
-  const withAge = players.filter(p => p.avgAge !== null);
-  if (withAge.length) {
-    give(withAge.reduce((a, b) => a.avgAge < b.avgAge ? a : b).id,
-      { icon: "🦅", name: "The Vulture", reason: "Lowest average age" });
-    give(withAge.reduce((a, b) => a.avgAge > b.avgAge ? a : b).id,
-      { icon: "🐢", name: "Pension Sniper", reason: "Highest average age" });
+const BADGES = [
+  {
+    id: "grim_favorite",
+    icon: "🥇",
+    name: "Grim’s Favorite",
+    description: "Highest total score"
+  },
+  {
+    id: "undertaker",
+    icon: "☠️",
+    name: "The Undertaker",
+    description: "Most confirmed deaths"
+  },
+  {
+    id: "vulture",
+    icon: "🦅",
+    name: "The Vulture",
+    description: "Lowest average pick age"
+  },
+  {
+    id: "pension_sniper",
+    icon: "🐢",
+    name: "The Pension Sniper",
+    description: "Highest average pick age"
+  },
+  {
+    id: "optimist",
+    icon: "🪦",
+    name: "The Optimist",
+    description: "20 approved picks, no deaths"
+  },
+  {
+    id: "glass_cannon",
+    icon: "🧨",
+    name: "Glass Cannon",
+    description: "At least 2 minus points"
+  },
+  {
+    id: "blood_thief",
+    icon: "🩸",
+    name: "Blood Thief",
+    description: "First Blood without leading"
   }
-
-  players.forEach(p => {
-    if (p.approvedCount === 20 && p.hits === 0)
-      give(p.id, { icon: "🪦", name: "The Optimist", reason: "20 picks, no deaths" });
-
-    if (p.minusPoints >= 2)
-      give(p.id, { icon: "🧨", name: "Glass Cannon", reason: "Risky strategy" });
-
-    if (p.firstBlood && p.rank > 1)
-      give(p.id, { icon: "🩸", name: "Blood Thief", reason: "First Blood without lead" });
-  });
-
-  return out;
-}
+];
 
 /* =====================================================
-   LOAD DATA
+   LOAD DATA (CACHED)
 ===================================================== */
 
-/* =====================================================
-   LOAD DATA
-===================================================== */
+let cachedPlayers = null;
+let cachedDeaths = null;
 
 async function loadData() {
+  if (cachedPlayers && cachedDeaths) {
+    return { players: cachedPlayers, deaths: cachedDeaths };
+  }
 
-  // Hent alle spillere (vi filtrerer aktive i JS)
   const playersSnap = await getDocs(collection(db, "players"));
-
-  // Hent alle godkendte deaths
   const deathsSnap = await getDocs(
     query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  // Optæl deaths pr. spiller
   const deathsByPlayer = {};
+  const uniqueDeaths = new Set();
+
   deathsSnap.forEach(d => {
     const death = d.data();
+    uniqueDeaths.add(death.personId);
     deathsByPlayer[death.playerId] =
       (deathsByPlayer[death.playerId] || 0) + 1;
   });
@@ -96,8 +108,6 @@ async function loadData() {
 
   playersSnap.forEach(pDoc => {
     const p = pDoc.data();
-
-    // Spring inaktive spillere over
     if (p.active === false) return;
 
     const picks = p.entries?.["2026"]?.picks || [];
@@ -119,83 +129,132 @@ async function loadData() {
     });
   });
 
-  // Rangér efter score
   players.sort((a, b) => b.score - a.score);
   players.forEach((p, i) => p.rank = i + 1);
 
-  return players;
+  cachedPlayers = players;
+  cachedDeaths = {
+    unique: uniqueDeaths.size,
+    total: deathsSnap.size
+  };
+
+  return { players, deaths: cachedDeaths };
 }
 
-
 /* =====================================================
-   RENDER TABS
+   COMPUTE BADGES (WITH TIES)
 ===================================================== */
 
-function renderOverall(players) {
-  const totalDeaths = players.reduce((a, b) => a + b.hits, 0);
+function computeBadges(players) {
+  const winners = {};
 
-  document.getElementById("overall-stats").innerHTML = `
+  function award(badgeId, playerIds) {
+    winners[badgeId] = playerIds;
+  }
+
+  const maxScore = Math.max(...players.map(p => p.score));
+  if (maxScore > 0)
+    award("grim_favorite", players.filter(p => p.score === maxScore).map(p => p.name));
+
+  const maxHits = Math.max(...players.map(p => p.hits));
+  if (maxHits > 0)
+    award("undertaker", players.filter(p => p.hits === maxHits).map(p => p.name));
+
+  const withAge = players.filter(p => p.avgAge !== null);
+  if (withAge.length) {
+    const minAge = Math.min(...withAge.map(p => p.avgAge));
+    const maxAge = Math.max(...withAge.map(p => p.avgAge));
+
+    award("vulture", withAge.filter(p => p.avgAge === minAge).map(p => p.name));
+    award("pension_sniper", withAge.filter(p => p.avgAge === maxAge).map(p => p.name));
+  }
+
+  award(
+    "optimist",
+    players.filter(p => p.approvedCount === 20 && p.hits === 0).map(p => p.name)
+  );
+
+  award(
+    "glass_cannon",
+    players.filter(p => p.minusPoints >= 2).map(p => p.name)
+  );
+
+  award(
+    "blood_thief",
+    players.filter(p => p.firstBlood && p.rank > 1).map(p => p.name)
+  );
+
+  return winners;
+}
+
+/* =====================================================
+   RENDER FUNCTIONS
+===================================================== */
+
+function renderOverall(players, deaths) {
+  document.getElementById("stats-overall").innerHTML = `
     <ul>
       <li>Total players: <strong>${players.length}</strong></li>
-      <li>Deaths so far: <strong>${totalDeaths}</strong> 🕯️</li>
+      <li>Deaths so far: <strong>${deaths.unique}</strong> (${deaths.total} hits)</li>
       <li>Average score: <strong>${avg(players.map(p => p.score)).toFixed(1)}</strong></li>
     </ul>
   `;
 }
 
 function renderFun(players) {
-  const mostMinus = [...players].sort((a,b)=>b.minusPoints-a.minusPoints)[0];
-  document.getElementById("fun-stats").innerHTML = `
+  const mostMinus = [...players].sort((a, b) => b.minusPoints - a.minusPoints)[0];
+  document.getElementById("stats-fun").innerHTML = `
     <ul>
-      <li>Most minus points: <strong>${mostMinus?.name}</strong> (${mostMinus?.minusPoints})</li>
-      <li>Highest potential chaos achieved ✔</li>
+      <li>Most minus points: <strong>${mostMinus?.name || "—"}</strong> (${mostMinus?.minusPoints || 0})</li>
+      <li>Drama level: ☠️☠️☠️</li>
     </ul>
   `;
 }
 
-function renderBadges(players, badges) {
-  document.getElementById("badges-stats").innerHTML =
-    players.map(p => `
-      <section class="player-list">
-        <h3>${p.name}</h3>
+function renderBadges(badgeWinners) {
+  document.getElementById("stats-badges").innerHTML = BADGES.map(b => {
+    const winners = badgeWinners[b.id] || [];
+    return `
+      <section class="badge">
+        <h3>${b.icon} ${b.name}</h3>
         ${
-          badges[p.id]?.length
-            ? badges[p.id].map(b => `<span title="${b.reason}">${b.icon}</span>`).join(" ")
-            : `<p class="muted">No badges yet</p>`
+          winners.length
+            ? `<p class="badge-desc">${b.description}</p>
+               <p class="badge-winners">${winners.join(", ")}</p>`
+            : `<p class="muted">Not yet claimed</p>`
         }
       </section>
-    `).join("");
+    `;
+  }).join("");
+}
+
+function renderHallOfFame() {
+  document.getElementById("stats-hall").innerHTML =
+    `<p class="muted">Hall of Fame will be revealed after the 2026 season.</p>`;
 }
 
 /* =====================================================
-   INIT
+   INIT + TABS
 ===================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const players = await loadData();
-  const badges = computeBadges(players);
+  const { players, deaths } = await loadData();
+  const badgeWinners = computeBadges(players);
 
-  renderOverall(players);
+  renderOverall(players, deaths);
   renderFun(players);
-  renderBadges(players, badges);
+  renderBadges(badgeWinners);
+  renderHallOfFame();
 
-document.querySelectorAll("#stats-tabs button").forEach(btn => {
-  btn.addEventListener("click", () => {
+  document.querySelectorAll("#stats-tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#stats-tabs button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
 
-    document.querySelectorAll("#stats-tabs button")
-      .forEach(b => b.classList.remove("active"));
-
-    btn.classList.add("active");
-
-    document.querySelectorAll(".stats-tab")
-      .forEach(tab => tab.style.display = "none");
-
-    const target = document.getElementById(`stats-${btn.dataset.tab}`);
-    if (target) target.style.display = "block";
+      document.querySelectorAll(".stats-tab").forEach(tab => tab.style.display = "none");
+      document.getElementById(`stats-${btn.dataset.tab}`).style.display = "block";
     });
   });
-  
-  // --- Activate default tab explicitly ---
-document.getElementById("stats-overall").style.display = "block";
 
+  document.getElementById("stats-overall").style.display = "block";
 });
