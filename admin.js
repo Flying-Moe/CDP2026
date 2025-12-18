@@ -223,10 +223,12 @@ if (defaultTab) defaultTab.click();
 
 async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
-  const tbody = document.querySelector("#players-table tbody");
-  if (!tbody) return;
 
-  tbody.innerHTML = "";
+  const activeBody = document.querySelector("#players-table tbody");
+  const inactiveBody = document.querySelector("#inactive-players-table tbody");
+
+  if (activeBody) activeBody.innerHTML = "";
+  if (inactiveBody) inactiveBody.innerHTML = "";
 
   snap.forEach(docu => {
     const p = docu.data();
@@ -239,34 +241,44 @@ async function loadPlayers() {
       else pending++;
     });
 
-    const minusPoints =
-      (p.scoreHistory || []).filter(h => h.delta === -1).length;
+    // ---------- ACTIVE PLAYERS ----------
+    if (p.active !== false && activeBody) {
+      activeBody.innerHTML += `
+        <tr>
+          <td>
+            ${p.name}
+            ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
+          </td>
+          <td>${approved}</td>
+          <td>${pending}</td>
+          <td>${rejected}</td>
+          <td>
+            <button class="validate-btn" data-id="${docu.id}">Validate</button>
+            <button class="minus-btn" data-id="${docu.id}">−1</button>
+            <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+            <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
+            <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
+            <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
+          </td>
+        </tr>
+      `;
+    }
 
-    tbody.innerHTML += `
-      <tr style="${p.active === false ? "opacity:.5" : ""}">
-        <td>
-          ${p.name}
-          ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
-        </td>
-        <td>${approved}</td>
-        <td>${pending}</td>
-        <td>${rejected}</td>
-        <td>
-          <button class="validate-btn" data-id="${docu.id}">Validate</button>
-          <button class="minus-btn" data-id="${docu.id}">−1</button>
-          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-          <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
-          <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
-          <button class="delete-player-btn" data-id="${docu.id}">Delete</button>
-
-        </td>
-      </tr>
-    `;
+    // ---------- INACTIVE PLAYERS ----------
+    if (p.active === false && inactiveBody) {
+      inactiveBody.innerHTML += `
+        <tr style="opacity:.6">
+          <td>${p.name}</td>
+          <td>
+            <button class="restore-player-btn" data-id="${docu.id}">Restore</button>
+            <button class="perma-delete-player-btn" data-id="${docu.id}">Delete permanently</button>
+          </td>
+        </tr>
+      `;
+    }
   });
 
-  document.querySelectorAll(".firstblood-btn").forEach(b =>
-    b.onclick = () => setFirstBlood(b.dataset.id)
-  );
+  // ===== ACTIVE PLAYER ACTIONS =====
 
   document.querySelectorAll(".validate-btn").forEach(b =>
     b.onclick = () => openValidateModal(b.dataset.id)
@@ -279,27 +291,39 @@ async function loadPlayers() {
   document.querySelectorAll(".undo-minus-btn").forEach(b =>
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
-  document.querySelectorAll(".delete-player-btn").forEach(btn => {
-  btn.onclick = async () => {
-    if (!confirm("Deactivate this player?")) return;
-    await updateDoc(doc(db, "players", btn.dataset.id), {
-      active: false
-    });
-    loadPlayers();
-  };
-});
 
-document.querySelectorAll(".edit-player-btn").forEach(btn => {
-  btn.onclick = async () => {
-    const newName = prompt("New player name?");
-    if (!newName) return;
-    await updateDoc(doc(db, "players", btn.dataset.id), {
-      name: newName.trim()
-    });
-    loadPlayers();
-  };
-});
+  document.querySelectorAll(".firstblood-btn").forEach(b =>
+    b.onclick = () => setFirstBlood(b.dataset.id)
+  );
 
+  document.querySelectorAll(".delete-player-btn").forEach(b =>
+    b.onclick = async () => {
+      if (!confirm("Deactivate this player?")) return;
+      await updateDoc(doc(db, "players", b.dataset.id), { active: false });
+      loadPlayers();
+    }
+  );
+
+  // ===== INACTIVE PLAYER ACTIONS =====
+
+  document.querySelectorAll(".restore-player-btn").forEach(b =>
+    b.onclick = async () => {
+      await updateDoc(doc(db, "players", b.dataset.id), { active: true });
+      loadPlayers();
+    }
+  );
+
+  document.querySelectorAll(".perma-delete-player-btn").forEach(b =>
+    b.onclick = async () => {
+      const ref = doc(db, "players", b.dataset.id);
+      const snap = await getDoc(ref);
+      const name = snap.exists() ? snap.data().name : "this player";
+
+      if (!confirm(`PERMANENTLY delete "${name}"?\nThis cannot be undone.`)) return;
+      await deleteDoc(ref);
+      loadPlayers();
+    }
+  );
 }
 
 /* =====================================================
