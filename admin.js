@@ -497,17 +497,19 @@ async function loadPeople() {
 
         let changed = false;
 
-        picks.forEach(p => {
-          if (
-            !p.personId &&
-            normalizeName(p.normalizedName || p.raw) === normalizeName(name)
-          ) {
-            p.personId = personId;
-            p.birthDate = iso;
-            p.status = "approved";
-            changed = true;
-          }
-        });
+picks.forEach(p => {
+  const sameName =
+    normalizeName(p.normalizedName || p.raw) === normalizeName(name);
+
+  if (!sameName) return;
+
+  // 🔒 Canonical rule: People.birthDate wins
+  p.personId = personId;
+  p.birthDate = iso;
+  p.status = "approved";
+  changed = true;
+});
+
 
         if (changed) {
           updateDoc(ref, {
