@@ -358,44 +358,45 @@ async function loadPeople() {
   const playersSnap = await getDocs(collection(db, "players"));
 
   /* -------------------------------------------------
-     1. Saml REAL PEOPLE (People-collection)
+     1. Collect REAL PEOPLE
   ------------------------------------------------- */
 
   const rows = [];
-  const peopleById = new Map();
+  const peopleByNormalized = new Map();
 
   peopleSnap.forEach(d => {
     const p = d.data();
-    peopleById.set(d.id, {
+    const norm = (p.nameNormalized || p.name).toLowerCase().trim();
+
+    peopleByNormalized.set(norm, {
       type: "person",
       id: d.id,
       name: p.name,
+      nameNormalized: norm,
       birthDate: p.birthDate || "",
       usedBy: 0
     });
   });
 
   /* -------------------------------------------------
-     2. Tæl brug pr. personId
+     2. Count usage (approved picks with personId)
   ------------------------------------------------- */
 
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
     picks.forEach(p => {
-      if (
-        p.status === "approved" &&
-        p.personId &&
-        peopleById.has(p.personId)
-      ) {
-        peopleById.get(p.personId).usedBy++;
+      if (p.status === "approved" && p.personId) {
+        const match = [...peopleByNormalized.values()]
+          .find(x => x.id === p.personId);
+        if (match) match.usedBy++;
       }
     });
   });
 
-  peopleById.forEach(p => rows.push(p));
+  peopleByNormalized.forEach(p => rows.push(p));
 
   /* -------------------------------------------------
-     3. Find APPROVED ORPHANS (approved picks uden personId)
+     3. Collect APPROVED ORPHANS (no personId)
   ------------------------------------------------- */
 
   const orphanMap = new Map();
@@ -407,20 +408,23 @@ async function loadPeople() {
       if (pick.status !== "approved") return;
       if (pick.personId) return;
 
-      const name = (pick.normalizedName || pick.raw || "").trim();
-      if (!name) return;
+      const rawName = (pick.normalizedName || pick.raw || "").trim();
+      if (!rawName) return;
 
-      const key = name.toLowerCase();
+      const norm = rawName.toLowerCase();
 
-      if (!orphanMap.has(key)) {
-        orphanMap.set(key, {
+      if (peopleByNormalized.has(norm)) return; // already real person
+
+      if (!orphanMap.has(norm)) {
+        orphanMap.set(norm, {
           type: "orphan",
-          name,
+          name: rawName,
+          nameNormalized: norm,
           birthDate: pick.birthDate || "",
           count: 1
         });
       } else {
-        orphanMap.get(key).count++;
+        orphanMap.get(norm).count++;
       }
     });
   });
@@ -428,7 +432,7 @@ async function loadPeople() {
   orphanMap.forEach(o => rows.push(o));
 
   /* -------------------------------------------------
-     4. Sortér alfabetisk (case-insensitive)
+     4. Sort alphabetically (case-insensitive)
   ------------------------------------------------- */
 
   rows.sort((a, b) =>
@@ -436,7 +440,7 @@ async function loadPeople() {
   );
 
   /* -------------------------------------------------
-     5. Render tabel
+     5. Render table
   ------------------------------------------------- */
 
   rows.forEach(r => {
@@ -456,10 +460,23 @@ async function loadPeople() {
       tbody.innerHTML += `
         <tr style="background:#fff4e5;">
           <td>${r.name}</td>
-          <td>${r.birthDate || "—"}</td>
+          <td>
+            <input
+              type="text"
+              class="merge-birthdate"
+              data-name="${r.nameNormalized}"
+              placeholder="DD-MM-YYYY"
+            >
+          </td>
           <td>Missing (orphan ×${r.count})</td>
           <td>
-            <em>Fix via Players → Validate</em>
+            <button
+              class="merge-orphan-btn"
+              data-name="${r.name}"
+              data-normalized="${r.nameNormalized}"
+            >
+              Merge
+            </button>
           </td>
         </tr>
       `;
@@ -483,6 +500,84 @@ async function loadPeople() {
     };
   });
 }
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest(".merge-orphan-btn");
+  if (!btn) return;
+
+  const name = btn.dataset.name;
+  const normalized = btn.dataset.normalized;
+
+  const input = document.querySelector(
+    `.merge-birthdate[data-name="${normalized}"]`
+  );
+
+  const iso = parseToISO(input?.value);
+  if (!iso) {
+    alert("Valid birth date required");
+    return;
+  }
+
+  // find existing person by normalized name
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", normalized)
+  );
+
+  const snap = await getDocs(q);
+  let personId;
+
+  if (!snap.empty) {
+    const docu = snap.docs[0];
+    personId = docu.id;
+
+    if (!docu.data().birthDate) {
+      await updateDoc(doc(db, "people", personId), {
+        birthDate: iso
+      });
+    }
+  } else {
+    personId = (
+      await addDoc(collection(db, "people"), {
+        name,
+        nameNormalized: normalized,
+        birthDate: iso
+      })
+    ).id;
+  }
+
+  // link ALL matching approved picks
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      const pNorm = (p.normalizedName || p.raw || "")
+        .toLowerCase()
+        .trim();
+
+      if (p.status === "approved" && pNorm === normalized) {
+        p.personId = personId;
+        p.birthDate = p.birthDate || iso;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      await updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  }
+
+  loadPeople();
+  loadPlayers();
+});
 
 /* =====================================================
    PEOPLE – ADD NEW (STABIL + VALIDERET)
