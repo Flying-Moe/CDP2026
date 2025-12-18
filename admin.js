@@ -433,6 +433,10 @@ async function loadPeople() {
                   <button class="fix-orphan-btn" data-name="${p.name}">
                     Fix
                   </button>
+                  <button class="delete-orphan-btn" data-name="${p.name}">
+                   Delete
+                  </button>
+
                 `
             }
           </td>
@@ -461,6 +465,35 @@ async function loadPeople() {
       const input = tbody.querySelector(
         `.orphan-date[data-name="${name}"]`
       );
+      
+tbody.querySelectorAll(".delete-orphan-btn").forEach(btn => {
+  btn.onclick = async () => {
+    const name = btn.dataset.name;
+
+    if (!confirm(`Delete ALL picks named "${name}"?`)) return;
+
+    const playersSnap = await getDocs(collection(db, "players"));
+
+    playersSnap.forEach(ps => {
+      const ref = doc(db, "players", ps.id);
+      const data = ps.data();
+      const picks = data.entries?.["2026"]?.picks || [];
+
+      const filtered = picks.filter(
+        p => normalizeName(p.normalizedName || p.raw) !== normalizeName(name)
+      );
+
+      if (filtered.length !== picks.length) {
+        updateDoc(ref, {
+          "entries.2026.picks": filtered
+        });
+      }
+    });
+
+    loadPeople();
+    loadPlayers();
+  };
+});
 
       const iso = parseFlexibleDate(input.value);
       if (!iso) {
