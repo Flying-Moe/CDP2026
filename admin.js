@@ -808,7 +808,7 @@ if (action === "approve") {
   );
 
   const rawName = nameInput?.value.trim();
-  const iso = parseToISO(dateInput?.value);
+  const iso = parseFlexibleDate(dateInput?.value);
 
   if (!rawName) {
     alert("Name required");
@@ -816,53 +816,22 @@ if (action === "approve") {
   }
 
   const normalized = normalizeName(rawName);
-  let personId = null;
+  let personId;
   let finalBirthDate = iso || "";
 
-  // 1️⃣ Exact match: name + birthdate
-  if (iso) {
-    const qExact = query(
-      collection(db, "people"),
-      where("nameNormalized", "==", normalized),
-      where("birthDate", "==", iso)
-    );
+  // 1. find existing person (normalized name)
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", normalized)
+  );
+  const snapPeople = await getDocs(q);
 
-    const exactSnap = await getDocs(qExact);
-    if (!exactSnap.empty) {
-      personId = exactSnap.docs[0].id;
-    }
-  }
-
-  // 2️⃣ Name match only → admin confirm
-  if (!personId) {
-    const qName = query(
-      collection(db, "people"),
-      where("nameNormalized", "==", normalized)
-    );
-
-    const nameSnap = await getDocs(qName);
-
-    if (!nameSnap.empty) {
-      const existing = nameSnap.docs[0];
-      const useExisting = confirm(
-        `Existing person found:\n\n` +
-        `${existing.data().name}` +
-        (existing.data().birthDate
-          ? ` (${existing.data().birthDate})`
-          : ``) +
-        `\n\nUse this person instead of creating a new one?`
-      );
-
-      if (useExisting) {
-        personId = existing.id;
-        finalBirthDate =
-          existing.data().birthDate || finalBirthDate;
-      }
-    }
-  }
-
-  // 3️⃣ Create new person if none chosen
-  if (!personId) {
+  if (!snapPeople.empty) {
+    const person = snapPeople.docs[0];
+    personId = person.id;
+    finalBirthDate = person.data().birthDate || finalBirthDate;
+  } else {
+    // create new
     personId = (
       await addDoc(collection(db, "people"), {
         name: rawName,
@@ -872,14 +841,33 @@ if (action === "approve") {
     ).id;
   }
 
-  // 4️⃣ Update pick
-  picks[index] = {
-    ...pick,
-    normalizedName: rawName,
-    birthDate: finalBirthDate,
-    personId,
-    status: "approved"
-  };
+  // 2. UPDATE ALL MATCHING PICKS (GLOBAL CONSOLIDATION)
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  playersSnap.forEach(ps => {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      if (
+        normalizeName(p.normalizedName || p.raw || "") === normalized
+      ) {
+        p.personId = personId;
+        p.birthDate = finalBirthDate;
+        p.status = "approved";
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  });
 }
 
   await updateDoc(ref, {
