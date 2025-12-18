@@ -1,3 +1,4 @@
+
 console.log("admin.js loaded");
 
 import { auth, db } from "./firebase.js";
