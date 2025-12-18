@@ -366,6 +366,57 @@ async function loadPeople() {
 }
 
 /* =====================================================
+   PEOPLE – ADD NEW (STABIL + VALIDERET)
+===================================================== */
+
+const addPersonBtn = document.getElementById("add-person-btn");
+
+if (addPersonBtn) {
+  addPersonBtn.onclick = async () => {
+    const nameInput = document.getElementById("new-person-name");
+    const dateInput = document.getElementById("new-person-birthdate");
+
+    const name = nameInput?.value.trim();
+    const rawDate = dateInput?.value.trim();
+    const iso = parseToISO(rawDate);
+
+    if (!name) {
+      alert("Name is required");
+      return;
+    }
+
+    if (!iso) {
+      alert("Birth date must be DD-MM-YYYY");
+      return;
+    }
+
+    // 🔍 undgå dubletter
+    const q = query(
+      collection(db, "people"),
+      where("name", "==", name),
+      where("birthDate", "==", iso)
+    );
+
+    const existing = await getDocs(q);
+    if (!existing.empty) {
+      alert("This person already exists");
+      return;
+    }
+
+    await addDoc(collection(db, "people"), {
+      name,
+      birthDate: iso,
+      createdAt: new Date().toISOString()
+    });
+
+    nameInput.value = "";
+    dateInput.value = "";
+
+    loadPeople();
+  };
+}
+
+/* =====================================================
    PEOPLE – EDIT / DELETE ACTIONS
 ===================================================== */
 
