@@ -603,8 +603,10 @@ async function handlePickAction(pickId, action) {
 }
 
 /* =====================================================
-   SCORE ADJUSTMENTS (MINUSPOINTS)
+   SCORE & BADGES (ADMIN)
 ===================================================== */
+
+/* ---------- GENERIC SCORE CHANGE ---------- */
 
 async function applyScore(playerId, delta) {
   const ref = doc(db, "players", playerId);
@@ -625,6 +627,9 @@ async function applyScore(playerId, delta) {
     ]
   });
 }
+
+/* ---------- ADMIN MINUS POINT ---------- */
+
 async function giveMinusPoint(playerId) {
   if (!confirm("Give -1 point to this player?")) return;
 
@@ -638,7 +643,11 @@ async function giveMinusPoint(playerId) {
     score: (p.score || 0) - 1,
     scoreHistory: [
       ...(p.scoreHistory || []),
-      { delta: -1, at: new Date().toISOString(), reason: "admin" }
+      {
+        delta: -1,
+        at: new Date().toISOString(),
+        reason: "admin"
+      }
     ]
   });
 
@@ -669,9 +678,7 @@ async function undoMinusPoint(playerId) {
   loadPlayers();
 }
 
-/* =====================================================
-   SCORE ADJUSTMENTS (MINUSPOINTS)
-===================================================== */
+/* ---------- FIRST BLOOD (LEGACY MANUAL) ---------- */
 
 async function setFirstBlood(playerId) {
   const ref = doc(db, "meta", "firstBlood");
@@ -679,6 +686,7 @@ async function setFirstBlood(playerId) {
 
   if (snap.exists()) {
     const existing = snap.data();
+
     if (existing.playerId === playerId) {
       if (!confirm("Remove First Blood from this player?")) return;
 
