@@ -95,10 +95,6 @@ table.list-table td:not(:first-child) {
    PLAYER LISTS (lists.html)
 ========================= */
 
-.player-list {
-  margin-bottom: 24px;
-}
-
 .player-list h3 {
   margin-bottom: 4px;
 }
@@ -136,7 +132,48 @@ table.list-table td:not(:first-child) {
   font-size: 0.85em;
   margin-left: 4px;
 }
+.player-list {
+  margin-bottom: 32px;
+}
 
+.player-list h2 {
+  margin-bottom: 6px;
+}
+
+table.list-table {
+  width: auto;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+table.list-table th,
+table.list-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+table.list-table th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.status-approved td {
+  opacity: 0.6;
+}
+
+.status-rejected td {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.status-pending td {
+  font-style: italic;
+}
+
+.muted {
+  color: #777;
+  font-style: italic;
+}
 /* =========================
    LEADERBOARD
 ========================= */
