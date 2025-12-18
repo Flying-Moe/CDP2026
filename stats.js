@@ -70,14 +70,21 @@ function computeBadges(players) {
    LOAD DATA
 ===================================================== */
 
+/* =====================================================
+   LOAD DATA
+===================================================== */
+
 async function loadData() {
-  const playersSnap = await getDocs(
-    query(collection(db, "players"), where("active", "==", true))
-  );
+
+  // Hent alle spillere (vi filtrerer aktive i JS)
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  // Hent alle godkendte deaths
   const deathsSnap = await getDocs(
     query(collection(db, "deaths"), where("approved", "==", true))
   );
 
+  // Optæl deaths pr. spiller
   const deathsByPlayer = {};
   deathsSnap.forEach(d => {
     const death = d.data();
@@ -89,6 +96,10 @@ async function loadData() {
 
   playersSnap.forEach(pDoc => {
     const p = pDoc.data();
+
+    // Spring inaktive spillere over
+    if (p.active === false) return;
+
     const picks = p.entries?.["2026"]?.picks || [];
     const approved = picks.filter(x => x.status === "approved");
 
@@ -108,22 +119,26 @@ async function loadData() {
     });
   });
 
+  // Rangér efter score
   players.sort((a, b) => b.score - a.score);
   players.forEach((p, i) => p.rank = i + 1);
 
   return players;
 }
 
+
 /* =====================================================
    RENDER TABS
 ===================================================== */
 
 function renderOverall(players) {
+  const totalDeaths = players.reduce((a, b) => a + b.hits, 0);
+
   document.getElementById("overall-stats").innerHTML = `
     <ul>
       <li>Total players: <strong>${players.length}</strong></li>
-      <li>Total confirmed deaths: <strong>${players.reduce((a,b)=>a+b.hits,0)}</strong></li>
-      <li>Average score: <strong>${avg(players.map(p=>p.score)).toFixed(1)}</strong></li>
+      <li>Deaths so far: <strong>${totalDeaths}</strong> 🕯️</li>
+      <li>Average score: <strong>${avg(players.map(p => p.score)).toFixed(1)}</strong></li>
     </ul>
   `;
 }
