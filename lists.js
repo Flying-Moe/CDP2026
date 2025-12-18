@@ -1,25 +1,25 @@
 console.log("lists.js loaded");
 
 import { db } from "./firebase.js";
-
 import {
   collection,
   getDocs,
   query,
-  where
+  where,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
-   LOAD + RENDER PLAYER LISTS
+   LOAD + RENDER LISTS
 ===================================================== */
 
 async function renderLists() {
-  const container = document.getElementById("lists-container");
+  const container = document.getElementById("lists");
   if (!container) return;
 
-  container.innerHTML = "<p>Loading lists…</p>";
+  container.innerHTML = "<p>Loading player lists…</p>";
 
-  // Hent kun aktive spillere
   const playersSnap = await getDocs(
     query(collection(db, "players"), where("active", "==", true))
   );
@@ -31,48 +31,57 @@ async function renderLists() {
 
   container.innerHTML = "";
 
-  playersSnap.forEach(docu => {
-    const p = docu.data();
+  for (const pDoc of playersSnap.docs) {
+    const p = pDoc.data();
     const picks = p.entries?.["2026"]?.picks || [];
 
-    const approved = picks.filter(x => x.status === "approved");
-    const pending  = picks.filter(x => x.status === "pending");
-    const rejected = picks.filter(x => x.status === "rejected");
+    const section = document.createElement("section");
+    section.className = "player-list";
 
-    const total = approved.length + pending.length + rejected.length;
+    section.innerHTML = `
+      <h2>${p.name}</h2>
 
-    const listHtml = approved.length
-      ? `
-        <ol class="pick-list">
-          ${approved.map(x => `
-            <li>
-              ${x.normalizedName || x.raw || "Unnamed"}
-              ${x.birthDate ? `<span class="birthdate">(${x.birthDate})</span>` : ""}
-            </li>
-          `).join("")}
-        </ol>
-      `
-      : `<p class="empty-list">No approved picks yet.</p>`;
-
-    container.innerHTML += `
-      <section class="player-list">
-        <h3>
-          ${p.name}
-          <span class="count">
-            ${approved.length}/20 approved
-          </span>
-        </h3>
-
-        <div class="counts">
-          <span>Approved: ${approved.length}</span>
-          <span>Pending: ${pending.length}</span>
-          <span>Rejected: ${rejected.length}</span>
-        </div>
-
-        ${listHtml}
-      </section>
+      <table class="list-table">
+        <thead>
+          <tr>
+            <th>Pick</th>
+            <th>Birth date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            picks.length
+              ? picks.map(renderPickRow).join("")
+              : `<tr><td colspan="3" class="muted">No picks yet</td></tr>`
+          }
+        </tbody>
+      </table>
     `;
-  });
+
+    container.appendChild(section);
+  }
+}
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function renderPickRow(pick) {
+  const statusClass =
+    pick.status === "approved"
+      ? "status-approved"
+      : pick.status === "rejected"
+      ? "status-rejected"
+      : "status-pending";
+
+  return `
+    <tr class="${statusClass}">
+      <td>${pick.normalizedName || pick.raw || "—"}</td>
+      <td>${pick.birthDate || "—"}</td>
+      <td>${pick.status}</td>
+    </tr>
+  `;
 }
 
 /* =====================================================
