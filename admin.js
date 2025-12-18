@@ -442,7 +442,7 @@ if (savePersonBtn) {
 }
 
 /* =====================================================
-   VALIDATE PICKS – STABIL VERSION
+   VALIDATE PICKS – STABIL VERSION (MED IMPORT FIX)
 ===================================================== */
 
 let currentValidatePlayerId = null;
@@ -455,6 +455,9 @@ async function openValidateModal(playerId) {
 
   const picks = snap.data().entries?.["2026"]?.picks || [];
   const tbody = document.querySelector("#validate-picks-table tbody");
+  const textarea = document.getElementById("import-picks");
+
+  if (textarea) textarea.value = ""; // ✅ reset hver gang
 
   tbody.innerHTML = "";
 
@@ -502,31 +505,38 @@ async function openValidateModal(playerId) {
 }
 
 /* =====================================================
-   VALIDATE – IMPORT + ACTIONS (STABIL)
+   IMPORT PICKS – KORREKT BUNDET
 ===================================================== */
 
-async function importPicks(rawText) {
-  if (!currentValidatePlayerId) return;
+const importBtn = document.getElementById("import-picks-btn");
+const importTextarea = document.getElementById("import-picks");
 
-  const lines = splitLines(rawText);
-  if (!lines.length) return;
+if (importBtn && importTextarea) {
+  importBtn.onclick = async () => {
+    if (!currentValidatePlayerId) return;
 
-  const ref = doc(db, "players", currentValidatePlayerId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
+    const rawText = importTextarea.value.trim();
+    if (!rawText) return;
 
-  const existing = snap.data().entries["2026"].picks || [];
-  const newPicks = lines.map(parsePickLine);
+    const lines = splitLines(rawText);
+    if (!lines.length) return;
 
-  await updateDoc(ref, {
-    "entries.2026.picks": [...existing, ...newPicks]
-  });
+    const ref = doc(db, "players", currentValidatePlayerId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
 
-  const textarea = document.getElementById("import-picks");
-  if (textarea) textarea.value = "";
+    const existing = snap.data().entries["2026"].picks || [];
+    const newPicks = lines.map(parsePickLine);
 
-  openValidateModal(currentValidatePlayerId);
-  loadPlayers();
+    await updateDoc(ref, {
+      "entries.2026.picks": [...existing, ...newPicks]
+    });
+
+    importTextarea.value = ""; // ✅ nulstil efter import
+
+    openValidateModal(currentValidatePlayerId);
+    loadPlayers();
+  };
 }
 
 /* -------- APPROVE / DELETE -------- */
