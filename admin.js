@@ -264,7 +264,7 @@ async function loadPlayers() {
             <button class="validate-btn" data-id="${docu.id}">Validate</button>
             <button class="minus-btn" data-id="${docu.id}">−1</button>
             <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-            <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
+            <button disabled title="Player editing not implemented yet">Edit</button>
             <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
           </td>
         </tr>
