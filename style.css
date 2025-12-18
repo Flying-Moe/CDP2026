@@ -92,6 +92,52 @@ table.list-table td:not(:first-child) {
 }
 
 /* =========================
+   PLAYER LISTS (lists.html)
+========================= */
+
+.player-list {
+  margin-bottom: 24px;
+}
+
+.player-list h3 {
+  margin-bottom: 4px;
+}
+
+.count {
+  font-size: 0.9em;
+  color: #666;
+  margin-left: 8px;
+}
+
+.counts {
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 12px;
+}
+
+.pick-list {
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+.pick-list li {
+  line-height: 1.4;
+}
+
+.empty-list {
+  font-style: italic;
+  color: #888;
+}
+
+.birthdate {
+  color: #777;
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
+/* =========================
    LEADERBOARD
 ========================= */
 
