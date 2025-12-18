@@ -354,98 +354,67 @@ async function loadPeople() {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  /* ---------- 1. LOAD ALL REAL PEOPLE ---------- */
-
   const peopleSnap = await getDocs(collection(db, "people"));
-  const peopleMap = new Map();
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  // ---------- A. Render REAL people ----------
+  const peopleById = new Map();
 
   peopleSnap.forEach(d => {
     const p = d.data();
-    peopleMap.set(normalizeName(p.name), {
+    peopleById.set(d.id, {
       id: d.id,
       name: p.name,
       birthDate: p.birthDate || "",
-      usedBy: 0,
-      orphan: false
+      usedBy: 0
     });
   });
 
-  /* ---------- 2. SCAN ALL PLAYER PICKS ---------- */
+  playersSnap.forEach(ps => {
+    const picks = ps.data().entries?.["2026"]?.picks || [];
+    picks.forEach(p => {
+      if (p.status === "approved" && p.personId && peopleById.has(p.personId)) {
+        peopleById.get(p.personId).usedBy++;
+      }
+    });
+  });
 
-  const playersSnap = await getDocs(collection(db, "players"));
+  peopleById.forEach(p => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.birthDate || "—"}</td>
+        <td>OK</td>
+        <td>
+          <button class="edit-person-btn" data-id="${p.id}">Edit</button>
+          <button class="delete-person-btn" data-id="${p.id}">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
 
+  // ---------- B. Render APPROVED ORPHAN PICKS ----------
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
 
     picks.forEach(pick => {
       if (pick.status !== "approved") return;
+      if (pick.personId) return;
 
-      const key = normalizeName(pick.normalizedName || pick.raw || "");
-      if (!key) return;
-
-      if (peopleMap.has(key)) {
-        peopleMap.get(key).usedBy++;
-      } else {
-        // 👻 ORPHAN
-        peopleMap.set(key, {
-          id: null,
-          name: pick.normalizedName || pick.raw,
-          birthDate: "",
-          usedBy: 1,
-          orphan: true
-        });
-      }
-    });
-  });
-
-  /* ---------- 3. RENDER TABLE ---------- */
-
-  [...peopleMap.values()]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach(p => {
       tbody.innerHTML += `
-        <tr style="${p.orphan ? "background:#fff4e5;" : ""}">
-          <td>${p.name}</td>
-          <td>${p.birthDate || "—"}</td>
+        <tr style="background:#fff4e5;">
+          <td>${pick.normalizedName || pick.raw}</td>
+          <td>${pick.birthDate || "—"}</td>
+          <td>Missing (approved pick)</td>
           <td>
-            ${
-              p.birthDate
-                ? "OK"
-                : p.orphan
-                  ? "Missing (orphan)"
-                  : "Missing"
-            }
-          </td>
-          <td>
-            ${
-              p.id
-                ? `
-                  <button class="edit-person-btn" data-id="${p.id}">Edit</button>
-                  <button class="delete-person-btn" data-id="${p.id}">Delete</button>
-                `
-                : `
-                  <input
-                    type="text"
-                    class="orphan-date"
-                    data-name="${p.name}"
-                    placeholder="DD-MM-YYYY"
-                  >
-                  <button class="fix-orphan-btn" data-name="${p.name}">
-                    Fix
-                  </button>
-                  <button class="delete-orphan-btn" data-name="${p.name}">
-                   Delete
-                  </button>
-
-                `
-            }
+            <em>Fix via Players → Validate</em>
           </td>
         </tr>
       `;
     });
+  });
 
-  /* ---------- 4. ACTIONS ---------- */
-
+  // ---------- Actions ----------
   tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
     btn.onclick = () => openEditPerson(btn.dataset.id);
   });
@@ -454,103 +423,6 @@ async function loadPeople() {
     btn.onclick = async () => {
       if (!confirm("Delete this person?")) return;
       await deleteDoc(doc(db, "people", btn.dataset.id));
-      loadPeople();
-      loadPlayers();
-    };
-  });
-
-  tbody.querySelectorAll(".fix-orphan-btn").forEach(btn => {
-    btn.onclick = async () => {
-      const name = btn.dataset.name;
-      const input = tbody.querySelector(
-        `.orphan-date[data-name="${name}"]`
-      );
-      
-tbody.querySelectorAll(".delete-orphan-btn").forEach(btn => {
-  btn.onclick = async () => {
-    const name = btn.dataset.name;
-
-    if (!confirm(`Delete ALL picks named "${name}"?`)) return;
-
-    const playersSnap = await getDocs(collection(db, "players"));
-
-    playersSnap.forEach(ps => {
-      const ref = doc(db, "players", ps.id);
-      const data = ps.data();
-      const picks = data.entries?.["2026"]?.picks || [];
-
-      const filtered = picks.filter(
-        p => normalizeName(p.normalizedName || p.raw) !== normalizeName(name)
-      );
-
-      if (filtered.length !== picks.length) {
-        updateDoc(ref, {
-          "entries.2026.picks": filtered
-        });
-      }
-    });
-
-    loadPeople();
-    loadPlayers();
-  };
-});
-
-      const iso = parseFlexibleDate(input.value);
-      if (!iso) {
-        alert("Invalid birth date");
-        return;
-      }
-
-      // find or create person
-      const q = query(
-        collection(db, "people"),
-        where("name", "==", name),
-        where("birthDate", "==", iso)
-      );
-
-      const existing = await getDocs(q);
-      let personId;
-
-      if (existing.empty) {
-        personId = (
-          await addDoc(collection(db, "people"), {
-            name,
-            birthDate: iso
-          })
-        ).id;
-      } else {
-        personId = existing.docs[0].id;
-      }
-
-      // link ALL matching picks
-      playersSnap.forEach(ps => {
-        const ref = doc(db, "players", ps.id);
-        const data = ps.data();
-        const picks = data.entries["2026"].picks || [];
-
-        let changed = false;
-
-picks.forEach(p => {
-  const sameName =
-    normalizeName(p.normalizedName || p.raw) === normalizeName(name);
-
-  if (!sameName) return;
-
-  // 🔒 Canonical rule: People.birthDate wins
-  p.personId = personId;
-  p.birthDate = iso;
-  p.status = "approved";
-  changed = true;
-});
-
-
-        if (changed) {
-          updateDoc(ref, {
-            "entries.2026.picks": picks
-          });
-        }
-      });
-
       loadPeople();
       loadPlayers();
     };
