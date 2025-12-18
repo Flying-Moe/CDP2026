@@ -328,13 +328,13 @@ async function loadPeople() {
   tbody.innerHTML = "";
 
   snap.forEach(d => {
-    const c = d.data();
+    const p = d.data();
 
     tbody.innerHTML += `
       <tr>
-        <td>${c.name}</td>
-        <td>${c.birthDate || "—"}</td>
-        <td>${c.birthDate ? "OK" : "Missing"}</td>
+        <td>${p.name}</td>
+        <td>${p.birthDate || "—"}</td>
+        <td>${p.birthDate ? "OK" : "Missing"}</td>
         <td>
           <button class="edit-person-btn" data-id="${d.id}">Edit</button>
           <button class="delete-person-btn" data-id="${d.id}">Delete</button>
@@ -343,15 +343,16 @@ async function loadPeople() {
     `;
   });
 
-  // bind actions
-  tbody.querySelectorAll(".edit-person-btn").forEach(btn =>
-    btn.onclick = () => openEditPerson(btn.dataset.id)
-  );
+  // 🔗 bind events AFTER render
+  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
+    btn.onclick = () => openEditPerson(btn.dataset.id);
+  });
 
-  tbody.querySelectorAll(".delete-person-btn").forEach(btn =>
-    btn.onclick = () => deletePerson(btn.dataset.id)
-  );
+  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
+    btn.onclick = () => deletePerson(btn.dataset.id);
+  });
 }
+
 
 
 /* =====================================================
