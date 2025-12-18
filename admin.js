@@ -784,7 +784,7 @@ if (action === "approve") {
   let personId = null;
   let finalBirthDate = iso || "";
 
-  // ---------- 1. Exact match: name + birthDate ----------
+  // 1️⃣ Exact match: name + birthdate
   if (iso) {
     const qExact = query(
       collection(db, "people"),
@@ -798,7 +798,7 @@ if (action === "approve") {
     }
   }
 
-  // ---------- 2. Fallback: name only ----------
+  // 2️⃣ Name match only → admin confirm
   if (!personId) {
     const qName = query(
       collection(db, "people"),
@@ -809,15 +809,24 @@ if (action === "approve") {
 
     if (!nameSnap.empty) {
       const existing = nameSnap.docs[0];
-      personId = existing.id;
+      const useExisting = confirm(
+        `Existing person found:\n\n` +
+        `${existing.data().name}` +
+        (existing.data().birthDate
+          ? ` (${existing.data().birthDate})`
+          : ``) +
+        `\n\nUse this person instead of creating a new one?`
+      );
 
-      // existing birthDate overrides new empty one
-      finalBirthDate =
-        existing.data().birthDate || finalBirthDate;
+      if (useExisting) {
+        personId = existing.id;
+        finalBirthDate =
+          existing.data().birthDate || finalBirthDate;
+      }
     }
   }
 
-  // ---------- 3. Create new person if none found ----------
+  // 3️⃣ Create new person if none chosen
   if (!personId) {
     personId = (
       await addDoc(collection(db, "people"), {
@@ -828,7 +837,7 @@ if (action === "approve") {
     ).id;
   }
 
-  // ---------- 4. Update pick ----------
+  // 4️⃣ Update pick
   picks[index] = {
     ...pick,
     normalizedName: rawName,
