@@ -1,40 +1,87 @@
-console.log("Leaderboard loaded");
+console.log("Leaderboard loaded (Firestore)");
 
 import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
   query,
-  where,
-  doc,
-  getDoc
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
-   BADGE DEFINITIONS (VISUAL ONLY)
+   BADGES – LOGIC (LOCAL, SAFE)
 ===================================================== */
 
-const BADGES = {
-  grim_favorite: { icon: "🥇", name: "Grim’s Favorite", desc: "Highest score" },
-  undertaker: { icon: "☠️", name: "The Undertaker", desc: "Most confirmed deaths" },
-  vulture: { icon: "🦅", name: "The Vulture", desc: "Lowest average age" },
-  pension_sniper: { icon: "🐢", name: "The Pension Sniper", desc: "Highest average age" },
-  optimist: { icon: "🪦", name: "The Optimist", desc: "20 picks, no deaths" },
-  glass_cannon: { icon: "🧨", name: "Glass Cannon", desc: "Risky strategy" },
-  blood_thief: { icon: "🩸", name: "Blood Thief", desc: "First Blood without lead" }
-};
+function computeBadges(players) {
+  const out = {};
+  const give = (id, badge) => {
+    if (!out[id]) out[id] = [];
+    out[id].push(badge);
+  };
 
-function renderBadgesForPlayer(playerName, badgeData) {
-  if (!badgeData || typeof badgeData !== "object") return "";
+  // 🥇 Grim’s Favorite – highest score (ties allowed)
+  const maxScore = Math.max(...players.map(p => p.points));
+  if (maxScore > 0) {
+    players
+      .filter(p => p.points === maxScore)
+      .forEach(p =>
+        give(p.id, {
+          icon: "🥇",
+          class: "badge-gold",
+          name: "Grim’s Favorite",
+          reason: "Highest score"
+        })
+      );
+  }
 
-  return Object.entries(badgeData)
-    .filter(([_, names]) => Array.isArray(names) && names.includes(playerName))
-    .map(([id]) => {
-      const b = BADGES[id];
-      if (!b) return "";
-      return `<span class="badge" title="${b.name} – ${b.desc}">${b.icon}</span>`;
-    })
-    .join(" ");
+  // ☠️ The Undertaker – most deaths
+  const maxHits = Math.max(...players.map(p => p.hits));
+  if (maxHits > 0) {
+    players
+      .filter(p => p.hits === maxHits)
+      .forEach(p =>
+        give(p.id, {
+          icon: "☠️",
+          class: "badge-dark",
+          name: "The Undertaker",
+          reason: "Most confirmed deaths"
+        })
+      );
+  }
+
+  players.forEach(p => {
+    // 🪦 The Optimist
+    if (p.approvedCount === 20 && p.hits === 0) {
+      give(p.id, {
+        icon: "🪦",
+        class: "badge-gray",
+        name: "The Optimist",
+        reason: "20 picks, no deaths"
+      });
+    }
+
+    // 🧨 Glass Cannon
+    if (p.minusCount >= 2) {
+      give(p.id, {
+        icon: "🧨",
+        class: "badge-orange",
+        name: "Glass Cannon",
+        reason: "High risk strategy"
+      });
+    }
+
+    // 🩸 Blood Thief
+    if (p.firstBlood && p.rank > 1) {
+      give(p.id, {
+        icon: "🩸",
+        class: "badge-red",
+        name: "Blood Thief",
+        reason: "First Blood without the lead"
+      });
+    }
+  });
+
+  return out;
 }
 
 /* =====================================================
@@ -47,80 +94,100 @@ async function renderLeaderboard() {
 
   tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
 
-  try {
-    const playersSnap = await getDocs(
-      query(collection(db, "players"), where("active", "==", true))
-    );
+  // Kun aktive spillere
+  const playersSnap = await getDocs(
+    query(collection(db, "players"), where("active", "==", true))
+  );
 
-    const deathsSnap = await getDocs(
-      query(collection(db, "deaths"), where("approved", "==", true))
-    );
+  // Kun godkendte deaths
+  const deathsSnap = await getDocs(
+    query(collection(db, "deaths"), where("approved", "==", true))
+  );
 
-    const badgeSnap = await getDoc(doc(db, "meta", "badges_2026"));
-    const badgeData = badgeSnap.exists() ? badgeSnap.data() : {};
+  /* ---------- Hits pr. spiller ---------- */
 
-    const hitsByPlayer = {};
-    deathsSnap.forEach(d => {
-      const death = d.data();
-      hitsByPlayer[death.playerId] =
-        (hitsByPlayer[death.playerId] || 0) + 1;
+  const hitsByPlayer = {};
+  deathsSnap.forEach(d => {
+    const death = d.data();
+    hitsByPlayer[death.playerId] =
+      (hitsByPlayer[death.playerId] || 0) + 1;
+  });
+
+  /* ---------- Saml data ---------- */
+
+  const results = [];
+
+  playersSnap.forEach(pDoc => {
+    const p = pDoc.data();
+    const history = p.scoreHistory || [];
+    const minus = history.filter(h => h.delta === -1);
+
+    results.push({
+      id: pDoc.id,
+      name: p.name,
+      points: p.score || 0,
+      hits: hitsByPlayer[pDoc.id] || 0,
+      approvedCount:
+        p.entries?.["2026"]?.picks?.filter(x => x.status === "approved").length || 0,
+      firstBlood: p.firstBlood === true,
+      minusCount: minus.length,
+      lastMinusAt: minus.length
+        ? Math.max(...minus.map(h => new Date(h.at).getTime()))
+        : 0
     });
+  });
 
-    const results = [];
+  /* ---------- Sortering ---------- */
+  results.sort((a, b) => {
+    // 1. Points (DESC)
+    if (b.points !== a.points) return b.points - a.points;
 
-    playersSnap.forEach(pDoc => {
-      const p = pDoc.data();
-      const history = p.scoreHistory || [];
-      const minus = history.filter(h => h.delta === -1);
+    // 2. Færrest minuspoint vinder
+    if (a.minusCount !== b.minusCount)
+      return a.minusCount - b.minusCount;
 
-      results.push({
-        name: p.name,
-        points: p.score || 0,
-        hits: hitsByPlayer[pDoc.id] || 0,
-        minusCount: minus.length,
-        lastMinusAt: minus.length
-          ? Math.max(...minus.map(h => new Date(h.at).getTime()))
-          : 0,
-        firstBlood: p.firstBlood === true
-      });
-    });
+    // 3. Seneste minuspoint nederst
+    return a.lastMinusAt - b.lastMinusAt;
+  });
 
-    results.sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points;
-      if (a.minusCount !== b.minusCount)
-        return a.minusCount - b.minusCount;
-      return a.lastMinusAt - b.lastMinusAt;
-    });
+  results.forEach((p, i) => (p.rank = i + 1));
 
-    tbody.innerHTML = "";
+  const badgesByPlayer = computeBadges(results);
 
-    results.forEach((r, i) => {
-      const badges = renderBadgesForPlayer(r.name, badgeData);
+  /* ---------- Render ---------- */
 
-      const tr = document.createElement("tr");
-      if (i === 0 && r.points > 0) tr.classList.add("leader");
+  tbody.innerHTML = "";
 
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>
-          ${r.name}
-          ${badges}
-          ${r.firstBlood ? `<span title="First Blood">🩸</span>` : ""}
-        </td>
-        <td>${r.points}</td>
-        <td>${r.hits}</td>
-      `;
+  results.forEach((r, index) => {
+    const tr = document.createElement("tr");
 
-      tbody.appendChild(tr);
-    });
-
-    if (!results.length) {
-      tbody.innerHTML = "<tr><td colspan='4'>No players yet.</td></tr>";
+    if (index === 0 && r.points > 0) {
+      tr.classList.add("leader");
     }
 
-  } catch (err) {
-    console.error("leaderboard.js failed:", err);
-    tbody.innerHTML = "<tr><td colspan='4'>Failed to load leaderboard.</td></tr>";
+    const badgeIcons = (badgesByPlayer[r.id] || [])
+      .map(
+        b =>
+          `<span class="badge ${b.class}" title="${b.name} – ${b.reason}">${b.icon}</span>`
+      )
+      .join(" ");
+
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>
+        ${r.name}
+        ${badgeIcons}
+      </td>
+      <td>${r.points}</td>
+      <td>${r.hits}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  if (!results.length) {
+    tbody.innerHTML =
+      "<tr><td colspan='4'>No players yet.</td></tr>";
   }
 }
 
