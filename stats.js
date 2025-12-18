@@ -164,16 +164,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderFun(players);
   renderBadges(players, badges);
 
-  document.querySelectorAll("#stats-tabs button").forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll("#stats-tabs button")
-        .forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+document.querySelectorAll("#stats-tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
 
-      document.querySelectorAll(".stats-tab")
-        .forEach(t => t.style.display = "none");
+    document.querySelectorAll("#stats-tabs button")
+      .forEach(b => b.classList.remove("active"));
 
-      document.getElementById(`stats-${btn.dataset.tab}`).style.display = "block";
-    };
+    btn.classList.add("active");
+
+    document.querySelectorAll(".stats-tab")
+      .forEach(tab => tab.style.display = "none");
+
+    const target = document.getElementById(`stats-${btn.dataset.tab}`);
+    if (target) target.style.display = "block";
+    });
   });
+  
+  // --- Activate default tab explicitly ---
+document.getElementById("stats-overall").style.display = "block";
+
 });
