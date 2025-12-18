@@ -316,6 +316,44 @@ async function loadPlayers() {
 }
 
 /* =====================================================
+   CELEBRITIES (tidl. People)
+===================================================== */
+
+async function loadPeople() {
+  const snap = await getDocs(collection(db, "people"));
+  const tbody = document.querySelector("#people-table tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  snap.forEach(d => {
+    const c = d.data();
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${c.name}</td>
+        <td>${c.birthDate || "—"}</td>
+        <td>${c.birthDate ? "OK" : "Missing"}</td>
+        <td>
+          <button class="edit-person-btn" data-id="${d.id}">Edit</button>
+          <button class="delete-person-btn" data-id="${d.id}">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  // bind actions
+  tbody.querySelectorAll(".edit-person-btn").forEach(btn =>
+    btn.onclick = () => openEditPerson(btn.dataset.id)
+  );
+
+  tbody.querySelectorAll(".delete-person-btn").forEach(btn =>
+    btn.onclick = () => deletePerson(btn.dataset.id)
+  );
+}
+
+
+/* =====================================================
    VALIDATE PICKS – STABIL VERSION
 ===================================================== */
 
