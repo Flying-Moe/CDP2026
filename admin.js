@@ -501,7 +501,9 @@ async function openValidateModal(playerId) {
   document.getElementById("validate-picks-modal").classList.remove("hidden");
 }
 
-/* -------- IMPORT -------- */
+/* =====================================================
+   VALIDATE – IMPORT + ACTIONS (STABIL)
+===================================================== */
 
 async function importPicks(rawText) {
   if (!currentValidatePlayerId) return;
@@ -520,7 +522,9 @@ async function importPicks(rawText) {
     "entries.2026.picks": [...existing, ...newPicks]
   });
 
-  document.getElementById("import-picks").value = "";
+  const textarea = document.getElementById("import-picks");
+  if (textarea) textarea.value = "";
+
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
 }
@@ -543,8 +547,12 @@ async function handlePickAction(pickId, action) {
   }
 
   if (action === "approve") {
-    const nameInput = document.querySelector(`.name-input[data-id="${pickId}"]`);
-    const dateInput = document.querySelector(`.date-input[data-id="${pickId}"]`);
+    const nameInput = document.querySelector(
+      `.name-input[data-id="${pickId}"]`
+    );
+    const dateInput = document.querySelector(
+      `.date-input[data-id="${pickId}"]`
+    );
 
     const name = nameInput?.value.trim();
     const iso = parseToISO(dateInput?.value);
@@ -566,10 +574,12 @@ async function handlePickAction(pickId, action) {
       const existing = await getDocs(q);
 
       if (existing.empty) {
-        personId = (await addDoc(collection(db, "people"), {
-          name,
-          birthDate: iso
-        })).id;
+        personId = (
+          await addDoc(collection(db, "people"), {
+            name,
+            birthDate: iso
+          })
+        ).id;
       } else {
         personId = existing.docs[0].id;
       }
