@@ -12,28 +12,106 @@ import {
    HELPERS
 ===================================================== */
 
-function calculateAge(birthISO, deathISO = null) {
-  const b = new Date(birthISO);
-  const d = deathISO ? new Date(deathISO) : new Date();
+function avg(arr) {
+  if (!arr.length) return null;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
 
-  let age = d.getFullYear() - b.getFullYear();
-  const m = d.getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && d.getDate() < b.getDate())) age--;
+function calculateAge(birthISO, refISO) {
+  if (!birthISO || !refISO) return null;
+  const b = new Date(birthISO);
+  const r = new Date(refISO);
+  let age = r.getFullYear() - b.getFullYear();
+  if (
+    r.getMonth() < b.getMonth() ||
+    (r.getMonth() === b.getMonth() && r.getDate() < b.getDate())
+  ) age--;
   return age;
 }
 
-function average(arr) {
-  if (!arr.length) return 0;
-  return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+/* =====================================================
+   BADGES (DEFINITION)
+===================================================== */
+
+function computeBadges(players) {
+  const badgesByPlayer = {};
+
+  function give(playerId, badge) {
+    if (!badgesByPlayer[playerId]) badgesByPlayer[playerId] = [];
+    badgesByPlayer[playerId].push(badge);
+  }
+
+  const sortedByScore = [...players].sort((a, b) => b.score - a.score);
+  if (sortedByScore[0]?.score > 0) {
+    give(sortedByScore[0].id, {
+      icon: "🥇",
+      name: "Grim’s Favorite",
+      reason: "Highest score"
+    });
+  }
+
+  const sortedByHits = [...players].sort((a, b) => b.hits - a.hits);
+  if (sortedByHits[0]?.hits > 0) {
+    give(sortedByHits[0].id, {
+      icon: "☠️",
+      name: "The Undertaker",
+      reason: "Most confirmed deaths"
+    });
+  }
+
+  const avgAgePlayers = players.filter(p => p.avgAge !== null);
+  if (avgAgePlayers.length) {
+    const vulture = avgAgePlayers.reduce((a, b) => a.avgAge < b.avgAge ? a : b);
+    const turtle  = avgAgePlayers.reduce((a, b) => a.avgAge > b.avgAge ? a : b);
+
+    give(vulture.id, {
+      icon: "🦅",
+      name: "The Vulture",
+      reason: "Lowest average age"
+    });
+
+    give(turtle.id, {
+      icon: "🐢",
+      name: "The Pension Sniper",
+      reason: "Highest average age"
+    });
+  }
+
+  players.forEach(p => {
+    if (p.approvedCount === 20 && p.hits === 0) {
+      give(p.id, {
+        icon: "🪦",
+        name: "The Optimist",
+        reason: "20 picks, no deaths"
+      });
+    }
+
+    if (p.hits >= 3 && p.minusPoints >= 2) {
+      give(p.id, {
+        icon: "🧨",
+        name: "Glass Cannon",
+        reason: "High risk, high punishment"
+      });
+    }
+
+    if (p.firstBlood && p.rank > 1) {
+      give(p.id, {
+        icon: "🩸",
+        name: "Blood Thief",
+        reason: "First Blood without the crown"
+      });
+    }
+  });
+
+  return badgesByPlayer;
 }
 
 /* =====================================================
-   LOAD + BUILD STATS
+   LOAD + RENDER STATS
 ===================================================== */
 
 async function renderStats() {
   const container = document.getElementById("stats-container");
-  if (!container) return;
 
   const playersSnap = await getDocs(
     query(collection(db, "players"), where("active", "==", true))
@@ -43,138 +121,73 @@ async function renderStats() {
     query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  /* ---------- Maps ---------- */
+  const people = {};
+  peopleSnap.forEach(d => people[d.id] = d.data());
 
-  const peopleMap = {};
-  peopleSnap.forEach(d => (peopleMap[d.id] = d.data()));
-
-  const approvedDeathsByPlayer = {};
+  const deathsByPlayer = {};
   deathsSnap.forEach(d => {
     const death = d.data();
-    if (!approvedDeathsByPlayer[death.playerId]) {
-      approvedDeathsByPlayer[death.playerId] = [];
-    }
-    approvedDeathsByPlayer[death.playerId].push(death);
+    if (!deathsByPlayer[death.playerId]) deathsByPlayer[death.playerId] = [];
+    deathsByPlayer[death.playerId].push(death);
   });
 
-  const picksByPerson = {};
-  const picksByPlayer = {};
+  const players = [];
 
   playersSnap.forEach(pDoc => {
     const p = pDoc.data();
-    const picks = (p.entries?.["2026"]?.picks || []).filter(
-      x => x.status === "approved"
-    );
+    const picks = p.entries?.["2026"]?.picks || [];
+    const approved = picks.filter(x => x.status === "approved");
 
-    picksByPlayer[pDoc.id] = picks;
-
-    picks.forEach(pick => {
-      if (!pick.personId) return;
-      if (!picksByPerson[pick.personId]) picksByPerson[pick.personId] = [];
-      picksByPerson[pick.personId].push(pDoc.id);
-    });
-  });
-
-  /* =====================================================
-     FUN STATS
-  ===================================================== */
-
-  // Most picked celebrity
-  const mostPicked = Object.entries(picksByPerson)
-    .map(([personId, players]) => ({
-      name: peopleMap[personId]?.name || "Unknown",
-      count: players.length
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  // Youngest / oldest picks
-  let allAges = [];
-  Object.values(picksByPlayer).forEach(picks => {
-    picks.forEach(pick => {
-      const person = peopleMap[pick.personId];
-      if (person?.birthDate) {
-        allAges.push({
-          name: person.name,
-          age: calculateAge(person.birthDate)
-        });
-      }
-    });
-  });
-
-  const youngest = [...allAges].sort((a, b) => a.age - b.age)[0];
-  const oldest = [...allAges].sort((a, b) => b.age - a.age)[0];
-
-  /* =====================================================
-     COMPETITION STATS
-  ===================================================== */
-
-  const playerStats = [];
-
-  playersSnap.forEach(pDoc => {
-    const p = pDoc.data();
-    const picks = picksByPlayer[pDoc.id] || [];
-    const deaths = approvedDeathsByPlayer[pDoc.id] || [];
-
-    const ages = picks
-      .map(pick => peopleMap[pick.personId]?.birthDate)
+    const ages = approved
+      .map(x => people[x.personId]?.birthDate)
       .filter(Boolean)
-      .map(b => calculateAge(b));
+      .map(b => calculateAge(b, new Date().toISOString()));
 
-    playerStats.push({
+    const hits = (deathsByPlayer[pDoc.id] || []).length;
+    const minusPoints = (p.scoreHistory || []).filter(h => h.delta < 0).length;
+
+    players.push({
+      id: pDoc.id,
       name: p.name,
-      hits: deaths.length,
-      avgAge: average(ages),
-      totalPicks: picks.length
+      score: p.score || 0,
+      hits,
+      minusPoints,
+      approvedCount: approved.length,
+      avgAge: avg(ages),
+      firstBlood: p.firstBlood === true
     });
   });
 
-  const mostHits = [...playerStats].sort((a, b) => b.hits - a.hits)[0];
-  const riskiest = [...playerStats].sort((a, b) => a.avgAge - b.avgAge)[0];
-  const safest = [...playerStats].sort((a, b) => b.avgAge - a.avgAge)[0];
+  players.sort((a, b) => b.score - a.score);
+  players.forEach((p, i) => p.rank = i + 1);
+
+  const badges = computeBadges(players);
 
   /* =====================================================
      RENDER
   ===================================================== */
 
   container.innerHTML = `
-    <section>
-      <h2>Fun stats</h2>
-
-      <h3>Most picked celebrities</h3>
-      <table class="list-table">
-        <thead>
-          <tr><th>Name</th><th>Picked by</th></tr>
-        </thead>
-        <tbody>
-          ${mostPicked.map(x => `
-            <tr><td>${x.name}</td><td>${x.count}</td></tr>
-          `).join("")}
-        </tbody>
-      </table>
-
-      <h3>Age extremes</h3>
-      <table class="list-table">
-        <tbody>
-          <tr><td>Youngest pick</td><td>${youngest?.name || "—"} (${youngest?.age || "—"})</td></tr>
-          <tr><td>Oldest pick</td><td>${oldest?.name || "—"} (${oldest?.age || "—"})</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <hr />
-
-    <section>
-      <h2>Competition stats</h2>
-
-      <table class="list-table">
-        <tbody>
-          <tr><td>Most hits</td><td>${mostHits?.name || "—"} (${mostHits?.hits || 0})</td></tr>
-          <tr><td>Riskiest list</td><td>${riskiest?.name || "—"} (avg age ${riskiest?.avgAge || "—"})</td></tr>
-          <tr><td>Safest list</td><td>${safest?.name || "—"} (avg age ${safest?.avgAge || "—"})</td></tr>
-        </tbody>
-      </table>
-    </section>
+    <h2>🏆 Player Badges</h2>
+    ${players.map(p => `
+      <section class="player-list">
+        <h3>
+          ${p.name}
+          ${(badges[p.id] || []).map(b =>
+            `<span title="${b.name} – ${b.reason}">${b.icon}</span>`
+          ).join(" ")}
+        </h3>
+        ${
+          badges[p.id]?.length
+            ? `<ul>
+                ${badges[p.id].map(b =>
+                  `<li>${b.icon} <strong>${b.name}</strong> – ${b.reason}</li>`
+                ).join("")}
+              </ul>`
+            : `<p class="muted">No badges yet</p>`
+        }
+      </section>
+    `).join("")}
   `;
 }
 
