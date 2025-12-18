@@ -366,6 +366,196 @@ async function loadPeople() {
 }
 
 /* =====================================================
+   PEOPLE – UNIFIED (GLOBAL + ORPHANS)
+===================================================== */
+
+function parseFlexibleDate(input) {
+  if (!input) return "";
+
+  const clean = input.trim().replace(/\s+/g, "-");
+
+  const m = clean.match(
+    /^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})$/
+  );
+
+  if (!m) return "";
+
+  const d = parseInt(m[1], 10);
+  const mth = parseInt(m[2], 10);
+  const y = parseInt(m[3], 10);
+
+  if (
+    d < 1 || d > 31 ||
+    mth < 1 || mth > 12 ||
+    y < 1800 || y > 2100
+  ) return "";
+
+  return `${y}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+async function loadPeople() {
+  const tbody = document.querySelector("#people-table tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  // ---------- 1. LOAD REAL PEOPLE ----------
+  const peopleSnap = await getDocs(collection(db, "people"));
+  const peopleMap = new Map();
+
+  peopleSnap.forEach(d => {
+    peopleMap.set(d.id, {
+      id: d.id,
+      name: d.data().name,
+      birthDate: d.data().birthDate,
+      usedBy: 0,
+      orphan: false
+    });
+  });
+
+  // ---------- 2. SCAN PLAYERS FOR PICKS ----------
+  const playersSnap = await getDocs(collection(db, "players"));
+  const orphanMap = new Map();
+
+  playersSnap.forEach(ps => {
+    const picks = ps.data().entries?.["2026"]?.picks || [];
+
+    picks.forEach(p => {
+      if (p.personId && peopleMap.has(p.personId)) {
+        peopleMap.get(p.personId).usedBy++;
+      }
+
+      if (!p.personId) {
+        const key = p.normalizedName || p.raw;
+        if (!key) return;
+
+        if (!orphanMap.has(key)) {
+          orphanMap.set(key, {
+            name: key,
+            usedBy: 1,
+            orphan: true
+          });
+        } else {
+          orphanMap.get(key).usedBy++;
+        }
+      }
+    });
+  });
+
+  // ---------- 3. RENDER PEOPLE ----------
+  peopleMap.forEach(p => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.birthDate}</td>
+        <td>OK</td>
+        <td>${p.usedBy}</td>
+        <td>
+          <button data-id="${p.id}" class="edit-person">Edit</button>
+          <button data-id="${p.id}" class="delete-person">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  // ---------- 4. RENDER ORPHANS ----------
+  orphanMap.forEach(o => {
+    tbody.innerHTML += `
+      <tr style="opacity:.7">
+        <td>${o.name}</td>
+        <td>
+          <input
+            type="text"
+            placeholder="DD-MM-YYYY"
+            class="orphan-date"
+            data-name="${o.name}"
+          >
+        </td>
+        <td>Missing</td>
+        <td>${o.usedBy}</td>
+        <td>
+          <button data-name="${o.name}" class="fix-orphan">
+            Fix
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  // ---------- 5. ACTIONS ----------
+  tbody.querySelectorAll(".fix-orphan").forEach(btn => {
+    btn.onclick = async () => {
+      const name = btn.dataset.name;
+      const input = tbody.querySelector(
+        `.orphan-date[data-name="${name}"]`
+      );
+
+      const iso = parseFlexibleDate(input.value);
+      if (!iso) {
+        alert("Invalid birth date");
+        return;
+      }
+
+      // find or create person
+      const q = query(
+        collection(db, "people"),
+        where("name", "==", name),
+        where("birthDate", "==", iso)
+      );
+
+      const existing = await getDocs(q);
+      let personId;
+
+      if (existing.empty) {
+        personId = (
+          await addDoc(collection(db, "people"), {
+            name,
+            birthDate: iso
+          })
+        ).id;
+      } else {
+        personId = existing.docs[0].id;
+      }
+
+      // link ALL matching picks
+      playersSnap.forEach(ps => {
+        const ref = doc(db, "players", ps.id);
+        const data = ps.data();
+        const picks = data.entries["2026"].picks || [];
+
+        let changed = false;
+
+        picks.forEach(p => {
+          if (!p.personId && (p.normalizedName || p.raw) === name) {
+            p.personId = personId;
+            p.birthDate = iso;
+            p.status = "approved";
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          updateDoc(ref, {
+            "entries.2026.picks": picks
+          });
+        }
+      });
+
+      loadPeople();
+      loadPlayers();
+    };
+  });
+
+  tbody.querySelectorAll(".delete-person").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm("Delete this person?")) return;
+      await deleteDoc(doc(db, "people", btn.dataset.id));
+      loadPeople();
+    };
+  });
+}
+
+/* =====================================================
    PEOPLE – ADD NEW (STABIL + VALIDERET)
 ===================================================== */
 
