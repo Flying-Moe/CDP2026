@@ -141,9 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
       
 console.log("AUTH OK – before setupTabs");
       
-      setupTabs();
-      loadPlayers();
-      loadPeople();
+        setupTabs();
+        await loadPeople();
+        await autoLinkApprovedPicks();
+        await loadPeople();
+        await loadPlayers();
+
 
     } catch (err) {
       errorEl.textContent = "Authorization error";
@@ -499,6 +502,56 @@ async function loadPeople() {
       loadPlayers();
     };
   });
+}
+
+async function autoLinkApprovedPicks() {
+  const peopleSnap  = await getDocs(collection(db, "people"));
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  const peopleByNormalized = new Map();
+
+  peopleSnap.forEach(d => {
+    const p = d.data();
+    const norm = (p.nameNormalized || p.name)
+      .toLowerCase()
+      .trim();
+
+    peopleByNormalized.set(norm, {
+      id: d.id,
+      birthDate: p.birthDate || ""
+    });
+  });
+
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      if (p.status !== "approved") return;
+      if (p.personId) return;
+
+      const norm = (p.normalizedName || p.raw || "")
+        .toLowerCase()
+        .trim();
+
+      const person = peopleByNormalized.get(norm);
+      if (!person) return;
+
+      // 🔒 SAFE AUTO-MERGE (exactly one match)
+      p.personId = person.id;
+      p.birthDate = person.birthDate || p.birthDate || "";
+      changed = true;
+    });
+
+    if (changed) {
+      await updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  }
 }
 
 document.addEventListener("click", async e => {
