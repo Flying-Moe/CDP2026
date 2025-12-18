@@ -19,15 +19,39 @@
   <a href="admin.html" class="grim-link">Grim Reaper</a>
 </nav>
 
-<p>
-  Live statistics and badges for Celebrity Dead Pool 2026.<br>
-  All stats are calculated automatically by the Grim Reaper.
-</p>
-
 <hr />
 
-<div id="stats-container">
-  <p>Loading statistics…</p>
+<!-- ================= STATS TABS ================= -->
+
+<div id="stats-tabs">
+  <button data-tab="overall" class="active">Overall stats</button>
+  <button data-tab="fun">Fun stats</button>
+  <button data-tab="badges">Badges</button>
+  <button data-tab="hof">Hall of Fame</button>
+</div>
+
+<!-- ================= TAB CONTENT ================= -->
+
+<div id="stats-overall" class="stats-tab">
+  <h2>Overall statistics</h2>
+  <div id="overall-stats"></div>
+</div>
+
+<div id="stats-fun" class="stats-tab" style="display:none;">
+  <h2>Fun & dark statistics</h2>
+  <div id="fun-stats"></div>
+</div>
+
+<div id="stats-badges" class="stats-tab" style="display:none;">
+  <h2>Badges</h2>
+  <div id="badges-stats"></div>
+</div>
+
+<div id="stats-hof" class="stats-tab" style="display:none;">
+  <h2>Hall of Fame</h2>
+  <p class="muted">
+    The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
+  </p>
 </div>
 
 <footer>
@@ -35,8 +59,8 @@
   <p id="build-info" class="build-info"></p>
 </footer>
 
-<script type="module" src="stats.js"></script>
 <script src="common.js"></script>
+<script type="module" src="stats.js"></script>
 
 </body>
 </html>
