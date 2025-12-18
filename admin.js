@@ -138,7 +138,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // ✅ Auth OK
       loginSection.style.display = "none";
       adminSection.style.display = "block";
+      
+console.log("AUTH OK – before setupTabs");
 
+setupTabs();
+console.log("after setupTabs");
+
+loadPlayers();
+console.log("after loadPlayers");
+
+loadPeople();
+console.log("after loadPeople");
+      
       setupTabs();
       loadPlayers();
       loadPeople();
