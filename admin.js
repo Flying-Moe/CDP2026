@@ -366,6 +366,82 @@ async function loadPeople() {
 }
 
 /* =====================================================
+   PEOPLE – EDIT / DELETE ACTIONS
+===================================================== */
+
+let currentPersonId = null;
+
+function openEditPerson(id) {
+  currentPersonId = id;
+
+  const modal = document.getElementById("edit-person-modal");
+  const nameInput = document.getElementById("edit-person-name");
+  const birthInput = document.getElementById("edit-person-birthdate");
+
+  if (!modal || !nameInput || !birthInput) {
+    alert("Edit modal not found");
+    return;
+  }
+
+  getDoc(doc(db, "people", id)).then(snap => {
+    if (!snap.exists()) {
+      alert("Person not found");
+      return;
+    }
+
+    const p = snap.data();
+    nameInput.value = p.name || "";
+    birthInput.value = p.birthDate || "";
+
+    modal.classList.remove("hidden");
+  });
+}
+
+function deletePerson(id) {
+  if (!confirm("Delete this person permanently?")) return;
+
+  deleteDoc(doc(db, "people", id)).then(() => {
+    loadPeople();
+  });
+}
+
+/* ===== SAVE EDITED PERSON ===== */
+
+const savePersonBtn = document.getElementById("save-person-btn");
+if (savePersonBtn) {
+  savePersonBtn.onclick = async () => {
+    if (!currentPersonId) return;
+
+    const name = document
+      .getElementById("edit-person-name")
+      .value
+      .trim();
+
+    const birth = document
+      .getElementById("edit-person-birthdate")
+      .value
+      .trim();
+
+    if (!name) {
+      alert("Name is required");
+      return;
+    }
+
+    await updateDoc(doc(db, "people", currentPersonId), {
+      name,
+      birthDate: birth || ""
+    });
+
+    document
+      .getElementById("edit-person-modal")
+      .classList.add("hidden");
+
+    currentPersonId = null;
+    loadPeople();
+  };
+}
+
+/* =====================================================
    VALIDATE PICKS – STABIL VERSION
 ===================================================== */
 
