@@ -13,7 +13,7 @@ import {
 ===================================================== */
 
 function avg(arr) {
-  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 }
 
 function calculateAge(birthISO, refISO = new Date().toISOString()) {
@@ -29,66 +29,55 @@ function calculateAge(birthISO, refISO = new Date().toISOString()) {
 }
 
 /* =====================================================
-   BADGE DEFINITIONS (CENTRAL)
+   BADGES (ALWAYS VISIBLE)
 ===================================================== */
 
 const BADGES = [
-  {
-    id: "grim_favorite",
-    icon: "🥇",
-    name: "Grim’s Favorite",
-    description: "Highest total score"
-  },
-  {
-    id: "undertaker",
-    icon: "☠️",
-    name: "The Undertaker",
-    description: "Most confirmed deaths"
-  },
-  {
-    id: "vulture",
-    icon: "🦅",
-    name: "The Vulture",
-    description: "Lowest average pick age"
-  },
-  {
-    id: "pension_sniper",
-    icon: "🐢",
-    name: "The Pension Sniper",
-    description: "Highest average pick age"
-  },
-  {
-    id: "optimist",
-    icon: "🪦",
-    name: "The Optimist",
-    description: "20 approved picks, no deaths"
-  },
-  {
-    id: "glass_cannon",
-    icon: "🧨",
-    name: "Glass Cannon",
-    description: "At least 2 minus points"
-  },
-  {
-    id: "blood_thief",
-    icon: "🩸",
-    name: "Blood Thief",
-    description: "First Blood without leading"
-  }
+  { id: "grim_favorite", icon: "🥇", name: "Grim’s Favorite", description: "Highest total score" },
+  { id: "undertaker", icon: "☠️", name: "The Undertaker", description: "Most confirmed deaths" },
+  { id: "vulture", icon: "🦅", name: "The Vulture", description: "Lowest average pick age" },
+  { id: "pension_sniper", icon: "🐢", name: "The Pension Sniper", description: "Highest average pick age" },
+  { id: "optimist", icon: "🪦", name: "The Optimist", description: "20 approved picks, no deaths" },
+  { id: "glass_cannon", icon: "🧨", name: "Glass Cannon", description: "At least 2 minus points" },
+  { id: "blood_thief", icon: "🩸", name: "Blood Thief", description: "First Blood without leading" }
 ];
 
 /* =====================================================
-   LOAD DATA (CACHED)
+   TAB SYSTEM (FIXED)
 ===================================================== */
 
-let cachedPlayers = null;
-let cachedDeaths = null;
+function initTabs() {
+  const buttons = document.querySelectorAll("#stats-tabs button");
+  const tabs = document.querySelectorAll(".stats-tab");
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      tabs.forEach(t => t.style.display = "none");
+      const target = document.getElementById(`stats-${btn.dataset.tab}`);
+      if (target) target.style.display = "block";
+    });
+  });
+
+  // Force default
+  buttons.forEach(b => b.classList.remove("active"));
+  tabs.forEach(t => t.style.display = "none");
+
+  const defaultBtn = document.querySelector('#stats-tabs button[data-tab="overall"]');
+  const defaultTab = document.getElementById("stats-overall");
+  if (defaultBtn && defaultTab) {
+    defaultBtn.classList.add("active");
+    defaultTab.style.display = "block";
+  }
+}
+
+/* =====================================================
+   LOAD DATA
+===================================================== */
 
 async function loadData() {
-  if (cachedPlayers && cachedDeaths) {
-    return { players: cachedPlayers, deaths: cachedDeaths };
-  }
-
   const playersSnap = await getDocs(collection(db, "players"));
   const deathsSnap = await getDocs(
     query(collection(db, "deaths"), where("approved", "==", true))
@@ -132,63 +121,49 @@ async function loadData() {
   players.sort((a, b) => b.score - a.score);
   players.forEach((p, i) => p.rank = i + 1);
 
-  cachedPlayers = players;
-  cachedDeaths = {
-    unique: uniqueDeaths.size,
-    total: deathsSnap.size
+  return {
+    players,
+    deaths: {
+      unique: uniqueDeaths.size,
+      total: deathsSnap.size
+    }
   };
-
-  return { players, deaths: cachedDeaths };
 }
 
 /* =====================================================
-   COMPUTE BADGES (WITH TIES)
+   COMPUTE BADGES (TIES SUPPORTED)
 ===================================================== */
 
 function computeBadges(players) {
-  const winners = {};
+  const out = {};
 
-  function award(badgeId, playerIds) {
-    winners[badgeId] = playerIds;
+  function award(id, names) {
+    out[id] = names;
   }
 
-  const maxScore = Math.max(...players.map(p => p.score));
-  if (maxScore > 0)
-    award("grim_favorite", players.filter(p => p.score === maxScore).map(p => p.name));
+  const maxScore = Math.max(...players.map(p => p.score), 0);
+  award("grim_favorite", players.filter(p => p.score === maxScore && maxScore > 0).map(p => p.name));
 
-  const maxHits = Math.max(...players.map(p => p.hits));
-  if (maxHits > 0)
-    award("undertaker", players.filter(p => p.hits === maxHits).map(p => p.name));
+  const maxHits = Math.max(...players.map(p => p.hits), 0);
+  award("undertaker", players.filter(p => p.hits === maxHits && maxHits > 0).map(p => p.name));
 
-  const withAge = players.filter(p => p.avgAge !== null);
+  const withAge = players.filter(p => p.avgAge > 0);
   if (withAge.length) {
     const minAge = Math.min(...withAge.map(p => p.avgAge));
     const maxAge = Math.max(...withAge.map(p => p.avgAge));
-
     award("vulture", withAge.filter(p => p.avgAge === minAge).map(p => p.name));
     award("pension_sniper", withAge.filter(p => p.avgAge === maxAge).map(p => p.name));
   }
 
-  award(
-    "optimist",
-    players.filter(p => p.approvedCount === 20 && p.hits === 0).map(p => p.name)
-  );
+  award("optimist", players.filter(p => p.approvedCount === 20 && p.hits === 0).map(p => p.name));
+  award("glass_cannon", players.filter(p => p.minusPoints >= 2).map(p => p.name));
+  award("blood_thief", players.filter(p => p.firstBlood && p.rank > 1).map(p => p.name));
 
-  award(
-    "glass_cannon",
-    players.filter(p => p.minusPoints >= 2).map(p => p.name)
-  );
-
-  award(
-    "blood_thief",
-    players.filter(p => p.firstBlood && p.rank > 1).map(p => p.name)
-  );
-
-  return winners;
+  return out;
 }
 
 /* =====================================================
-   RENDER FUNCTIONS
+   RENDER (PLACEHOLDERS FIRST)
 ===================================================== */
 
 function renderOverall(players, deaths) {
@@ -202,11 +177,11 @@ function renderOverall(players, deaths) {
 }
 
 function renderFun(players) {
-  const mostMinus = [...players].sort((a, b) => b.minusPoints - a.minusPoints)[0];
+  const mostMinus = [...players].sort((a,b)=>b.minusPoints-a.minusPoints)[0];
   document.getElementById("stats-fun").innerHTML = `
     <ul>
       <li>Most minus points: <strong>${mostMinus?.name || "—"}</strong> (${mostMinus?.minusPoints || 0})</li>
-      <li>Drama level: ☠️☠️☠️</li>
+      <li>Chaos level: ☠️☠️☠️</li>
     </ul>
   `;
 }
@@ -228,33 +203,23 @@ function renderBadges(badgeWinners) {
   }).join("");
 }
 
-function renderHallOfFame() {
+function renderHall() {
   document.getElementById("stats-hall").innerHTML =
-    `<p class="muted">Hall of Fame will be revealed after the 2026 season.</p>`;
+    `<p class="muted">Hall of Fame will unlock after the 2026 season.</p>`;
 }
 
 /* =====================================================
-   INIT + TABS
+   INIT
 ===================================================== */
 
 document.addEventListener("DOMContentLoaded", async () => {
+  initTabs();
+
   const { players, deaths } = await loadData();
   const badgeWinners = computeBadges(players);
 
   renderOverall(players, deaths);
   renderFun(players);
   renderBadges(badgeWinners);
-  renderHallOfFame();
-
-  document.querySelectorAll("#stats-tabs button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll("#stats-tabs button").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      document.querySelectorAll(".stats-tab").forEach(tab => tab.style.display = "none");
-      document.getElementById(`stats-${btn.dataset.tab}`).style.display = "block";
-    });
-  });
-
-  document.getElementById("stats-overall").style.display = "block";
+  renderHall();
 });
