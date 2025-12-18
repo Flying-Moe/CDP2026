@@ -46,56 +46,24 @@
 
   <div id="admin-tabs">
     <button data-tab="players" class="active">Players</button>
-    <button data-tab="people">People</button>
-    <button data-tab="deaths">Deaths</button>
+    <button data-tab="celebrity">Celebrity</button>
   </div>
 
   <!-- ================= PLAYERS TAB ================= -->
 
   <div id="tab-players" class="tab-content" style="display:none;">
     <h2>Players</h2>
-    
-      <div id="add-player-box" style="margin-bottom:16px;">
-        <input
-          type="text"
-          id="new-player-name"
-          placeholder="Player name"
-        />
-        <button id="add-player-btn">Add player</button>
-      </div>
 
-<h3>Active players</h3>
+    <div id="add-player-box" style="margin-bottom:16px;">
+      <input
+        type="text"
+        id="new-player-name"
+        placeholder="Player name"
+      />
+      <button id="add-player-btn">Add player</button>
+    </div>
 
-<table id="players-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Approved</th>
-      <th>Pending</th>
-      <th>Rejected</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- injected by admin.js -->
-  </tbody>
-</table>
-
-<hr />
-
-<h3>Inactive players</h3>
-
-<table id="inactive-players-table">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- injected by admin.js -->
-  </tbody>
-</table>
+    <h3>Active players</h3>
 
     <table id="players-table">
       <thead>
@@ -103,7 +71,22 @@
           <th>Name</th>
           <th>Approved</th>
           <th>Pending</th>
-          <th>Rejected</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- injected by admin.js -->
+      </tbody>
+    </table>
+
+    <hr />
+
+    <h3>Inactive players</h3>
+
+    <table id="inactive-players-table">
+      <thead>
+        <tr>
+          <th>Name</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -113,11 +96,11 @@
     </table>
   </div>
 
-  <!-- ================= PEOPLE TAB ================= -->
+  <!-- ================= CELEBRITY TAB ================= -->
 
-  <div id="tab-people" class="tab-content" style="display:none;">
+  <div id="tab-celebrity" class="tab-content" style="display:none;">
 
-    <h2>People</h2>
+    <h2>Celebrity</h2>
     <p>Manage celebrities and birth dates.</p>
 
     <table id="people-table">
@@ -134,7 +117,7 @@
 
     <hr />
 
-    <h3>Add new person</h3>
+    <h3>Add new celebrity</h3>
 
     <label>
       Name<br />
@@ -144,21 +127,14 @@
     <br /><br />
 
     <label>
-      Birth date (YYYY-MM-DD)<br />
-      <input type="date" id="new-person-birthdate" />
+      Birth date (DD-MM-YYYY)<br />
+      <input type="text" id="new-person-birthdate" placeholder="DD-MM-YYYY" />
     </label>
 
     <br /><br />
 
-    <button id="add-person-btn">Add person</button>
+    <button id="add-person-btn">Add celebrity</button>
 
-  </div>
-
-  <!-- ================= DEATHS TAB ================= -->
-
-  <div id="tab-deaths" class="tab-content" style="display:none;">
-    <h2>Deaths</h2>
-    <p>Approve registered deaths.</p>
   </div>
 
 </div>
@@ -174,15 +150,15 @@
 
     <h4>Import player list</h4>
     <p style="font-size:0.9em; color:#666;">
-      Paste raw list (one name per line, optional birth date).  
-      Nothing is overwritten. New picks are added as <em>pending</em>.
+      Paste raw list (one name per line, optional birth date).
+      New picks are added as <em>pending</em>.
     </p>
 
     <textarea
       id="import-picks"
       rows="6"
       style="width:100%; font-family:monospace;"
-      placeholder="Amanda Bynes 1986&#10;Lil Dwayne 27-09-1982&#10;Bam Margera">
+      placeholder="Amanda Bynes 24-12-1986&#10;Bam Margera">
     </textarea>
 
     <br /><br />
@@ -210,12 +186,12 @@
   </div>
 </div>
 
-<!-- ================= EDIT PERSON MODAL ================= -->
+<!-- ================= EDIT CELEBRITY MODAL ================= -->
 
 <div id="edit-person-modal" class="modal hidden">
   <div class="modal-content">
 
-    <h3>Edit person</h3>
+    <h3>Edit celebrity</h3>
 
     <label>
       Name<br />
@@ -225,8 +201,8 @@
     <br /><br />
 
     <label>
-      Birth date (YYYY-MM-DD)<br />
-      <input type="date" id="edit-person-birthdate" />
+      Birth date (DD-MM-YYYY)<br />
+      <input type="text" id="edit-person-birthdate" placeholder="DD-MM-YYYY" />
     </label>
 
     <br /><br />
@@ -236,48 +212,6 @@
       <button onclick="document.getElementById('edit-person-modal').classList.add('hidden')">
         Cancel
       </button>
-    </div>
-
-  </div>
-</div>
-
-    <!-- ===== IMPORT SECTION ===== -->
-
-    <h4>Import player list</h4>
-    <p style="font-size:0.9em; color:#666;">
-      Paste raw list (one name per line, optional birth date).  
-      Nothing is overwritten. New picks are added as <em>pending</em>.
-    </p>
-
-<textarea
-  id="import-picks"
-  rows="6"
-  style="width:100%; font-family:monospace;"
-  placeholder="Amanda Bynes 1986&#10;Lil Dwayne 27-09-1982&#10;Bam Margera">
-</textarea>
-
-    <br /><br />
-
-    <button id="import-picks-btn">Add as pending</button>
-
-    <hr />
-
-    <!-- ===== EXISTING PICKS ===== -->
-
-    <table id="validate-picks-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Birth date</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div class="modal-actions">
-      <button id="close-validate-btn">Close</button>
     </div>
 
   </div>
