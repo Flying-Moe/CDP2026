@@ -807,56 +807,67 @@ if (action === "approve") {
     `.date-input[data-id="${pickId}"]`
   );
 
-  const name = nameInput?.value.trim();
-  const iso = parseFlexibleDate(dateInput?.value);
-
-  if (!name) {
-    alert("Name is required");
+  const rawName = nameInput?.value.trim();
+  if (!rawName) {
+    alert("Name required");
     return;
   }
 
-  if (dateInput?.value && !iso) {
-    alert("Invalid birth date format");
-    return;
-  }
+  const normalized = normalizeName(rawName);
+  const iso = parseFlexibleDate(dateInput?.value); // ← accepterer alle formater
+  const finalBirthDate = iso || "";
 
   let personId = null;
 
-  // 🔍 exact match: name + birthDate
+  /* ---------- 1. Find eksisterende person (navn + dato) ---------- */
   if (iso) {
-    const q = query(
+    const qExact = query(
       collection(db, "people"),
-      where("name", "==", name),
+      where("nameNormalized", "==", normalized),
       where("birthDate", "==", iso)
     );
 
-    const snapPeople = await getDocs(q);
-    if (!snapPeople.empty) {
-      personId = snapPeople.docs[0].id;
+    const exactSnap = await getDocs(qExact);
+    if (!exactSnap.empty) {
+      personId = exactSnap.docs[0].id;
     }
   }
 
-  // ➕ create new person if not found
+  /* ---------- 2. Fallback: find på navn alene ---------- */
+  if (!personId) {
+    const qName = query(
+      collection(db, "people"),
+      where("nameNormalized", "==", normalized)
+    );
+
+    const nameSnap = await getDocs(qName);
+    if (!nameSnap.empty) {
+      const existing = nameSnap.docs[0];
+      personId = existing.id;
+    }
+  }
+
+  /* ---------- 3. Opret NY person hvis ingen fundet ---------- */
   if (!personId) {
     personId = (
       await addDoc(collection(db, "people"), {
-        name,
-        birthDate: iso || "",
+        name: rawName,
+        nameNormalized: normalized,
+        birthDate: finalBirthDate,
         createdAt: new Date().toISOString()
       })
     ).id;
   }
 
-  // 🔗 update ONLY this pick
+  /* ---------- 4. Opdater pick (ALDRIG orphan igen) ---------- */
   picks[index] = {
     ...pick,
-    normalizedName: name,
-    birthDate: iso || "",
+    normalizedName: rawName,
+    birthDate: finalBirthDate,
     personId,
     status: "approved"
   };
 }
-
 
   await updateDoc(ref, {
     "entries.2026.picks": picks
