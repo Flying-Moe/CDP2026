@@ -328,7 +328,7 @@ async function loadPlayers() {
 }
 
 /* =====================================================
-   PEOPLE (inkl. orphan picks)
+   PEOPLE / CELEBRITIES – UNIFIED + ORPHANS (FINAL)
 ===================================================== */
 
 function normalizeName(name) {
@@ -339,22 +339,39 @@ function normalizeName(name) {
     .trim();
 }
 
+function parseFlexibleDate(input) {
+  if (!input) return "";
+
+  const clean = input.trim().replace(/\s+/g, "-");
+
+  const m = clean.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})$/);
+  if (!m) return "";
+
+  const d = +m[1];
+  const mth = +m[2];
+  const y = +m[3];
+
+  if (d < 1 || d > 31 || mth < 1 || mth > 12 || y < 1800 || y > 2100) {
+    return "";
+  }
+
+  return `${y}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
 async function loadPeople() {
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  /* ---------- 1. Load ALL people ---------- */
+  /* ---------- 1. LOAD ALL REAL PEOPLE ---------- */
 
   const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = new Map();
 
-  peopleSnap.forEach(docu => {
-    const p = docu.data();
-    const key = normalizeName(p.name);
-
-    peopleMap.set(key, {
-      id: docu.id,
+  peopleSnap.forEach(d => {
+    const p = d.data();
+    peopleMap.set(normalizeName(p.name), {
+      id: d.id,
       name: p.name,
       birthDate: p.birthDate || "",
       usedBy: 0,
@@ -362,13 +379,12 @@ async function loadPeople() {
     });
   });
 
-  /* ---------- 2. Scan ALL player picks ---------- */
+  /* ---------- 2. SCAN ALL PLAYER PICKS ---------- */
 
   const playersSnap = await getDocs(collection(db, "players"));
 
-  playersSnap.forEach(playerDoc => {
-    const player = playerDoc.data();
-    const picks = player.entries?.["2026"]?.picks || [];
+  playersSnap.forEach(ps => {
+    const picks = ps.data().entries?.["2026"]?.picks || [];
 
     picks.forEach(pick => {
       if (pick.status !== "approved") return;
@@ -379,7 +395,7 @@ async function loadPeople() {
       if (peopleMap.has(key)) {
         peopleMap.get(key).usedBy++;
       } else {
-        // 👻 ORPHAN PICK
+        // 👻 ORPHAN
         peopleMap.set(key, {
           id: null,
           name: pick.normalizedName || pick.raw,
@@ -391,7 +407,7 @@ async function loadPeople() {
     });
   });
 
-  /* ---------- 3. Render table ---------- */
+  /* ---------- 3. RENDER TABLE ---------- */
 
   [...peopleMap.values()]
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -412,136 +428,43 @@ async function loadPeople() {
           <td>
             ${
               p.id
-                ? `<button onclick="openEditPerson('${p.id}')">Edit</button>
-                   <button onclick="deletePerson('${p.id}')">Delete</button>`
-                : `<em>Fix via Players → Validate</em>`
+                ? `
+                  <button class="edit-person-btn" data-id="${p.id}">Edit</button>
+                  <button class="delete-person-btn" data-id="${p.id}">Delete</button>
+                `
+                : `
+                  <input
+                    type="text"
+                    class="orphan-date"
+                    data-name="${p.name}"
+                    placeholder="DD-MM-YYYY"
+                  >
+                  <button class="fix-orphan-btn" data-name="${p.name}">
+                    Fix
+                  </button>
+                `
             }
           </td>
         </tr>
       `;
     });
-}
 
+  /* ---------- 4. ACTIONS ---------- */
 
-/* =====================================================
-   PEOPLE – UNIFIED (GLOBAL + ORPHANS)
-===================================================== */
-
-function parseFlexibleDate(input) {
-  if (!input) return "";
-
-  const clean = input.trim().replace(/\s+/g, "-");
-
-  const m = clean.match(
-    /^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})$/
-  );
-
-  if (!m) return "";
-
-  const d = parseInt(m[1], 10);
-  const mth = parseInt(m[2], 10);
-  const y = parseInt(m[3], 10);
-
-  if (
-    d < 1 || d > 31 ||
-    mth < 1 || mth > 12 ||
-    y < 1800 || y > 2100
-  ) return "";
-
-  return `${y}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-async function loadPeople() {
-  const tbody = document.querySelector("#people-table tbody");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  // ---------- 1. LOAD REAL PEOPLE ----------
-  const peopleSnap = await getDocs(collection(db, "people"));
-  const peopleMap = new Map();
-
-  peopleSnap.forEach(d => {
-    peopleMap.set(d.id, {
-      id: d.id,
-      name: d.data().name,
-      birthDate: d.data().birthDate,
-      usedBy: 0,
-      orphan: false
-    });
+  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
+    btn.onclick = () => openEditPerson(btn.dataset.id);
   });
 
-  // ---------- 2. SCAN PLAYERS FOR PICKS ----------
-  const playersSnap = await getDocs(collection(db, "players"));
-  const orphanMap = new Map();
-
-  playersSnap.forEach(ps => {
-    const picks = ps.data().entries?.["2026"]?.picks || [];
-
-    picks.forEach(p => {
-      if (p.personId && peopleMap.has(p.personId)) {
-        peopleMap.get(p.personId).usedBy++;
-      }
-
-      if (!p.personId) {
-        const key = p.normalizedName || p.raw;
-        if (!key) return;
-
-        if (!orphanMap.has(key)) {
-          orphanMap.set(key, {
-            name: key,
-            usedBy: 1,
-            orphan: true
-          });
-        } else {
-          orphanMap.get(key).usedBy++;
-        }
-      }
-    });
+  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm("Delete this person?")) return;
+      await deleteDoc(doc(db, "people", btn.dataset.id));
+      loadPeople();
+      loadPlayers();
+    };
   });
 
-  // ---------- 3. RENDER PEOPLE ----------
-  peopleMap.forEach(p => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.birthDate}</td>
-        <td>OK</td>
-        <td>${p.usedBy}</td>
-        <td>
-          <button data-id="${p.id}" class="edit-person">Edit</button>
-          <button data-id="${p.id}" class="delete-person">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
-  // ---------- 4. RENDER ORPHANS ----------
-  orphanMap.forEach(o => {
-    tbody.innerHTML += `
-      <tr style="opacity:.7">
-        <td>${o.name}</td>
-        <td>
-          <input
-            type="text"
-            placeholder="DD-MM-YYYY"
-            class="orphan-date"
-            data-name="${o.name}"
-          >
-        </td>
-        <td>Missing</td>
-        <td>${o.usedBy}</td>
-        <td>
-          <button data-name="${o.name}" class="fix-orphan">
-            Fix
-          </button>
-        </td>
-      </tr>
-    `;
-  });
-
-  // ---------- 5. ACTIONS ----------
-  tbody.querySelectorAll(".fix-orphan").forEach(btn => {
+  tbody.querySelectorAll(".fix-orphan-btn").forEach(btn => {
     btn.onclick = async () => {
       const name = btn.dataset.name;
       const input = tbody.querySelector(
@@ -584,7 +507,10 @@ async function loadPeople() {
         let changed = false;
 
         picks.forEach(p => {
-          if (!p.personId && (p.normalizedName || p.raw) === name) {
+          if (
+            !p.personId &&
+            normalizeName(p.normalizedName || p.raw) === normalizeName(name)
+          ) {
             p.personId = personId;
             p.birthDate = iso;
             p.status = "approved";
@@ -601,14 +527,6 @@ async function loadPeople() {
 
       loadPeople();
       loadPlayers();
-    };
-  });
-
-  tbody.querySelectorAll(".delete-person").forEach(btn => {
-    btn.onclick = async () => {
-      if (!confirm("Delete this person?")) return;
-      await deleteDoc(doc(db, "people", btn.dataset.id));
-      loadPeople();
     };
   });
 }
