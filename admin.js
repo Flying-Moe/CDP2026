@@ -343,12 +343,13 @@ async function loadPeople() {
     `;
   });
 
-  // 🔗 bind events AFTER render
-  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
+  const editButtons = tbody.querySelectorAll(".edit-person-btn");
+  editButtons.forEach(btn => {
     btn.onclick = () => openEditPerson(btn.dataset.id);
   });
 
-  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
+  const deleteButtons = tbody.querySelectorAll(".delete-person-btn");
+  deleteButtons.forEach(btn => {
     btn.onclick = () => deletePerson(btn.dataset.id);
   });
 }
