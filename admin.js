@@ -773,53 +773,79 @@ async function handlePickAction(pickId, action) {
     picks.splice(index, 1);
   }
 
-  if (action === "approve") {
-    const nameInput = document.querySelector(
-      `.name-input[data-id="${pickId}"]`
-    );
-    const dateInput = document.querySelector(
-      `.date-input[data-id="${pickId}"]`
-    );
+if (action === "approve") {
+  const nameInput = document.querySelector(
+    `.name-input[data-id="${pickId}"]`
+  );
+  const dateInput = document.querySelector(
+    `.date-input[data-id="${pickId}"]`
+  );
 
-    const name = nameInput?.value.trim();
-    const iso = parseToISO(dateInput?.value);
+  const rawName = nameInput?.value.trim();
+  const iso = parseToISO(dateInput?.value);
 
-    if (!name) {
-      alert("Name required");
-      return;
-    }
-
-    let personId = null;
-
-    if (iso) {
-      const q = query(
-        collection(db, "people"),
-        where("name", "==", name),
-        where("birthDate", "==", iso)
-      );
-
-      const existing = await getDocs(q);
-
-      if (existing.empty) {
-        personId = (
-          await addDoc(collection(db, "people"), {
-            name,
-            birthDate: iso
-          })
-        ).id;
-      } else {
-        personId = existing.docs[0].id;
-      }
-    }
-
-    picks[index] = {
-      ...pick,
-      normalizedName: name,
-      birthDate: iso || "",
-      personId,
-      status: "approved"
-    };
+  if (!rawName) {
+    alert("Name required");
+    return;
   }
+
+  const normalized = normalizeName(rawName);
+  let personId = null;
+  let finalBirthDate = iso || "";
+
+  // ---------- 1. Exact match: name + birthDate ----------
+  if (iso) {
+    const qExact = query(
+      collection(db, "people"),
+      where("nameNormalized", "==", normalized),
+      where("birthDate", "==", iso)
+    );
+
+    const exactSnap = await getDocs(qExact);
+    if (!exactSnap.empty) {
+      personId = exactSnap.docs[0].id;
+    }
+  }
+
+  // ---------- 2. Fallback: name only ----------
+  if (!personId) {
+    const qName = query(
+      collection(db, "people"),
+      where("nameNormalized", "==", normalized)
+    );
+
+    const nameSnap = await getDocs(qName);
+
+    if (!nameSnap.empty) {
+      const existing = nameSnap.docs[0];
+      personId = existing.id;
+
+      // existing birthDate overrides new empty one
+      finalBirthDate =
+        existing.data().birthDate || finalBirthDate;
+    }
+  }
+
+  // ---------- 3. Create new person if none found ----------
+  if (!personId) {
+    personId = (
+      await addDoc(collection(db, "people"), {
+        name: rawName,
+        nameNormalized: normalized,
+        birthDate: finalBirthDate
+      })
+    ).id;
+  }
+
+  // ---------- 4. Update pick ----------
+  picks[index] = {
+    ...pick,
+    normalizedName: rawName,
+    birthDate: finalBirthDate,
+    personId,
+    status: "approved"
+  };
+}
 
   await updateDoc(ref, {
     "entries.2026.picks": picks
