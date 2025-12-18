@@ -175,6 +175,37 @@
   style="margin-bottom:10px; font-weight:bold;"
 >
 </div>
+
+<!-- ================= EDIT PERSON MODAL ================= -->
+
+<div id="edit-person-modal" class="modal hidden">
+  <div class="modal-content">
+
+    <h3>Edit person</h3>
+
+    <label>
+      Name<br />
+      <input type="text" id="edit-person-name" />
+    </label>
+
+    <br /><br />
+
+    <label>
+      Birth date (YYYY-MM-DD)<br />
+      <input type="date" id="edit-person-birthdate" />
+    </label>
+
+    <br /><br />
+
+    <div class="modal-actions">
+      <button id="save-person-btn">Save</button>
+      <button onclick="document.getElementById('edit-person-modal').classList.add('hidden')">
+        Cancel
+      </button>
+    </div>
+
+  </div>
+</div>
     
     <!-- ===== IMPORT SECTION ===== -->
 
