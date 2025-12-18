@@ -218,7 +218,7 @@ if (defaultTab) defaultTab.click();
 }
 
 /* =====================================================
-   PLAYERS – OVERBLIK
+   PLAYERS – OVERBLIK (STABIL VERSION)
 ===================================================== */
 
 async function loadPlayers() {
@@ -234,29 +234,25 @@ async function loadPlayers() {
     const p = docu.data();
     const picks = p.entries?.["2026"]?.picks || [];
 
-    let approved = 0, pending = 0, rejected = 0;
+    let approved = 0;
+    let pending = 0;
+
     picks.forEach(x => {
       if (x.status === "approved") approved++;
-      else if (x.status === "rejected") rejected++;
       else pending++;
     });
 
-    // ---------- ACTIVE PLAYERS ----------
+    // ---------- ACTIVE ----------
     if (p.active !== false && activeBody) {
       activeBody.innerHTML += `
         <tr>
-          <td>
-            ${p.name}
-            ${p.firstBlood ? `<span title="First Blood"> 🩸</span>` : ""}
-          </td>
+          <td>${p.name}</td>
           <td>${approved}</td>
           <td>${pending}</td>
-          <td>${rejected}</td>
           <td>
             <button class="validate-btn" data-id="${docu.id}">Validate</button>
             <button class="minus-btn" data-id="${docu.id}">−1</button>
             <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-            <button class="firstblood-btn" data-id="${docu.id}">🩸</button>
             <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
             <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
           </td>
@@ -264,7 +260,7 @@ async function loadPlayers() {
       `;
     }
 
-    // ---------- INACTIVE PLAYERS ----------
+    // ---------- INACTIVE ----------
     if (p.active === false && inactiveBody) {
       inactiveBody.innerHTML += `
         <tr style="opacity:.6">
@@ -278,7 +274,7 @@ async function loadPlayers() {
     }
   });
 
-  // ===== ACTIVE PLAYER ACTIONS =====
+  // === BIND ACTIONS ===
 
   document.querySelectorAll(".validate-btn").forEach(b =>
     b.onclick = () => openValidateModal(b.dataset.id)
@@ -292,10 +288,6 @@ async function loadPlayers() {
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
 
-  document.querySelectorAll(".firstblood-btn").forEach(b =>
-    b.onclick = () => setFirstBlood(b.dataset.id)
-  );
-
   document.querySelectorAll(".delete-player-btn").forEach(b =>
     b.onclick = async () => {
       if (!confirm("Deactivate this player?")) return;
@@ -303,8 +295,6 @@ async function loadPlayers() {
       loadPlayers();
     }
   );
-
-  // ===== INACTIVE PLAYER ACTIONS =====
 
   document.querySelectorAll(".restore-player-btn").forEach(b =>
     b.onclick = async () => {
@@ -327,7 +317,7 @@ async function loadPlayers() {
 }
 
 /* =====================================================
-   VALIDATE PICKS + IMPORT
+   VALIDATE PICKS – STABIL VERSION
 ===================================================== */
 
 let currentValidatePlayerId = null;
@@ -336,73 +326,57 @@ async function openValidateModal(playerId) {
   currentValidatePlayerId = playerId;
 
   const snap = await getDoc(doc(db, "players", playerId));
-  const picks = snap.data().entries["2026"].picks || [];
+  if (!snap.exists()) return;
 
-  const order = { approved: 0, pending: 1, rejected: 2 };
-  picks.sort((a, b) => order[a.status] - order[b.status]);
-
+  const picks = snap.data().entries?.["2026"]?.picks || [];
   const tbody = document.querySelector("#validate-picks-table tbody");
+
   tbody.innerHTML = "";
 
-picks.forEach((pick, i) => {
-  let actions = "";
+  picks.forEach(pick => {
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          <input
+            type="text"
+            class="name-input"
+            data-id="${pick.id}"
+            value="${pick.normalizedName || pick.raw || ""}"
+            ${pick.status === "approved" ? "disabled" : ""}
+          >
+        </td>
+        <td>
+          <input
+            type="text"
+            class="date-input"
+            data-id="${pick.id}"
+            value="${pick.birthDate || ""}"
+            placeholder="DD-MM-YYYY"
+            ${pick.status === "approved" ? "disabled" : ""}
+          >
+        </td>
+        <td>${pick.status}</td>
+        <td>
+          ${
+            pick.status !== "approved"
+              ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
+              : ""
+          }
+          <button data-id="${pick.id}" data-action="delete">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
 
-if (pick.status === "pending") {
-  actions = `
-    <button data-id="${pick.id}" data-a="approve">Approve</button>
-    <button data-id="${pick.id}" data-a="reject">Reject</button>
-    <button data-id="${pick.id}" data-a="delete">Delete</button>
-  `;
-}
-
-if (pick.status === "rejected") {
-  actions = `
-    <button data-id="${pick.id}" data-a="pending">Back to pending</button>
-    <button data-id="${pick.id}" data-a="delete">Delete</button>
-  `;
-}
-  
-if (pick.status === "approved") {
-  actions = `
-    <button data-id="${pick.id}" data-a="delete">Delete</button>
-  `;
-}
-
-  tbody.innerHTML += `
-    <tr style="${pick.status === "approved" ? "opacity:.5" : ""}">
-      <td>
-        <input
-          type="text"
-          value="${pick.normalizedName || pick.raw || ""}"
-          data-id="${pick.id}"
-          class="name-input"
-          ${pick.status === "approved" ? "disabled" : ""}
-        >
-      </td>
-      <td>
-        <input
-          type="date"
-          value="${pick.birthDate || ""}"
-          data-id="${pick.id}"
-          class="date-input"
-          ${pick.status === "approved" ? "disabled" : ""}
-        >
-      </td>
-      <td>${pick.status}</td>
-      <td>${actions}</td>
-    </tr>
-  `;
-});
-
-
-  tbody.querySelectorAll("button").forEach(b =>
-      b.onclick = () => handlePickAction(b.dataset.i, b.dataset.a)
-  );
+  tbody.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () =>
+      handlePickAction(btn.dataset.id, btn.dataset.action);
+  });
 
   document.getElementById("validate-picks-modal").classList.remove("hidden");
 }
 
-/* -------- IMPORT LIST (RAW TEXT / CSV) -------- */
+/* -------- IMPORT -------- */
 
 async function importPicks(rawText) {
   if (!currentValidatePlayerId) return;
@@ -414,77 +388,49 @@ async function importPicks(rawText) {
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
-  const existingPicks = snap.data().entries["2026"].picks || [];
+  const existing = snap.data().entries["2026"].picks || [];
   const newPicks = lines.map(parsePickLine);
 
   await updateDoc(ref, {
-    "entries.2026.picks": [...existingPicks, ...newPicks]
+    "entries.2026.picks": [...existing, ...newPicks]
   });
 
   document.getElementById("import-picks").value = "";
-
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
 }
 
-const importBtn = document.getElementById("import-picks-btn");
-if (importBtn) {
-  importBtn.onclick = () => {
-    const input = document.getElementById("import-picks");
-    const text = input ? input.value : "";
-    importPicks(text);
-  };
-}
+/* -------- APPROVE / DELETE -------- */
 
-/* -------- APPROVE / REJECT -------- */
-
-async function handlePickAction(actionId, action) {
+async function handlePickAction(pickId, action) {
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
   const picks = snap.data().entries["2026"].picks || [];
-  const pickIndex = picks.findIndex(p => p.id === actionId);
-  if (pickIndex === -1) return;
+  const index = picks.findIndex(p => p.id === pickId);
+  if (index === -1) return;
 
-  const pick = picks[pickIndex];
+  const pick = picks[index];
 
-  /* ===== DELETE ===== */
   if (action === "delete") {
-    if (!confirm(`Delete pick: "${pick.normalizedName || pick.raw}" ?`)) return;
-    picks.splice(pickIndex, 1);
+    picks.splice(index, 1);
   }
 
-  /* ===== BACK TO PENDING ===== */
-  if (action === "pending") {
-    pick.status = "pending";
-  }
-
-  /* ===== REJECT ===== */
-  if (action === "reject") {
-    pick.status = "rejected";
-  }
-
-  /* ===== APPROVE ===== */
   if (action === "approve") {
-    const nameInput = document.querySelector(
-      `.name-input[data-id="${actionId}"]`
-    );
-    const dateInput = document.querySelector(
-      `.date-input[data-id="${actionId}"]`
-    );
+    const nameInput = document.querySelector(`.name-input[data-id="${pickId}"]`);
+    const dateInput = document.querySelector(`.date-input[data-id="${pickId}"]`);
 
-    const name = nameInput ? nameInput.value.trim() : "";
-    const iso  = dateInput ? parseToISO(dateInput.value) : "";
+    const name = nameInput?.value.trim();
+    const iso = parseToISO(dateInput?.value);
 
     if (!name) {
       alert("Name required");
       return;
     }
 
-    let personId = pick.personId || null;
+    let personId = null;
 
-    // kun opret / find person hvis der ER fødselsdato
     if (iso) {
       const q = query(
         collection(db, "people"),
@@ -504,7 +450,7 @@ async function handlePickAction(actionId, action) {
       }
     }
 
-    picks[pickIndex] = {
+    picks[index] = {
       ...pick,
       normalizedName: name,
       birthDate: iso || "",
@@ -518,273 +464,6 @@ async function handlePickAction(actionId, action) {
   });
 
   openValidateModal(currentValidatePlayerId);
-  loadPlayers();
-}
-
-/* =====================================================
-   PEOPLE
-===================================================== */
-
-let currentPersonId = null;
-async function loadPeople() {
-  const snap = await getDocs(collection(db, "people"));
-  const tbody = document.querySelector("#people-table tbody");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  snap.forEach(d => {
-    const p = d.data();
-
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.birthDate || "—"}</td>
-        <td>${p.birthDate ? "OK" : "Missing"}</td>
-        <td>
-          <button class="edit-person-btn" data-id="${d.id}">Edit</button>
-          <button class="delete-person-btn" data-id="${d.id}">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
-
-  // 🔗 bind events EFTER render
-  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      openEditPerson(btn.dataset.id);
-    });
-  });
-
-  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      deletePerson(btn.dataset.id);
-    });
-  });
-}
-
-// ===================================================== PEOPLE – ACTIONS =====================================================
-
-window.deletePerson = async id => {
-  if (!id) return;
-  if (!confirm("Delete permanently?")) return;
-
-  await deleteDoc(doc(db, "people", id));
-  loadPeople();
-};
-
-window.openEditPerson = async id => {
-  if (!id) return;
-
-  const snap = await getDoc(doc(db, "people", id));
-  if (!snap.exists()) {
-    alert("Person not found");
-    return;
-  }
-
-  currentPersonId = id;
-
-  const nameInput = document.getElementById("edit-person-name");
-  const birthInput = document.getElementById("edit-person-birthdate");
-  const modal = document.getElementById("edit-person-modal");
-
-  if (!nameInput || !birthInput || !modal) {
-    console.error("Edit person modal elements missing");
-    return;
-  }
-
-  nameInput.value = snap.data().name || "";
-  birthInput.value = snap.data().birthDate || "";
-
-  modal.classList.remove("hidden");
-};
-
-const savePersonBtn = document.getElementById("save-person-btn");
-if (savePersonBtn) {
-  savePersonBtn.onclick = async () => {
-    if (!currentPersonId) return;
-
-    await updateDoc(doc(db, "people", currentPersonId), {
-      name: document.getElementById("edit-person-name").value.trim(),
-      birthDate: document.getElementById("edit-person-birthdate").value
-    });
-
-    const modal = document.getElementById("edit-person-modal");
-    if (modal) modal.classList.add("hidden");
-
-    loadPeople();
-  };
-}
-
-
-/* =====================================================
-   DEATHS – ADMIN FLOW (FULDT IMPLEMENTERET)
-===================================================== */
-
-async function registerDeath(personId, playerId, dateOfDeathISO) {
-  await addDoc(collection(db, "deaths"), {
-    personId,
-    playerId,
-    dateOfDeath: dateOfDeathISO,
-    approved: false,
-    createdAt: new Date().toISOString()
-  });
-
-  loadDeaths();
-}
-
-/* ---------- Load deaths ---------- */
-
-async function loadDeaths() {
-  const container = document.getElementById("tab-deaths");
-  if (!container) return;
-
-  container.innerHTML = `
-    <h2>Deaths</h2>
-    <p>Approve registered deaths.</p>
-
-    <table id="deaths-table">
-      <thead>
-        <tr>
-          <th>Person</th>
-          <th>Player</th>
-          <th>Date of death</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  `;
-
-  const tbody = container.querySelector("tbody");
-  const snap = await getDocs(collection(db, "deaths"));
-
-  tbody.innerHTML = "";
-
-  for (const d of snap.docs) {
-    const death = d.data();
-
-    const personSnap = await getDoc(doc(db, "people", death.personId));
-    const playerSnap = await getDoc(doc(db, "players", death.playerId));
-
-    const personName = personSnap.exists()
-      ? personSnap.data().name
-      : "Unknown";
-
-    const playerName = playerSnap.exists()
-      ? playerSnap.data().name
-      : "Unknown";
-
-    tbody.innerHTML += `
-      <tr style="${death.approved ? "opacity:.5" : ""}">
-        <td>${personName}</td>
-        <td>${playerName}</td>
-        <td>${death.dateOfDeath}</td>
-        <td>${death.approved ? "Approved" : "Pending"}</td>
-        <td>
-          ${
-            death.approved
-              ? `<button data-id="${d.id}" class="undo-death">Undo</button>`
-              : `<button data-id="${d.id}" class="approve-death">Approve</button>`
-          }
-        </td>
-      </tr>
-    `;
-  }
-
-  container.querySelectorAll(".approve-death").forEach(btn => {
-    btn.onclick = () => approveDeath(btn.dataset.id);
-  });
-
-  container.querySelectorAll(".undo-death").forEach(btn => {
-    btn.onclick = () => undoDeath(btn.dataset.id);
-  });
-}
-
-/* ---------- Approve death ---------- */
-
-async function approveDeath(deathId) {
-  const ref = doc(db, "deaths", deathId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-
-  const death = snap.data();
-
-  const personSnap = await getDoc(doc(db, "people", death.personId));
-  if (!personSnap.exists()) return;
-
-  const birth = personSnap.data().birthDate;
-  const deathDate = new Date(death.dateOfDeath);
-  const birthDate = new Date(birth);
-
-  let age =
-    deathDate.getFullYear() -
-    birthDate.getFullYear() -
-    (deathDate <
-    new Date(
-      deathDate.getFullYear(),
-      birthDate.getMonth(),
-      birthDate.getDate()
-    )
-      ? 1
-      : 0);
-
-  let points = age >= 99 ? 1 : Math.max(1, 100 - age);
-
-  // First Blood?
-  const existingApproved = await getDocs(
-    query(collection(db, "deaths"), where("approved", "==", true))
-  );
-
-  const isFirstBlood = existingApproved.empty;
-
-  await updateDoc(ref, {
-    approved: true,
-    approvedAt: new Date().toISOString(),
-    pointsAwarded: points,
-    firstBlood: isFirstBlood
-  });
-
-  await applyScore(death.playerId, points);
-
-  if (isFirstBlood) {
-    await updateDoc(doc(db, "players", death.playerId), {
-      firstBlood: true
-    });
-  }
-
-  loadDeaths();
-  loadPlayers();
-}
-
-/* ---------- Undo death ---------- */
-
-async function undoDeath(deathId) {
-  const ref = doc(db, "deaths", deathId);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-
-  const death = snap.data();
-
-  if (death.pointsAwarded) {
-    await applyScore(death.playerId, -death.pointsAwarded);
-  }
-
-  if (death.firstBlood) {
-    await updateDoc(doc(db, "players", death.playerId), {
-      firstBlood: false
-    });
-  }
-
-  await updateDoc(ref, {
-    approved: false,
-    approvedAt: null,
-    pointsAwarded: null,
-    firstBlood: false
-  });
-
-  loadDeaths();
   loadPlayers();
 }
 
