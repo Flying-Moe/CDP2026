@@ -328,42 +328,100 @@ async function loadPlayers() {
 }
 
 /* =====================================================
-   CELEBRITIES (tidl. People)
+   PEOPLE (inkl. orphan picks)
 ===================================================== */
 
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function loadPeople() {
-  const snap = await getDocs(collection(db, "people"));
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
-
   tbody.innerHTML = "";
 
-  snap.forEach(d => {
-    const p = d.data();
+  /* ---------- 1. Load ALL people ---------- */
 
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.birthDate || "—"}</td>
-        <td>${p.birthDate ? "OK" : "Missing"}</td>
-        <td>
-          <button class="edit-person-btn" data-id="${d.id}">Edit</button>
-          <button class="delete-person-btn" data-id="${d.id}">Delete</button>
-        </td>
-      </tr>
-    `;
+  const peopleSnap = await getDocs(collection(db, "people"));
+  const peopleMap = new Map();
+
+  peopleSnap.forEach(docu => {
+    const p = docu.data();
+    const key = normalizeName(p.name);
+
+    peopleMap.set(key, {
+      id: docu.id,
+      name: p.name,
+      birthDate: p.birthDate || "",
+      usedBy: 0,
+      orphan: false
+    });
   });
 
-  const editButtons = tbody.querySelectorAll(".edit-person-btn");
-  editButtons.forEach(btn => {
-    btn.onclick = () => openEditPerson(btn.dataset.id);
+  /* ---------- 2. Scan ALL player picks ---------- */
+
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  playersSnap.forEach(playerDoc => {
+    const player = playerDoc.data();
+    const picks = player.entries?.["2026"]?.picks || [];
+
+    picks.forEach(pick => {
+      if (pick.status !== "approved") return;
+
+      const key = normalizeName(pick.normalizedName || pick.raw || "");
+      if (!key) return;
+
+      if (peopleMap.has(key)) {
+        peopleMap.get(key).usedBy++;
+      } else {
+        // 👻 ORPHAN PICK
+        peopleMap.set(key, {
+          id: null,
+          name: pick.normalizedName || pick.raw,
+          birthDate: "",
+          usedBy: 1,
+          orphan: true
+        });
+      }
+    });
   });
 
-  const deleteButtons = tbody.querySelectorAll(".delete-person-btn");
-  deleteButtons.forEach(btn => {
-    btn.onclick = () => deletePerson(btn.dataset.id);
-  });
+  /* ---------- 3. Render table ---------- */
+
+  [...peopleMap.values()]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .forEach(p => {
+      tbody.innerHTML += `
+        <tr style="${p.orphan ? "background:#fff4e5;" : ""}">
+          <td>${p.name}</td>
+          <td>${p.birthDate || "—"}</td>
+          <td>
+            ${
+              p.birthDate
+                ? "OK"
+                : p.orphan
+                  ? "Missing (orphan)"
+                  : "Missing"
+            }
+          </td>
+          <td>
+            ${
+              p.id
+                ? `<button onclick="openEditPerson('${p.id}')">Edit</button>
+                   <button onclick="deletePerson('${p.id}')">Delete</button>`
+                : `<em>Fix via Players → Validate</em>`
+            }
+          </td>
+        </tr>
+      `;
+    });
 }
+
 
 /* =====================================================
    PEOPLE – UNIFIED (GLOBAL + ORPHANS)
