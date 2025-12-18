@@ -336,3 +336,15 @@ footer {
   font-style: italic;
   color: #999;
 }
+
+.badges {
+  margin-left: 6px;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.badge-icon {
+  cursor: help;
+  font-size: 0.95em;
+  line-height: 1;
+}
