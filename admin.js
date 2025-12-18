@@ -563,35 +563,59 @@ async function loadPeople() {
   });
 }
 
+// ===================================================== PEOPLE – ACTIONS =====================================================
+
 window.deletePerson = async id => {
+  if (!id) return;
   if (!confirm("Delete permanently?")) return;
+
   await deleteDoc(doc(db, "people", id));
   loadPeople();
 };
 
 window.openEditPerson = async id => {
+  if (!id) return;
+
   const snap = await getDoc(doc(db, "people", id));
+  if (!snap.exists()) {
+    alert("Person not found");
+    return;
+  }
+
   currentPersonId = id;
 
-  document.getElementById("edit-person-name").value = snap.data().name;
-  document.getElementById("edit-person-birthdate").value =
-    snap.data().birthDate || "";
+  const nameInput = document.getElementById("edit-person-name");
+  const birthInput = document.getElementById("edit-person-birthdate");
+  const modal = document.getElementById("edit-person-modal");
 
-  document.getElementById("edit-person-modal").classList.remove("hidden");
+  if (!nameInput || !birthInput || !modal) {
+    console.error("Edit person modal elements missing");
+    return;
+  }
+
+  nameInput.value = snap.data().name || "";
+  birthInput.value = snap.data().birthDate || "";
+
+  modal.classList.remove("hidden");
 };
 
 const savePersonBtn = document.getElementById("save-person-btn");
 if (savePersonBtn) {
   savePersonBtn.onclick = async () => {
+    if (!currentPersonId) return;
+
     await updateDoc(doc(db, "people", currentPersonId), {
       name: document.getElementById("edit-person-name").value.trim(),
       birthDate: document.getElementById("edit-person-birthdate").value
     });
 
-    document.getElementById("edit-person-modal").classList.add("hidden");
+    const modal = document.getElementById("edit-person-modal");
+    if (modal) modal.classList.add("hidden");
+
     loadPeople();
   };
 }
+
 
 /* =====================================================
    DEATHS – ADMIN FLOW (FULDT IMPLEMENTERET)
