@@ -807,68 +807,56 @@ if (action === "approve") {
     `.date-input[data-id="${pickId}"]`
   );
 
-  const rawName = nameInput?.value.trim();
+  const name = nameInput?.value.trim();
   const iso = parseFlexibleDate(dateInput?.value);
 
-  if (!rawName) {
-    alert("Name required");
+  if (!name) {
+    alert("Name is required");
     return;
   }
 
-  const normalized = normalizeName(rawName);
-  let personId;
-  let finalBirthDate = iso || "";
+  if (dateInput?.value && !iso) {
+    alert("Invalid birth date format");
+    return;
+  }
 
-  // 1. find existing person (normalized name)
-  const q = query(
-    collection(db, "people"),
-    where("nameNormalized", "==", normalized)
-  );
-  const snapPeople = await getDocs(q);
+  let personId = null;
 
-  if (!snapPeople.empty) {
-    const person = snapPeople.docs[0];
-    personId = person.id;
-    finalBirthDate = person.data().birthDate || finalBirthDate;
-  } else {
-    // create new
+  // 🔍 exact match: name + birthDate
+  if (iso) {
+    const q = query(
+      collection(db, "people"),
+      where("name", "==", name),
+      where("birthDate", "==", iso)
+    );
+
+    const snapPeople = await getDocs(q);
+    if (!snapPeople.empty) {
+      personId = snapPeople.docs[0].id;
+    }
+  }
+
+  // ➕ create new person if not found
+  if (!personId) {
     personId = (
       await addDoc(collection(db, "people"), {
-        name: rawName,
-        nameNormalized: normalized,
-        birthDate: finalBirthDate
+        name,
+        birthDate: iso || "",
+        createdAt: new Date().toISOString()
       })
     ).id;
   }
 
-  // 2. UPDATE ALL MATCHING PICKS (GLOBAL CONSOLIDATION)
-  const playersSnap = await getDocs(collection(db, "players"));
-
-  playersSnap.forEach(ps => {
-    const ref = doc(db, "players", ps.id);
-    const data = ps.data();
-    const picks = data.entries?.["2026"]?.picks || [];
-
-    let changed = false;
-
-    picks.forEach(p => {
-      if (
-        normalizeName(p.normalizedName || p.raw || "") === normalized
-      ) {
-        p.personId = personId;
-        p.birthDate = finalBirthDate;
-        p.status = "approved";
-        changed = true;
-      }
-    });
-
-    if (changed) {
-      updateDoc(ref, {
-        "entries.2026.picks": picks
-      });
-    }
-  });
+  // 🔗 update ONLY this pick
+  picks[index] = {
+    ...pick,
+    normalizedName: name,
+    birthDate: iso || "",
+    personId,
+    status: "approved"
+  };
 }
+
 
   await updateDoc(ref, {
     "entries.2026.picks": picks
