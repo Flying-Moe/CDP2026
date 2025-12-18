@@ -15,7 +15,7 @@ import {
 ===================================================== */
 
 async function renderLists() {
-  const container = document.getElementById("lists");
+  const container = document.getElementById("lists-container");
   if (!container) return;
 
   container.innerHTML = "<p>Loading player lists…</p>";
