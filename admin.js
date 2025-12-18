@@ -354,15 +354,20 @@ async function loadPeople() {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const peopleSnap = await getDocs(collection(db, "people"));
+  const peopleSnap  = await getDocs(collection(db, "people"));
   const playersSnap = await getDocs(collection(db, "players"));
 
-  // ---------- A. Render REAL people ----------
+  /* -------------------------------------------------
+     1. Saml REAL PEOPLE (People-collection)
+  ------------------------------------------------- */
+
+  const rows = [];
   const peopleById = new Map();
 
   peopleSnap.forEach(d => {
     const p = d.data();
     peopleById.set(d.id, {
+      type: "person",
       id: d.id,
       name: p.name,
       birthDate: p.birthDate || "",
@@ -370,30 +375,31 @@ async function loadPeople() {
     });
   });
 
+  /* -------------------------------------------------
+     2. Tæl brug pr. personId
+  ------------------------------------------------- */
+
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
     picks.forEach(p => {
-      if (p.status === "approved" && p.personId && peopleById.has(p.personId)) {
+      if (
+        p.status === "approved" &&
+        p.personId &&
+        peopleById.has(p.personId)
+      ) {
         peopleById.get(p.personId).usedBy++;
       }
     });
   });
 
-  peopleById.forEach(p => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.birthDate || "—"}</td>
-        <td>OK</td>
-        <td>
-          <button class="edit-person-btn" data-id="${p.id}">Edit</button>
-          <button class="delete-person-btn" data-id="${p.id}">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
+  peopleById.forEach(p => rows.push(p));
 
-  // ---------- B. Render APPROVED ORPHAN PICKS ----------
+  /* -------------------------------------------------
+     3. Find APPROVED ORPHANS (approved picks uden personId)
+  ------------------------------------------------- */
+
+  const orphanMap = new Map();
+
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
 
@@ -401,20 +407,69 @@ async function loadPeople() {
       if (pick.status !== "approved") return;
       if (pick.personId) return;
 
+      const name = (pick.normalizedName || pick.raw || "").trim();
+      if (!name) return;
+
+      const key = name.toLowerCase();
+
+      if (!orphanMap.has(key)) {
+        orphanMap.set(key, {
+          type: "orphan",
+          name,
+          birthDate: pick.birthDate || "",
+          count: 1
+        });
+      } else {
+        orphanMap.get(key).count++;
+      }
+    });
+  });
+
+  orphanMap.forEach(o => rows.push(o));
+
+  /* -------------------------------------------------
+     4. Sortér alfabetisk (case-insensitive)
+  ------------------------------------------------- */
+
+  rows.sort((a, b) =>
+    a.name.localeCompare(b.name, "en", { sensitivity: "base" })
+  );
+
+  /* -------------------------------------------------
+     5. Render tabel
+  ------------------------------------------------- */
+
+  rows.forEach(r => {
+    if (r.type === "person") {
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.birthDate || "—"}</td>
+          <td>OK (${r.usedBy})</td>
+          <td>
+            <button class="edit-person-btn" data-id="${r.id}">Edit</button>
+            <button class="delete-person-btn" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>
+      `;
+    } else {
       tbody.innerHTML += `
         <tr style="background:#fff4e5;">
-          <td>${pick.normalizedName || pick.raw}</td>
-          <td>${pick.birthDate || "—"}</td>
-          <td>Missing (approved pick)</td>
+          <td>${r.name}</td>
+          <td>${r.birthDate || "—"}</td>
+          <td>Missing (orphan ×${r.count})</td>
           <td>
             <em>Fix via Players → Validate</em>
           </td>
         </tr>
       `;
-    });
+    }
   });
 
-  // ---------- Actions ----------
+  /* -------------------------------------------------
+     6. Actions
+  ------------------------------------------------- */
+
   tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
     btn.onclick = () => openEditPerson(btn.dataset.id);
   });
