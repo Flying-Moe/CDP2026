@@ -141,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
       setupTabs();
       loadPlayers();
       loadPeople();
-      loadDeaths();
 
     } catch (err) {
       errorEl.textContent = "Authorization error";
