@@ -5,110 +5,82 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  doc,
-  getDoc,
   query,
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =====================================================
-   HELPERS
-===================================================== */
-
-function calculateAgeAtDeath(birthISO, deathISO) {
-  const b = new Date(birthISO);
-  const d = new Date(deathISO);
-
-  let age = d.getFullYear() - b.getFullYear();
-  const m = d.getMonth() - b.getMonth();
-
-  if (m < 0 || (m === 0 && d.getDate() < b.getDate())) {
-    age--;
-  }
-  return age;
-}
-
-function calculatePoints(age) {
-  if (age >= 99) return 1;
-  return Math.max(1, 100 - age);
-}
 
 /* =====================================================
    LOAD + RENDER LEADERBOARD
 ===================================================== */
 
 async function renderLeaderboard() {
+  const tbody = document.querySelector("#leaderboard tbody");
+  if (!tbody) return;
 
+  tbody.innerHTML = "<tr><td colspan='4'>Loading…</td></tr>";
+
+  // Kun aktive spillere
   const playersSnap = await getDocs(
     query(collection(db, "players"), where("active", "==", true))
   );
-  const peopleSnap = await getDocs(collection(db, "people"));
+
+  // Approved deaths = hits
   const deathsSnap = await getDocs(
     query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  /* ---------- Maps ---------- */
+  /* ---------- Hits pr. spiller ---------- */
 
-  const peopleMap = {};
-  peopleSnap.forEach(d => {
-    peopleMap[d.id] = d.data();
-  });
-
-  const deathsByPlayer = {};
+  const hitsByPlayer = {};
   deathsSnap.forEach(d => {
     const death = d.data();
-    if (!deathsByPlayer[death.playerId]) {
-      deathsByPlayer[death.playerId] = [];
-    }
-    deathsByPlayer[death.playerId].push(death);
+    hitsByPlayer[death.playerId] =
+      (hitsByPlayer[death.playerId] || 0) + 1;
   });
 
-  /* ---------- Calculate results ---------- */
+  /* ---------- Saml leaderboard-data ---------- */
 
   const results = [];
 
   playersSnap.forEach(pDoc => {
     const p = pDoc.data();
-    if (p.active === false) return;
 
-    let points = p.score || 0;
-    let hits = 0;
+    const history = p.scoreHistory || [];
+    const minusPoints = history.filter(h => h.delta === -1);
+    const minusCount = minusPoints.length;
 
-    const playerDeaths = deathsByPlayer[pDoc.id] || [];
-
-    playerDeaths.forEach(d => {
-      const person = peopleMap[d.personId];
-      if (!person || !person.birthDate) return;
-
-      const age = calculateAgeAtDeath(
-        person.birthDate,
-        d.dateOfDeath
-      );
-
-      points += calculatePoints(age);
-      hits++;
-    });
+    const lastMinusAt = minusCount
+      ? Math.max(
+          ...minusPoints.map(h => new Date(h.at).getTime())
+        )
+      : 0;
 
     results.push({
       id: pDoc.id,
       name: p.name,
-      points,
-      hits,
-      firstBlood: p.firstBlood === true
+      points: p.score || 0,
+      hits: hitsByPlayer[pDoc.id] || 0,
+      firstBlood: p.firstBlood === true,
+      minusCount,
+      lastMinusAt
     });
   });
 
-  /* ---------- Sort ---------- */
-
+  /* ---------- Sortering ---------- */
   results.sort((a, b) => {
+    // 1. Points (DESC)
     if (b.points !== a.points) return b.points - a.points;
-    if (b.hits !== a.hits) return b.hits - a.hits;
-    return 0;
+
+    // 2. Færrest minuspoint vinder
+    if (a.minusCount !== b.minusCount)
+      return a.minusCount - b.minusCount;
+
+    // 3. Seneste minuspoint nederst
+    return a.lastMinusAt - b.lastMinusAt;
   });
 
   /* ---------- Render ---------- */
 
-  const tbody = document.querySelector("#leaderboard tbody");
   tbody.innerHTML = "";
 
   results.forEach((r, index) => {
@@ -130,10 +102,15 @@ async function renderLeaderboard() {
 
     tbody.appendChild(tr);
   });
+
+  if (!results.length) {
+    tbody.innerHTML =
+      "<tr><td colspan='4'>No players yet.</td></tr>";
+  }
 }
 
 /* =====================================================
    INIT
 ===================================================== */
 
-renderLeaderboard();
+document.addEventListener("DOMContentLoaded", renderLeaderboard);
