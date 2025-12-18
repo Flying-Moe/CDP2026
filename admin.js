@@ -526,24 +526,40 @@ async function handlePickAction(actionId, action) {
 ===================================================== */
 
 let currentPersonId = null;
-
 async function loadPeople() {
   const snap = await getDocs(collection(db, "people"));
   const tbody = document.querySelector("#people-table tbody");
+  if (!tbody) return;
+
   tbody.innerHTML = "";
 
   snap.forEach(d => {
     const p = d.data();
+
     tbody.innerHTML += `
       <tr>
         <td>${p.name}</td>
         <td>${p.birthDate || "—"}</td>
         <td>${p.birthDate ? "OK" : "Missing"}</td>
         <td>
-          <button onclick="openEditPerson('${d.id}')">Edit</button>
-          <button onclick="deletePerson('${d.id}')">Delete</button>
+          <button class="edit-person-btn" data-id="${d.id}">Edit</button>
+          <button class="delete-person-btn" data-id="${d.id}">Delete</button>
         </td>
-      </tr>`;
+      </tr>
+    `;
+  });
+
+  // 🔗 bind events EFTER render
+  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openEditPerson(btn.dataset.id);
+    });
+  });
+
+  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      deletePerson(btn.dataset.id);
+    });
   });
 }
 
