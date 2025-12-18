@@ -169,11 +169,45 @@
   <div class="modal-content">
 
     <h3 id="validate-title">Validate picks</h3>
-    
-<div
-  id="validate-stats"
-  style="margin-bottom:10px; font-weight:bold;"
->
+
+    <div id="validate-stats" style="margin-bottom:10px; font-weight:bold;"></div>
+
+    <h4>Import player list</h4>
+    <p style="font-size:0.9em; color:#666;">
+      Paste raw list (one name per line, optional birth date).  
+      Nothing is overwritten. New picks are added as <em>pending</em>.
+    </p>
+
+    <textarea
+      id="import-picks"
+      rows="6"
+      style="width:100%; font-family:monospace;"
+      placeholder="Amanda Bynes 1986&#10;Lil Dwayne 27-09-1982&#10;Bam Margera">
+    </textarea>
+
+    <br /><br />
+
+    <button id="import-picks-btn">Add as pending</button>
+
+    <hr />
+
+    <table id="validate-picks-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Birth date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="modal-actions">
+      <button id="close-validate-btn">Close</button>
+    </div>
+
+  </div>
 </div>
 
 <!-- ================= EDIT PERSON MODAL ================= -->
@@ -206,7 +240,7 @@
 
   </div>
 </div>
-    
+
     <!-- ===== IMPORT SECTION ===== -->
 
     <h4>Import player list</h4>
