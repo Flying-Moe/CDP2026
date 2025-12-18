@@ -39,7 +39,9 @@ function calculatePoints(age) {
 
 async function renderLeaderboard() {
 
-  const playersSnap = await getDocs(collection(db, "players"));
+  const playersSnap = await getDocs(
+    query(collection(db, "players"), where("active", "==", true))
+  );
   const peopleSnap = await getDocs(collection(db, "people"));
   const deathsSnap = await getDocs(
     query(collection(db, "deaths"), where("approved", "==", true))
