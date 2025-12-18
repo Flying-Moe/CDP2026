@@ -314,3 +314,25 @@ footer {
   width: 100%;
   border-collapse: collapse;
 }
+
+/* =========================
+  BADGES
+========================= */
+
+.badge {
+  font-size: 1.1em;
+  margin-left: 4px;
+  cursor: default;
+}
+
+.badge-gold { color: #d4af37; }
+.badge-dark { color: #222; }
+.badge-red { color: #8b0000; }
+.badge-green { color: #2e8b57; }
+.badge-orange { color: #ff8c00; }
+.badge-gray { color: #666; }
+
+.badge-unclaimed {
+  font-style: italic;
+  color: #999;
+}
