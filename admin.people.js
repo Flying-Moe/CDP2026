@@ -241,8 +241,10 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-      await loadPeople();
-      await loadPlayers();
+await autoLinkApprovedPicks();
+await loadPeople();
+await loadPlayers();
+
     };
   });
 }
