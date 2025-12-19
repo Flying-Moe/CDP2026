@@ -72,6 +72,15 @@ export async function loadPeople() {
       if (pick.personId) g.personIds.add(pick.personId);
     });
   });
+   
+const groupArray = [...groups.values()];
+
+function namesAreSimilar(a, b) {
+  const na = normalizeName(a.displayName);
+  const nb = normalizeName(b.displayName);
+
+  return na !== nb && (na.includes(nb) || nb.includes(na));
+}
 
   /* --------------------------------------------
      RENDER TABLE
@@ -82,6 +91,11 @@ export async function loadPeople() {
       a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
     )
     .forEach(g => {
+       const canMerge = g.picks.length > 1;
+       const similarGroups = groupArray.filter(
+  other => other !== g && namesAreSimilar(g, other)
+);
+
 let status = "OK";
 let statusClass = "";
 
@@ -94,7 +108,10 @@ if (g.birthDates.size > 1) {
   status = "Conflict";
   statusClass = "status-conflict";
 }
-
+       
+const similar = groupArray.filter(other =>
+  other !== g && similarNames(g, other)
+);
 
       const usedBy = g.playerIds.size;
       const birthDate =
@@ -102,7 +119,16 @@ if (g.birthDates.size > 1) {
 
       tbody.innerHTML += `
         <tr class="${statusClass}">
-          <td>${g.displayName}</td>
+          <td>
+  ${g.displayName}
+  ${
+    similar.length
+      ? `<div style="font-size:0.8em;color:#666;">
+           Similar: ${similar.map(s => s.displayName).join(", ")}
+         </div>`
+      : ""
+  }
+</td>
           <td>${birthDate}</td>
           <td>${status}</td>
           <td title="Used by ${[...g.playerIds].length} player(s)">
@@ -129,12 +155,14 @@ if (g.birthDates.size > 1) {
     Edit
   </button>
 
-  <button
-    class="merge-people-btn"
-    ${status !== "Conflict" ? "disabled" : ""}
-    data-key="${normalizeName(g.displayName)}">
-    Merge
-  </button>
+<button
+  class="merge-people-btn"
+  ${canMerge ? "" : "disabled"}
+  title="Merge ${g.picks.length} picks (${g.playerIds.size} player${g.playerIds.size > 1 ? "s" : ""})"
+  data-key="${normalizeName(g.displayName)}">
+  Merge (${g.picks.length})
+</button>
+
 
   <button
     class="delete-people-btn"
