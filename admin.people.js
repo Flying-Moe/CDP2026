@@ -525,11 +525,10 @@ document.addEventListener("click", async e => {
         p.status === "approved" &&
         normalizeName(p.normalizedName || p.raw) === key
       ) {
-p.birthDate = finalBirth;
-p.deathDate = finalDeath;
-p.personId = personId;
-changed = true;
-
+         p.birthDate = finalBirth;
+         p.deathDate = finalDeath;
+         p.personId = personId;
+         changed = true;
       }
     });
 
