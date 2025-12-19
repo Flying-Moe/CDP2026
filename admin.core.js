@@ -97,7 +97,6 @@ export async function fetchWikidataPerson(name) {
   const res = await fetch(url, {
     headers: {
       "Accept": "application/sparql+json",
-      "User-Agent": "CDP2026/1.0 (admin tool)"
     }
   });
 
