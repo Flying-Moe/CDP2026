@@ -277,12 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
 console.log("AUTH OK – before setupTabs");
       
         setupTabs();
-        await loadPeople();
         await autoLinkApprovedPicks();
-        await loadPeople();
         await loadPlayers();
-
-
+        await loadPeople();
+        
     } catch (err) {
       errorEl.textContent = "Authorization error";
       await signOut(auth);
