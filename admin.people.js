@@ -254,10 +254,16 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
           p.status === "approved" &&
           normalizeName(p.normalizedName || p.raw) === key
         ) {
-          p.personId = personId;
-          p.birthDate = birthDate;
-          p.normalizedName = normalizeName(group.displayName);
-          changed = true;
+p.personId = personId;
+
+// opdater birth date hvis entydig
+p.birthDate = birthDate;
+
+// 🔑 VIGTIGT: normalizedName SKAL være normaliseret
+p.normalizedName = normalizeName(group.displayName);
+
+changed = true;
+
         }
       });
 
