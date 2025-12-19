@@ -42,6 +42,11 @@ export const wikiCache = new Map();
    GENERIC HELPERS
 ===================================================== */
 
+// 🔄 OFFICIEL RE-RENDER (bruges af People-actions)
+export async function refreshAdminViews() {
+  await loadPlayers();
+  await loadPeople();
+}
 export function normalizeName(name) {
   return name
     .toLowerCase()
@@ -325,12 +330,6 @@ setupTabs();
 await autoLinkApprovedPicks();
 await loadPlayers();
 await loadPeople();
-
-// 🔄 OFFICIEL RE-RENDER (bruges af People-actions)
-export async function refreshAdminViews() {
-  await loadPlayers();
-  await loadPeople();
-}
 
 });
 });
