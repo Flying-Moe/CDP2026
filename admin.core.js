@@ -321,8 +321,11 @@ onAuthStateChanged(auth, async user => {
 
   setupTabs();
 
-  // 🔑 DETTE ER DET VIGTIGE
+  await autoLinkApprovedPicks();
+export async function refreshAdminViews() {
   await loadPlayers();
   await loadPeople();
+}
+
 });
 });
