@@ -178,28 +178,36 @@
 <div id="edit-person-modal" class="modal hidden">
   <div class="modal-content">
 
-    <h3>Edit people</h3>
+<h3>Edit person</h3>
 
-    <label>
-      Name<br />
-      <input type="text" id="edit-person-name" />
-    </label>
+<label>
+  Name<br />
+  <input type="text" id="edit-person-name" />
+</label>
 
-    <br /><br />
+<br /><br />
 
-    <label>
-      Birth date (DD-MM-YYYY)<br />
-      <input type="text" id="edit-person-birthdate" placeholder="DD-MM-YYYY" />
-    </label>
+<label>
+  Birth date (DD-MM-YYYY)<br />
+  <input type="text" id="edit-person-birthdate" placeholder="DD-MM-YYYY" />
+</label>
 
-    <br /><br />
+<br /><br />
 
-    <div class="modal-actions">
-      <button id="save-person-btn">Save</button>
-      <button onclick="document.getElementById('edit-person-modal').classList.add('hidden')">
-        Cancel
-      </button>
-    </div>
+<label>
+  Death date (DD-MM-YYYY)<br />
+  <input type="text" id="edit-person-deathdate" placeholder="DD-MM-YYYY" />
+</label>
+
+<br /><br />
+
+<div class="modal-actions">
+  <button id="save-person-btn">Save</button>
+  <button onclick="document.getElementById('edit-person-modal').classList.add('hidden')">
+    Cancel
+  </button>
+</div>
+
 
   </div>
 </div>
