@@ -64,13 +64,14 @@ playersSnap.forEach(ps => {
       const key = normalizeName(name);
 
       if (!groups.has(key)) {
-        groups.set(key, {
-          displayName: name,
-          playerIds: new Set(),
-          birthDates: new Set(),
-          personIds: new Set(),
-          picks: []
-        });
+groups.set(key, {
+  displayName: name,
+  playerIds: new Set(),
+  birthDates: new Set(),
+  deathDates: new Set(),
+  personIds: new Set(),
+  picks: []
+});
       }
 
       const g = groups.get(key);
@@ -78,6 +79,7 @@ playersSnap.forEach(ps => {
       g.picks.push(pick);
 
       if (pick.birthDate) g.birthDates.add(pick.birthDate);
+      if (pick.deathDate) g.deathDates.add(pick.deathDate);
       if (pick.personId) g.personIds.add(pick.personId);
     });
   });
@@ -127,6 +129,11 @@ const birthDate =
   g.birthDates.size === 1
     ? formatDateForDisplay([...g.birthDates][0])
     : "—";
+       
+const deathDate =
+  g.deathDates.size === 1
+    ? formatDateForDisplay([...g.deathDates][0])
+    : "—";
 
       tbody.innerHTML += `
         <tr class="${statusClass}">
@@ -143,28 +150,30 @@ const birthDate =
   }
 </td>
 
-          <td>${birthDate}</td>
-          <td>${status}</td>
+<td>${birthDate}</td>
+<td>${deathDate}</td>
+
 <td>
   <span
     class="used-by"
     data-names="${[...g.playerIds]
-.map(pid => playerNameMap[pid])
-.filter(Boolean)
-.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-.join(", ")
-}"
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+      .join(", ")
+    }"
     title="${[...g.playerIds]
-.map(pid => playerNameMap[pid])
-.filter(Boolean)
-.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-.join(", ")
-}"
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+      .join(", ")
+    }"
     style="cursor:pointer;text-decoration:underline dotted;"
   >
     ${usedBy}
   </span>
 </td>
+
 
           <td>
             <button
