@@ -204,71 +204,74 @@ function bindPeopleActions(groups, playersSnap) {
     };
   });
 
-  /* ---------- MERGE ---------- */
+/* ---------- MERGE ---------- */
 
-  document.querySelectorAll(".merge-people-btn").forEach(btn => {
-btn.onclick = async () => {
-  console.log("🔥 MERGE CLICKED", btn.dataset.key);
-   bindPeopleActions(groups, playersSnap)
-      const key = btn.dataset.key;
-      const group = groups.get(key);
-      if (!group) return;
+document.querySelectorAll(".merge-people-btn").forEach(btn => {
+  btn.onclick = async () => {
+    console.log("🔥 MERGE CLICKED", btn.dataset.key);
 
-      const birthDate =
-        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+    const key = btn.dataset.key;
+    const group = groups.get(key);
+    if (!group) return;
 
-      let personId = null;
+    const birthDate =
+      group.birthDates.size === 1 ? [...group.birthDates][0] : "";
 
-      if (group.personIds.size === 1) {
-        personId = [...group.personIds][0];
+    let personId = null;
+
+    if (group.personIds.size === 1) {
+      personId = [...group.personIds][0];
+    } else {
+      const q = query(
+        collection(db, "people"),
+        where("nameNormalized", "==", key)
+      );
+      const snap = await getDocs(q);
+
+      if (!snap.empty) {
+        personId = snap.docs[0].id;
       } else {
-        const q = query(
-          collection(db, "people"),
-          where("nameNormalized", "==", key)
-        );
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          personId = snap.docs[0].id;
-        } else {
-          personId = (
-            await addDoc(collection(db, "people"), {
-              name: group.displayName,
-              nameNormalized: key,
-              birthDate
-            })
-          ).id;
-        }
+        personId = (
+          await addDoc(collection(db, "people"), {
+            name: group.displayName,
+            nameNormalized: key,
+            birthDate
+          })
+        ).id;
       }
+    }
 
-      for (const ps of playersSnap.docs) {
-        const ref = doc(db, "players", ps.id);
-        const data = ps.data();
-        const picks = data.entries?.["2026"]?.picks || [];
+    // 🔁 Apply to ALL approved picks
+    for (const ps of playersSnap.docs) {
+      const ref = doc(db, "players", ps.id);
+      const data = ps.data();
+      const picks = data.entries?.["2026"]?.picks || [];
 
-        let changed = false;
+      let changed = false;
 
-        picks.forEach(p => {
-          if (
-            p.status === "approved" &&
-            normalizeName(p.normalizedName || p.raw) === key
-          ) {
-            p.personId = personId;
-            p.birthDate = birthDate;
-            p.normalizedName = group.displayName;
-            changed = true;
-          }
-        });
-
-        if (changed) {
-          await updateDoc(ref, {
-            "entries.2026.picks": picks
-          });
+      picks.forEach(p => {
+        if (
+          p.status === "approved" &&
+          normalizeName(p.normalizedName || p.raw) === key
+        ) {
+          p.personId = personId;
+          p.birthDate = birthDate;
+          p.normalizedName = group.displayName;
+          changed = true;
         }
-      }      
-      await refreshAdminViews();
-    };
-  });
+      });
+
+      if (changed) {
+        await updateDoc(ref, {
+          "entries.2026.picks": picks
+        });
+      }
+    }
+
+    // 🔄 OFFICIEL UI-REFRESH (én gang, ét sted)
+    await refreshAdminViews();
+  };
+});
 
   /* ---------- DELETE ---------- */
 
