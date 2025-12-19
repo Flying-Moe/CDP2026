@@ -79,20 +79,32 @@ export async function loadPeople() {
       a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
     )
     .forEach(g => {
-      let status = "OK";
-      if (g.birthDates.size === 0) status = "Missing";
-      if (g.birthDates.size > 1) status = "Conflict";
+let status = "OK";
+let statusClass = "";
+
+if (g.birthDates.size === 0) {
+  status = "Missing";
+  statusClass = "status-missing";
+}
+
+if (g.birthDates.size > 1) {
+  status = "Conflict";
+  statusClass = "status-conflict";
+}
+
 
       const usedBy = g.playerIds.size;
       const birthDate =
         g.birthDates.size === 1 ? [...g.birthDates][0] : "—";
 
       tbody.innerHTML += `
-        <tr style="${status === "Conflict" ? "background:#ffeaea;" : ""}">
+        <tr class="${statusClass}">
           <td>${g.displayName}</td>
           <td>${birthDate}</td>
           <td>${status}</td>
-          <td>${usedBy}</td>
+          <td title="Used by ${[...g.playerIds].length} player(s)">
+             ${usedBy} 
+          </td>
           <td>
             <button
               class="wiki-check-btn"
