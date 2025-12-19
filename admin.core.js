@@ -63,6 +63,66 @@ export function normalizeName(name) {
     .trim();
 }
 
+export async function fetchWikidataPerson(name) {
+  if (!name) return null;
+
+  const endpoint = "https://query.wikidata.org/sparql";
+
+  // escape " i navne
+  const safeName = name.replace(/"/g, '\\"');
+
+  const query = `
+    SELECT ?person ?personLabel ?birthDate ?deathDate WHERE {
+      ?person wdt:P31 wd:Q5.
+      {
+        ?person rdfs:label "${safeName}"@da.
+      }
+      UNION
+      {
+        ?person rdfs:label "${safeName}"@en.
+      }
+      OPTIONAL { ?person wdt:P569 ?birthDate. }
+      OPTIONAL { ?person wdt:P570 ?deathDate. }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en,da". }
+    }
+    LIMIT 1
+  `;
+
+  const url =
+    endpoint +
+    "?query=" +
+    encodeURIComponent(query) +
+    "&format=json";
+
+  const res = await fetch(url, {
+    headers: {
+      "Accept": "application/sparql+json",
+      "User-Agent": "CDP2026/1.0 (admin tool)"
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error("Wikidata request failed");
+  }
+
+  const json = await res.json();
+  const bindings = json.results.bindings;
+
+  if (!bindings.length) return null;
+
+  const row = bindings[0];
+
+  return {
+    label: row.personLabel?.value || name,
+    birthDate: row.birthDate
+      ? row.birthDate.value.split("T")[0]
+      : null,
+    deathDate: row.deathDate
+      ? row.deathDate.value.split("T")[0]
+      : null
+  };
+}
+
 export function parseToISO(input) {
   if (!input) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
