@@ -389,12 +389,13 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
       // behold én canonical pick
 const keep = {
   ...matching[0],
-  normalizedName: key,
+  normalizedName: normalizeName(
+    matching[0].normalizedName || matching[0].raw
+  ),
   personId,
   birthDate: canonicalBirthDate,
   deathDate:
-    matching.map(p => p.deathDate).find(Boolean) ||
-    ""
+    matching.map(p => p.deathDate).find(Boolean) || ""
 };
 
       // fjern alle matches og indsæt den ene
