@@ -122,13 +122,16 @@ const similar = groupArray.filter(other =>
           <td>
   ${g.displayName}
   ${
-    similar.length
+    similarGroups.length
       ? `<div style="font-size:0.8em;color:#666;">
-           Similar: ${similar.map(s => s.displayName).join(", ")}
+           Possible matches: ${similarGroups
+             .map(s => s.displayName)
+             .join(", ")}
          </div>`
       : ""
   }
 </td>
+
           <td>${birthDate}</td>
           <td>${status}</td>
           <td title="Used by ${[...g.playerIds].length} player(s)">
