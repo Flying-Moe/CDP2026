@@ -194,6 +194,14 @@ if (g.birthDates.size > 1) {
     });
 
   bindPeopleActions(groups, playersSnap);
+   // 📱 klik-tooltip til mobil (alert som fallback)
+document.querySelectorAll(".used-by").forEach(el => {
+  el.addEventListener("click", e => {
+    const names = el.dataset.names;
+    if (!names) return;
+    alert(`Used by: ${names}`);
+  });
+});
 }
 
 /* =====================================================
