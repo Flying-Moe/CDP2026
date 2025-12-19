@@ -101,137 +101,127 @@ function namesAreSimilar(a, b) {
   .sort((a, b) =>
     a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
   )
-  .forEach(g => {
+.forEach(g => {
 
-    const similarGroups = groupArray.filter(
-      other => other !== g && namesAreSimilar(g, other)
-    );
+  const similarGroups = groupArray.filter(
+    other => other !== g && namesAreSimilar(g, other)
+  );
 
-    const canMerge =
-      g.birthDates.size > 1 ||
-      g.personIds.size > 1 ||
-      similarGroups.length > 0;
+  const canMerge =
+    g.birthDates.size > 1 ||
+    g.personIds.size > 1 ||
+    similarGroups.length > 0;
 
-    let status = "OK";
-    let statusClass = "";
+  let statusClass = "";
 
-    if (g.birthDates.size === 0) {
-      status = "Missing";
-      statusClass = "status-missing";
-    }
+  if (g.birthDates.size === 0) {
+    statusClass = "status-missing";
+  }
 
-    if (g.birthDates.size > 1) {
-      status = "Conflict";
-      statusClass = "status-conflict";
-    }
+  if (g.birthDates.size > 1) {
+    statusClass = "status-conflict";
+  }
 
-    const usedBy = g.playerIds.size;
+  const statusText =
+    g.birthDates.size === 1
+      ? "OK"
+      : g.birthDates.size === 0
+        ? "Missing"
+        : "Conflict";
 
-    const birthDate =
-      g.birthDates.size === 1
-        ? formatDateForDisplay([...g.birthDates][0])
-        : "—";
+  const usedBy = g.playerIds.size;
 
-    const deathDate =
-      g.deathDates?.size === 1
-        ? formatDateForDisplay([...g.deathDates][0])
-        : "—";
+  const birthDate =
+    g.birthDates.size === 1
+      ? formatDateForDisplay([...g.birthDates][0])
+      : "—";
 
-    tbody.innerHTML += `
-      <tr class="${statusClass}">
-        <td>
-          ${g.displayName}
-          ${
-            similarGroups.length
-              ? `<div style="font-size:0.8em;color:#666;">
-                   Possible matches: ${similarGroups
-                     .map(s => s.displayName)
-                     .join(", ")}
-                 </div>`
-              : ""
-          }
-        </td>
+  const deathDate =
+    g.deathDates?.size === 1
+      ? formatDateForDisplay([...g.deathDates][0])
+      : "—";
 
-        <td>${birthDate}</td>
-        <td>${deathDate}</td>
+  tbody.innerHTML += `
+    <tr class="${statusClass}">
+      <td>
+        ${g.displayName}
+        ${
+          similarGroups.length
+            ? `<div style="font-size:0.8em;color:#666;">
+                 Possible matches: ${similarGroups
+                   .map(s => s.displayName)
+                   .join(", ")}
+               </div>`
+            : ""
+        }
+      </td>
 
-        <td>
-          <span
-            class="used-by"
-            data-names="${[...g.playerIds]
-              .map(pid => playerNameMap[pid])
-              .filter(Boolean)
-              .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-              .join(", ")
-            }"
-            title="${[...g.playerIds]
-              .map(pid => playerNameMap[pid])
-              .filter(Boolean)
-              .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-              .join(", ")
-            }"
-            style="cursor:pointer;text-decoration:underline dotted;"
-          >
-            ${usedBy}
-          </span>
-        </td>
+      <td>${birthDate}</td>
+      <td>${deathDate}</td>
 
-        <td>
-          <button
-            class="wiki-check-btn"
-            data-name="${g.displayName}"
-            data-key="${normalizeName(g.displayName)}">
-            Check Wikipedia
-          </button>
-          <span
-            class="wiki-result"
-            data-key="${normalizeName(g.displayName)}"
-            style="margin-left:8px;font-size:0.9em;">
-          </span>
-        </td>
+      <td>
+        <span
+          class="used-by"
+          data-names="${[...g.playerIds]
+            .map(pid => playerNameMap[pid])
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+            .join(", ")
+          }"
+          title="${[...g.playerIds]
+            .map(pid => playerNameMap[pid])
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+            .join(", ")
+          }"
+          style="cursor:pointer;text-decoration:underline dotted;"
+        >
+          ${usedBy}
+        </span>
+      </td>
 
-        <td>
-          <button
-            class="edit-people-btn"
-            ${status === "Conflict" ? "disabled" : ""}
-            data-key="${normalizeName(g.displayName)}">
-            Edit
-          </button>
+      <td>
+        <button
+          class="wiki-check-btn"
+          data-name="${g.displayName}"
+          data-key="${normalizeName(g.displayName)}">
+          Check Wikipedia
+        </button>
+        <span
+          class="wiki-result"
+          data-key="${normalizeName(g.displayName)}"
+          style="margin-left:8px;font-size:0.9em;">
+        </span>
+      </td>
 
-          <button
-            class="merge-people-btn"
-            ${canMerge ? "" : "disabled"}
-            title="Merge ${g.picks.length} picks (${g.playerIds.size} player${g.playerIds.size > 1 ? "s" : ""})"
-            data-key="${normalizeName(g.displayName)}">
-            Merge (${g.picks.length})
-          </button>
+      <td>
+        <button
+          class="edit-people-btn"
+          ${statusText === "Conflict" ? "disabled" : ""}
+          data-key="${normalizeName(g.displayName)}">
+          Edit
+        </button>
 
-          <button
-            class="delete-people-btn"
-            data-key="${normalizeName(g.displayName)}">
-            Delete
-          </button>
-        </td>
+        <button
+          class="merge-people-btn"
+          ${canMerge ? "" : "disabled"}
+          title="Merge ${g.picks.length} picks (${g.playerIds.size} player${g.playerIds.size > 1 ? "s" : ""})"
+          data-key="${normalizeName(g.displayName)}">
+          Merge (${g.picks.length})
+        </button>
 
-        <td>${status}</td>
-      </tr>
-    `;
-  });
+        <button
+          class="delete-people-btn"
+          data-key="${normalizeName(g.displayName)}">
+          Delete
+        </button>
+      </td>
 
-window.__peopleGroups = groups;
-
-bindPeopleActions(groups, playersSnap);
-
-// 📱 klik-tooltip til mobil (alert fallback)
-document.querySelectorAll(".used-by").forEach(el => {
-  el.addEventListener("click", () => {
-    const names = el.dataset.names;
-    if (!names) return;
-    alert(`Picked by: ${names}`);
-  });
+      <td>${statusText}</td>
+    </tr>
+  `;
 });
 
-}
 
 /* =====================================================
    PEOPLE ACTIONS (MERGE / DELETE)
