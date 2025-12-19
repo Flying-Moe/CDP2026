@@ -597,5 +597,3 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
 
   await refreshAdminViews();
 });
-
-
