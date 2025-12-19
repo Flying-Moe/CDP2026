@@ -44,6 +44,12 @@ export const wikiCache = new Map();
    GENERIC HELPERS
 ===================================================== */
 
+export function formatDateForDisplay(isoDate) {
+  if (!isoDate || !isoDate.includes("-")) return "";
+  const [y, m, d] = isoDate.split("-");
+  return `${d}-${m}-${y}`;
+}
+
 // 🔄 OFFICIEL RE-RENDER (bruges af People-actions)
 export async function refreshAdminViews() {
   await loadPlayers();
