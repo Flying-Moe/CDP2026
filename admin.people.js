@@ -215,6 +215,14 @@ function bindPeopleActions(groups, playersSnap) {
     };
   });
 
+  /* ---------- EDIT ---------- */
+
+<button
+  class="edit-people-btn"
+  data-key="${normalizeName(g.displayName)}">
+  Edit
+</button>
+
   /* ---------- DELETE ---------- */
 
   document.querySelectorAll(".delete-people-btn").forEach(btn => {
