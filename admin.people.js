@@ -98,14 +98,14 @@ function namesAreSimilar(a, b) {
       a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
     )
     .forEach(g => {
+       
+              const similarGroups = groupArray.filter(
+  other => other !== g && namesAreSimilar(g, other)
+);
        const canMerge =
   g.birthDates.size > 1 ||
   g.personIds.size > 1 ||
   similarGroups.length > 0;
-
-       const similarGroups = groupArray.filter(
-  other => other !== g && namesAreSimilar(g, other)
-);
 
 let status = "OK";
 let statusClass = "";
