@@ -116,22 +116,19 @@ const canMerge =
   similarGroups.length > 0 ||
   hasDuplicatePerPlayer;
 
-  let statusClass = "";
+let statusText = "OK";
+let statusClass = "";
 
-  if (g.birthDates.size === 0) {
-    statusClass = "status-missing";
-  }
-
-  if (g.birthDates.size > 1) {
-    statusClass = "status-conflict";
-  }
-
-  const statusText =
-    g.birthDates.size === 1
-      ? "OK"
-      : g.birthDates.size === 0
-        ? "Missing"
-        : "Conflict";
+if (hasDuplicatePerPlayer) {
+  statusText = "Conflict (duplicate picks)";
+  statusClass = "status-conflict";
+} else if (g.birthDates.size === 0) {
+  statusText = "Missing";
+  statusClass = "status-missing";
+} else if (g.birthDates.size > 1) {
+  statusText = "Conflict";
+  statusClass = "status-conflict";
+}
 
   const usedBy = g.playerIds.size;
 
