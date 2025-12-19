@@ -7,7 +7,8 @@ console.log("admin.people.js loaded");
 import {
   db,
   normalizeName,
-  parseFlexibleDate
+  parseFlexibleDate,
+  autoLinkApprovedPicks
 } from "./admin.core.js";
 
 import {
