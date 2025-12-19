@@ -530,10 +530,13 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
   if (!currentEditPersonKey) return;
 
   const name = document.getElementById("edit-person-name").value.trim();
-  const rawDate = document.getElementById("edit-person-birthdate").value.trim();
-  const birthDate = rawDate ? parseFlexibleDate(rawDate) : "";
 
-  // Find canonical person
+  const rawBirth = document.getElementById("edit-person-birthdate").value.trim();
+  const rawDeath = document.getElementById("edit-person-deathdate").value.trim();
+
+  const birthDate = rawBirth ? parseFlexibleDate(rawBirth) : "";
+  const deathDate = rawDeath ? parseFlexibleDate(rawDeath) : "";
+
   const q = query(
     collection(db, "people"),
     where("nameNormalized", "==", currentEditPersonKey)
@@ -547,19 +550,21 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
     await updateDoc(doc(db, "people", personId), {
       name,
       nameNormalized: normalizeName(name),
-      birthDate
+      birthDate,
+      deathDate
     });
   } else {
     personId = (
       await addDoc(collection(db, "people"), {
         name,
         nameNormalized: normalizeName(name),
-        birthDate
+        birthDate,
+        deathDate
       })
     ).id;
   }
 
-  // Update ALL approved picks
+  // Opdatér ALLE approved picks
   const playersSnap = await getDocs(collection(db, "players"));
 
   for (const ps of playersSnap.docs) {
@@ -574,8 +579,8 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
         p.status === "approved" &&
         normalizeName(p.normalizedName || p.raw) === currentEditPersonKey
       ) {
-        p.normalizedName = name;
         p.birthDate = birthDate;
+        p.deathDate = deathDate;
         p.personId = personId;
         changed = true;
       }
@@ -590,8 +595,7 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
 
   document.getElementById("edit-person-modal").classList.add("hidden");
 
-// 🔄 re-render med det samme
-await refreshAdminViews();
-
+  await refreshAdminViews();
 });
+
 
