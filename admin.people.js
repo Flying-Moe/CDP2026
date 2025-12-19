@@ -10,8 +10,6 @@ import {
   parseFlexibleDate
 } from "./admin.core.js";
 
-import { loadPlayers } from "./admin.players.js";
-
 import {
   collection,
   getDocs,
