@@ -179,11 +179,13 @@ export async function openValidateModal(playerId) {
             value="${pick.normalizedName || pick.raw || ""}"
             ${pick.status === "approved" ? "disabled" : ""}>
         </td>
-        <td>
-          <input class="date-input" data-id="${pick.id}"
-            value="${pick.birthDate || ""}"
-            ${pick.status === "approved" ? "disabled" : ""}>
-        </td>
+<td>
+  <input class="date-input" data-id="${pick.id}"
+    value="${pick.birthDate
+      ? formatDateForDisplay(pick.birthDate)
+      : ""}"
+    ${pick.status === "approved" ? "disabled" : ""}>
+</td>
         <td>${pick.status}</td>
         <td>
           ${pick.status !== "approved"
