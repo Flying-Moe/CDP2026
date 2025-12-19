@@ -4,7 +4,12 @@ console.log("admin.people.js loaded");
    IMPORTS
 ===================================================== */
 
-import { db, normalizeName } from "./admin.core.js";
+import {
+  db,
+  normalizeName,
+  parseFlexibleDate
+} from "./admin.core.js";
+
 import { loadPlayers } from "./admin.players.js";
 
 import {
