@@ -145,13 +145,17 @@ if (g.birthDates.size > 1) {
   <span
     class="used-by"
     data-names="${[...g.playerIds]
-      .map(pid => playerNameMap[pid])
-      .filter(Boolean)
-      .join(", ")}"
+.map(pid => playerNameMap[pid])
+.filter(Boolean)
+.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+.join(", ")
+}"
     title="${[...g.playerIds]
-      .map(pid => playerNameMap[pid])
-      .filter(Boolean)
-      .join(", ")}"
+.map(pid => playerNameMap[pid])
+.filter(Boolean)
+.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+.join(", ")
+}"
     style="cursor:pointer;text-decoration:underline dotted;"
   >
     ${usedBy}
