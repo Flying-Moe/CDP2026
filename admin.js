@@ -1061,13 +1061,25 @@ if (action === "approve") {
 async function approveAllPicks() {
   if (!currentValidatePlayerId) return;
 
+  const textarea = document.getElementById("import-picks");
+  const rawText = textarea?.value.trim();
+
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
   const data = snap.data();
-  const picks = data.entries?.["2026"]?.picks || [];
+  let picks = data.entries?.["2026"]?.picks || [];
 
+  // 🔹 STEP 1: Hvis textarea har indhold → opret picks først
+  if (rawText) {
+    const lines = splitLines(rawText);
+    const newPicks = lines.map(parsePickLine);
+    picks = [...picks, ...newPicks];
+    textarea.value = ""; // reset UI
+  }
+
+  // 🔹 STEP 2: Approve ALT pending
   let changed = false;
 
   for (const pick of picks) {
@@ -1077,13 +1089,11 @@ async function approveAllPicks() {
     if (!name) continue;
 
     const birthDate = pick.birthDate || "";
-
     const personId = await getOrCreatePerson(name, birthDate);
 
     pick.personId = personId;
     pick.status = "approved";
     pick.normalizedName = name;
-    // birthDate beholdes præcis som den var
     changed = true;
   }
 
@@ -1093,7 +1103,7 @@ async function approveAllPicks() {
     });
   }
 
-  // 🔁 Opdater UI – men luk ikke modal
+  // 🔁 UI refresh
   loadPlayers();
   loadPeople();
   openValidateModal(currentValidatePlayerId);
