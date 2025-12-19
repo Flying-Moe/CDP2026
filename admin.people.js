@@ -9,6 +9,7 @@ import {
   normalizeName,
   parseFlexibleDate,
   refreshAdminViews,
+  fetchWikidataPerson,
   formatDateForDisplay
 } from "./admin.core.js";
 
@@ -221,6 +222,67 @@ document.querySelectorAll(".used-by").forEach(el => {
 ===================================================== */
 
 function bindPeopleActions(groups, playersSnap) {
+
+     /* ---------- WIKIDATA LOOKUP ---------- */
+
+  document.querySelectorAll(".wiki-check-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const name = btn.dataset.name;
+      const key = btn.dataset.key;
+
+      const resultEl = document.querySelector(
+        `.wiki-result[data-key="${key}"]`
+      );
+      if (!resultEl) return;
+
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = "Looking up…";
+      resultEl.textContent = "";
+
+      try {
+        const data = await fetchWikidataPerson(name);
+
+        if (!data) {
+          resultEl.textContent = "No Wikidata match found";
+          return;
+        }
+
+        const parts = [];
+
+        if (data.birthDate) {
+          parts.push(
+            `Born: ${formatDateForDisplay(data.birthDate)}`
+          );
+        }
+
+        if (data.deathDate) {
+          parts.push(
+            `⚰️ Died: ${formatDateForDisplay(data.deathDate)}`
+          );
+        }
+
+        resultEl.innerHTML = `
+          <div style="margin-top:4px;font-size:0.85em;">
+            ${parts.join("<br>")}
+            <br>
+            <button class="apply-wikidata-btn"
+              data-key="${key}"
+              data-birth="${data.birthDate || ""}"
+              data-death="${data.deathDate || ""}">
+              Apply
+            </button>
+          </div>
+        `;
+      } catch (err) {
+        resultEl.textContent = "Lookup failed";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    };
+  });
+
 
   /* ---------- EDIT ---------- */
 
