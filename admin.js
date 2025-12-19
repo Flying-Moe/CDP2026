@@ -325,14 +325,6 @@ async function loadPlayers() {
    PEOPLE / CELEBRITIES – UNIFIED + ORPHANS (FINAL)
 ===================================================== */
 
-function normalizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/\./g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function parseFlexibleDate(input) {
   if (!input) return "";
 
