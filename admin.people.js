@@ -264,11 +264,7 @@ btn.onclick = async () => {
             "entries.2026.picks": picks
           });
         }
-      }
-
-// 🔥 VIGTIGT: ryd tabellen før reload
-document.querySelector("#people-table tbody").innerHTML = "";
-       
+      }       
     };
   });
 
@@ -296,11 +292,7 @@ document.querySelector("#people-table tbody").innerHTML = "";
             "entries.2026.picks": filtered
           });
         }
-      }
-
-// 🔥 ryd UI
-document.querySelector("#people-table tbody").innerHTML = "";
-       
+      }      
     };
   });
 }
