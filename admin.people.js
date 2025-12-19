@@ -208,17 +208,16 @@ function bindPeopleActions(groups, playersSnap) {
 
 document.querySelectorAll(".merge-people-btn").forEach(btn => {
   btn.onclick = async () => {
-    console.log("🔥 MERGE CLICKED", btn.dataset.key);
-
     const key = btn.dataset.key;
     const group = groups.get(key);
     if (!group) return;
 
-    const birthDate =
+    // 🔑 fastlæg canonical birthDate (hvis entydig)
+    const canonicalBirthDate =
       group.birthDates.size === 1 ? [...group.birthDates][0] : "";
 
-    let personId = null;
-
+    // 🔑 find / opret canonical person
+    let personId;
     if (group.personIds.size === 1) {
       personId = [...group.personIds][0];
     } else {
@@ -235,49 +234,51 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
           await addDoc(collection(db, "people"), {
             name: group.displayName,
             nameNormalized: key,
-            birthDate
+            birthDate: canonicalBirthDate
           })
         ).id;
       }
     }
 
-    // 🔁 Apply to ALL approved picks
+    // 🔥 DEDUPLIKÉR PICKS PR. PLAYER
     for (const ps of playersSnap.docs) {
       const ref = doc(db, "players", ps.id);
       const data = ps.data();
       const picks = data.entries?.["2026"]?.picks || [];
 
-      let changed = false;
-
-      picks.forEach(p => {
-        if (
+      const matching = picks.filter(
+        p =>
           p.status === "approved" &&
           normalizeName(p.normalizedName || p.raw) === key
-        ) {
-p.personId = personId;
+      );
 
-// opdater birth date hvis entydig
-p.birthDate = birthDate;
+      if (matching.length <= 1) continue;
 
-// 🔑 VIGTIGT: normalizedName SKAL være normaliseret
-p.normalizedName = normalizeName(group.displayName);
+      // behold én canonical pick
+      const keep = {
+        ...matching[0],
+        normalizedName: key,
+        personId,
+        birthDate: canonicalBirthDate
+      };
 
-changed = true;
+      // fjern alle matches og indsæt den ene
+      const cleaned = picks.filter(
+        p =>
+          normalizeName(p.normalizedName || p.raw) !== key
+      );
 
-        }
+      cleaned.push(keep);
+
+      await updateDoc(ref, {
+        "entries.2026.picks": cleaned
       });
-
-      if (changed) {
-        await updateDoc(ref, {
-          "entries.2026.picks": picks
-        });
-      }
     }
 
-    // 🔄 OFFICIEL UI-REFRESH (én gang, ét sted)
     await refreshAdminViews();
   };
 });
+
 
   /* ---------- DELETE ---------- */
 
