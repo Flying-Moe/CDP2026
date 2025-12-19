@@ -8,7 +8,7 @@ import {
   db,
   normalizeName,
   parseFlexibleDate,
-  autoLinkApprovedPicks
+  refreshAdminViews
 } from "./admin.core.js";
 
 import {
@@ -209,6 +209,7 @@ function bindPeopleActions(groups, playersSnap) {
   document.querySelectorAll(".merge-people-btn").forEach(btn => {
 btn.onclick = async () => {
   console.log("🔥 MERGE CLICKED", btn.dataset.key);
+   bindPeopleActions(groups, playersSnap)
       const key = btn.dataset.key;
       const group = groups.get(key);
       if (!group) return;
@@ -264,7 +265,8 @@ btn.onclick = async () => {
             "entries.2026.picks": picks
           });
         }
-      }       
+      }      
+      await refreshAdminViews();
     };
   });
 
