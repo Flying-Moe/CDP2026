@@ -503,15 +503,7 @@ async function loadPeople() {
      1. Index existing people by ID
   -------------------------------------------- */
 
-  const peopleById = new Map();
-  peopleSnap.forEach(d => {
-    const p = d.data();
-    peopleById.set(d.id, {
-      id: d.id,
-      name: p.name,
-      birthDate: p.birthDate || ""
-    });
-  });
+  
 
   /* --------------------------------------------
      2. Group ALL approved picks by normalized name
@@ -805,93 +797,6 @@ document.addEventListener("click", async e => {
   btn.disabled = false;
 });
 
-/* =====================================================
-   PEOPLE – WIKIPEDIA CHECK (INLINE)
-===================================================== */
-
-document.addEventListener("click", async e => {
-  const btn = e.target.closest(".wiki-check-btn");
-  if (!btn) return;
-
-  const name = btn.dataset.name;
-  const key  = btn.dataset.key;
-  const resultEl = document.querySelector(
-    `.wiki-result[data-key="${key}"]`
-  );
-
-  btn.disabled = true;
-  btn.textContent = "Checking…";
-  resultEl.textContent = "";
-
-  // 1. Cache
-  let wikiDate = wikiCache.get(key);
-  if (!wikiDate) {
-    wikiDate = await fetchBirthDateFromWikipedia(name);
-    wikiCache.set(key, wikiDate || null);
-  }
-
-  if (!wikiDate) {
-    resultEl.textContent = "Not found";
-    resultEl.style.color = "#888";
-    btn.textContent = "Check Wikipedia";
-    btn.disabled = false;
-    return;
-  }
-
-  // 2. Find current person
-  const q = query(
-    collection(db, "people"),
-    where("nameNormalized", "==", key)
-  );
-
-  const snap = await getDocs(q);
-  if (snap.empty) {
-    resultEl.textContent = "Found, but no person";
-    resultEl.style.color = "orange";
-    btn.disabled = false;
-    btn.textContent = "Check Wikipedia";
-    return;
-  }
-
-  const docu = snap.docs[0];
-  const current = docu.data().birthDate || "";
-
-  if (!current) {
-    resultEl.innerHTML = `
-      Found: ${wikiDate}
-      <button class="wiki-apply-btn"
-        data-id="${docu.id}"
-        data-date="${wikiDate}">
-        Apply
-      </button>
-    `;
-    btn.textContent = "Check Wikipedia";
-    btn.disabled = false;
-    return;
-  }
-
-  if (current === wikiDate) {
-    resultEl.textContent = "✓ Matches Wikipedia";
-    resultEl.style.color = "green";
-    btn.textContent = "Check Wikipedia";
-    btn.disabled = false;
-    return;
-  }
-
-  // Conflict
-  resultEl.innerHTML = `
-    Conflict (Wiki: ${wikiDate})
-    <button class="wiki-apply-btn"
-      data-id="${docu.id}"
-      data-date="${wikiDate}">
-      Apply
-    </button>
-  `;
-  resultEl.style.color = "red";
-  btn.textContent = "Check Wikipedia";
-  btn.disabled = false;
-});
-
 async function autoLinkApprovedPicks() {
   const peopleSnap  = await getDocs(collection(db, "people"));
   const playersSnap = await getDocs(collection(db, "players"));
@@ -943,7 +848,7 @@ async function autoLinkApprovedPicks() {
 }
 
 document.addEventListener("click", async e => {
-  const btn = e.target.closest(".merge-orphan-btn");
+  
   if (!btn) return;
 
   const name = btn.dataset.name;
@@ -1019,57 +924,6 @@ document.addEventListener("click", async e => {
   loadPeople();
   loadPlayers();
 });
-
-/* =====================================================
-   PEOPLE – ADD NEW (STABIL + VALIDERET)
-===================================================== */
-
-const addPersonBtn = document.getElementById("add-person-btn");
-
-if (addPersonBtn) {
-  addPersonBtn.onclick = async () => {
-    const nameInput = document.getElementById("new-person-name");
-    const dateInput = document.getElementById("new-person-birthdate");
-
-    const name = nameInput?.value.trim();
-    const rawDate = dateInput?.value.trim();
-    const iso = parseToISO(rawDate);
-
-    if (!name) {
-      alert("Name is required");
-      return;
-    }
-
-    if (!iso) {
-      alert("Birth date must be DD-MM-YYYY");
-      return;
-    }
-
-    // 🔍 undgå dubletter
-    const q = query(
-      collection(db, "people"),
-      where("name", "==", name),
-      where("birthDate", "==", iso)
-    );
-
-    const existing = await getDocs(q);
-    if (!existing.empty) {
-      alert("This person already exists");
-      return;
-    }
-
-    await addDoc(collection(db, "people"), {
-      name,
-      birthDate: iso,
-      createdAt: new Date().toISOString()
-    });
-
-    nameInput.value = "";
-    dateInput.value = "";
-
-    loadPeople();
-  };
-}
 
 /* =====================================================
    PEOPLE – EDIT / DELETE ACTIONS
