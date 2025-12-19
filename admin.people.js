@@ -107,10 +107,14 @@ function namesAreSimilar(a, b) {
     other => other !== g && namesAreSimilar(g, other)
   );
 
-  const canMerge =
-    g.birthDates.size > 1 ||
-    g.personIds.size > 1 ||
-    similarGroups.length > 0;
+const hasDuplicatePerPlayer =
+  g.picks.length > g.playerIds.size;
+
+const canMerge =
+  g.birthDates.size > 1 ||
+  g.personIds.size > 1 ||
+  similarGroups.length > 0 ||
+  hasDuplicatePerPlayer;
 
   let statusClass = "";
 
