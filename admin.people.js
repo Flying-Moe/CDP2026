@@ -179,7 +179,8 @@ function bindPeopleActions(groups, playersSnap) {
   /* ---------- MERGE ---------- */
 
   document.querySelectorAll(".merge-people-btn").forEach(btn => {
-    btn.onclick = async () => {
+btn.onclick = async () => {
+  console.log("🔥 MERGE CLICKED", btn.dataset.key);
       const key = btn.dataset.key;
       const group = groups.get(key);
       if (!group) return;
