@@ -206,6 +206,8 @@ const birthDate =
       `;
     });
 
+   window.__peopleGroups = groups;
+   
   bindPeopleActions(groups, playersSnap);
    // 📱 klik-tooltip til mobil (alert som fallback)
 document.querySelectorAll(".used-by").forEach(el => {
@@ -411,107 +413,108 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
       }      
     };
   });
-
-     /* ---------- APPLY WIKIDATA ---------- */
-
-  document.querySelectorAll(".apply-wikidata-btn").forEach(btn => {
-    btn.onclick = async () => {
-
-       console.log("✅ APPLY CLICKED", btn.dataset);
-       
-      const key = btn.dataset.key;
-      const wikiBirth = btn.dataset.birth || "";
-      const wikiDeath = btn.dataset.death || "";
-
-      const group = groups.get(key);
-      if (!group) return;
-
-      // Eksisterende lokale værdier
-      const localBirth =
-        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
-      const hasLocalBirth = !!localBirth;
-      const hasLocalDeath = !!group.deathDate;
-
-      let finalBirth = localBirth;
-      let finalDeath = group.deathDate || "";
-
-      // Birth date beslutning
-      if (!localBirth && wikiBirth) {
-        finalBirth = wikiBirth;
-      } else if (localBirth && wikiBirth && localBirth !== wikiBirth) {
-        const overwrite = confirm(
-          `Birth date exists:\n\nLocal: ${formatDateForDisplay(localBirth)}\nWikidata: ${formatDateForDisplay(wikiBirth)}\n\nOverwrite with Wikidata?`
-        );
-        if (overwrite) finalBirth = wikiBirth;
-      }
-
-      // Death date beslutning (kun people)
-      if (!finalDeath && wikiDeath) {
-        finalDeath = wikiDeath;
-      } else if (finalDeath && wikiDeath && finalDeath !== wikiDeath) {
-        const overwrite = confirm(
-          `Death date exists:\n\nLocal: ${formatDateForDisplay(finalDeath)}\nWikidata: ${formatDateForDisplay(wikiDeath)}\n\nOverwrite with Wikidata?`
-        );
-        if (overwrite) finalDeath = wikiDeath;
-      }
-
-      // Find eller opret canonical person
-      const q = query(
-        collection(db, "people"),
-        where("nameNormalized", "==", key)
-      );
-      const snap = await getDocs(q);
-
-      let personId;
-
-      if (!snap.empty) {
-        personId = snap.docs[0].id;
-        await updateDoc(doc(db, "people", personId), {
-          birthDate: finalBirth,
-          deathDate: finalDeath
-        });
-      } else {
-        personId = (
-          await addDoc(collection(db, "people"), {
-            name: group.displayName,
-            nameNormalized: key,
-            birthDate: finalBirth,
-            deathDate: finalDeath
-          })
-        ).id;
-      }
-
-      // Opdatér ALLE approved picks
-      for (const ps of playersSnap.docs) {
-        const ref = doc(db, "players", ps.id);
-        const data = ps.data();
-        const picks = data.entries?.["2026"]?.picks || [];
-
-        let changed = false;
-
-        picks.forEach(p => {
-          if (
-            p.status === "approved" &&
-            normalizeName(p.normalizedName || p.raw) === key
-          ) {
-            p.birthDate = finalBirth;
-            p.personId = personId;
-            changed = true;
-          }
-        });
-
-        if (changed) {
-          await updateDoc(ref, {
-            "entries.2026.picks": picks
-          });
-        }
-      }
-
-      // 🔄 Refresh UI øjeblikkeligt
-      await refreshAdminViews();
-    };
-  }); 
 }
+
+/* =====================================================
+   APPLY WIKIDATA – EVENT DELEGATION
+===================================================== */
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest(".apply-wikidata-btn");
+  if (!btn) return;
+
+  console.log("✅ APPLY CLICKED", btn.dataset);
+
+  const key = btn.dataset.key;
+  const wikiBirth = btn.dataset.birth || "";
+  const wikiDeath = btn.dataset.death || "";
+
+  // groupsMap ligger i closure fra sidste loadPeople
+  const group = window.__peopleGroups?.get(key);
+  if (!group) return;
+
+  let finalBirth =
+    group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+  let finalDeath = group.deathDate || "";
+
+  if (!finalBirth && wikiBirth) {
+    finalBirth = wikiBirth;
+  } else if (finalBirth && wikiBirth && finalBirth !== wikiBirth) {
+    if (
+      confirm(
+        `Birth date exists:\n\nLocal: ${formatDateForDisplay(finalBirth)}\nWikidata: ${formatDateForDisplay(wikiBirth)}\n\nOverwrite?`
+      )
+    ) {
+      finalBirth = wikiBirth;
+    }
+  }
+
+  if (!finalDeath && wikiDeath) {
+    finalDeath = wikiDeath;
+  } else if (finalDeath && wikiDeath && finalDeath !== wikiDeath) {
+    if (
+      confirm(
+        `Death date exists:\n\nLocal: ${formatDateForDisplay(finalDeath)}\nWikidata: ${formatDateForDisplay(wikiDeath)}\n\nOverwrite?`
+      )
+    ) {
+      finalDeath = wikiDeath;
+    }
+  }
+
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", key)
+  );
+  const snap = await getDocs(q);
+
+  let personId;
+
+  if (!snap.empty) {
+    personId = snap.docs[0].id;
+    await updateDoc(doc(db, "people", personId), {
+      birthDate: finalBirth,
+      deathDate: finalDeath
+    });
+  } else {
+    personId = (
+      await addDoc(collection(db, "people"), {
+        name: group.displayName,
+        nameNormalized: key,
+        birthDate: finalBirth,
+        deathDate: finalDeath
+      })
+    ).id;
+  }
+
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      if (
+        p.status === "approved" &&
+        normalizeName(p.normalizedName || p.raw) === key
+      ) {
+        p.birthDate = finalBirth;
+        p.personId = personId;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      await updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  }
+
+  await refreshAdminViews();
+});
 
 document.getElementById("save-person-btn")?.addEventListener("click", async () => {
   if (!currentEditPersonKey) return;
