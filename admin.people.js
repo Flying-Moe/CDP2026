@@ -121,19 +121,26 @@ if (g.birthDates.size > 1) {
             </span>
           </td>
           <td>
-            ${
-              g.picks.length > 1
-                ? `<button class="merge-people-btn"
-                     data-key="${normalizeName(g.displayName)}">
-                     Merge
-                   </button>`
-                : ""
-            }
-            <button class="delete-people-btn"
-              data-key="${normalizeName(g.displayName)}">
-              Delete
-            </button>
-          </td>
+  <button
+    class="edit-people-btn"
+    ${status === "Conflict" ? "disabled" : ""}
+    data-key="${normalizeName(g.displayName)}">
+    Edit
+  </button>
+
+  <button
+    class="merge-people-btn"
+    ${status !== "Conflict" ? "disabled" : ""}
+    data-key="${normalizeName(g.displayName)}">
+    Merge
+  </button>
+
+  <button
+    class="delete-people-btn"
+    data-key="${normalizeName(g.displayName)}">
+    Delete
+  </button>
+</td>
         </tr>
       `;
     });
@@ -230,9 +237,14 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-      await autoLinkApprovedPicks();
-      await loadPeople();
-      await loadPlayers();
+await autoLinkApprovedPicks();
+
+// 🔥 VIGTIGT: ryd tabellen før reload
+document.querySelector("#people-table tbody").innerHTML = "";
+
+await loadPeople();
+await loadPlayers();
+       
     };
   });
 
@@ -262,9 +274,14 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-      await autoLinkApprovedPicks();
-      await loadPeople();
-      await loadPlayers();
+await autoLinkApprovedPicks();
+
+// 🔥 ryd UI
+document.querySelector("#people-table tbody").innerHTML = "";
+
+await loadPeople();
+await loadPlayers();
+       
     };
   });
 }
