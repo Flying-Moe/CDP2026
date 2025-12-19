@@ -6,6 +6,8 @@ console.log("admin.core.js loaded");
 
 import { auth, db } from "./firebase.js";
 
+export { auth, db };
+
 /* ========= AUTH ========= */
 import {
   signInWithEmailAndPassword,
