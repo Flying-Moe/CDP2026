@@ -142,23 +142,22 @@ if (g.birthDates.size > 1) {
           <td>${birthDate}</td>
           <td>${status}</td>
 <td>
-  <span>
+  <span
     class="used-by"
     data-names="${[...g.playerIds]
-.map(pid => playerNameMap[pid])
-.filter(Boolean)
-.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-.join(", ")
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .join(", ")}"
     title="${[...g.playerIds]
-.map(pid => playerNameMap[pid])
-.filter(Boolean)
-.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-.join(", ")
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .join(", ")}"
     style="cursor:pointer;text-decoration:underline dotted;"
   >
     ${usedBy}
   </span>
 </td>
+
           <td>
             <button
               class="wiki-check-btn"
