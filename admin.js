@@ -105,6 +105,91 @@ return {
 }
 
 /* =====================================================
+   WIKIPEDIA LOOKUP – BIRTH DATE ONLY
+===================================================== */
+
+async function fetchBirthDateFromWikipedia(name) {
+  const endpoints = [
+    "https://en.wikipedia.org/api/rest_v1/page/summary/",
+    "https://da.wikipedia.org/api/rest_v1/page/summary/"
+  ];
+
+  const encoded = encodeURIComponent(name);
+
+  for (const base of endpoints) {
+    try {
+      const res = await fetch(base + encoded, {
+        headers: { "accept": "application/json" }
+      });
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      if (!data.extract) continue;
+
+      const text = data.extract;
+
+      // Match fx:
+      // born December 24, 1954
+      // født 24. december 1954
+      // born 24 December 1954
+      const patterns = [
+        /born\s+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i,
+        /born\s+(\d{1,2})\s+(\w+)\s+(\d{4})/i,
+        /født\s+(\d{1,2})\.\s*(\w+)\s+(\d{4})/i
+      ];
+
+      for (const p of patterns) {
+        const m = text.match(p);
+        if (!m) continue;
+
+        let day, month, year;
+
+        if (isNaN(m[1])) {
+          // Month name first
+          month = monthNameToNumber(m[1]);
+          day = parseInt(m[2], 10);
+          year = parseInt(m[3], 10);
+        } else {
+          // Day first
+          day = parseInt(m[1], 10);
+          month = monthNameToNumber(m[2]);
+          year = parseInt(m[3], 10);
+        }
+
+        if (!month || day < 1 || day > 31) continue;
+
+        return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      }
+    } catch (err) {
+      // Ignorer og prøv næste wiki
+    }
+  }
+
+  return null;
+}
+
+/* ---------- helper ---------- */
+
+function monthNameToNumber(name) {
+  const months = {
+    january: 1, februar: 2, february: 2,
+    march: 3, marts: 3,
+    april: 4,
+    may: 5, maj: 5,
+    june: 6, juni: 6,
+    july: 7, juli: 7,
+    august: 8,
+    september: 9,
+    october: 10, oktober: 10,
+    november: 11,
+    december: 12
+  };
+
+  return months[name.toLowerCase()] || null;
+}
+
+/* =====================================================
    DOM + AUTH (STABIL VERSION)
 ===================================================== */
 
