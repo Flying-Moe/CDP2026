@@ -171,31 +171,52 @@ export async function openValidateModal(playerId) {
   if (textarea) textarea.value = "";
   tbody.innerHTML = "";
 
-  picks.forEach(pick => {
-    tbody.innerHTML += `
-      <tr>
-        <td>
-          <input class="name-input" data-id="${pick.id}"
-            value="${pick.normalizedName || pick.raw || ""}"
-            ${pick.status === "approved" ? "disabled" : ""}>
-        </td>
-<td>
-  <input class="date-input" data-id="${pick.id}"
-    value="${pick.birthDate
-      ? formatDateForDisplay(pick.birthDate)
-      : ""}"
-    ${pick.status === "approved" ? "disabled" : ""}>
-</td>
-        <td>${pick.status}</td>
-        <td>
-          ${pick.status !== "approved"
+picks.forEach(pick => {
+  tbody.innerHTML += `
+    <tr>
+      <td>
+        <input
+          class="name-input"
+          data-id="${pick.id}"
+          value="${pick.normalizedName || pick.raw || ""}"
+          ${pick.status === "approved" ? "disabled" : ""}
+        >
+      </td>
+
+      <td>
+        <input
+          class="date-input"
+          data-id="${pick.id}"
+          value="${
+            pick.birthDate
+              ? formatDateForDisplay(pick.birthDate)
+              : ""
+          }"
+          ${pick.status === "approved" ? "disabled" : ""}
+        >
+        ${
+          pick.deathDate
+            ? `<div style="margin-top:2px;font-size:0.85em;color:#900;">
+                 ⚰️ ${formatDateForDisplay(pick.deathDate)}
+               </div>`
+            : ""
+        }
+      </td>
+
+      <td>${pick.status}</td>
+
+      <td>
+        ${
+          pick.status !== "approved"
             ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
-            : ""}
-          <button data-id="${pick.id}" data-action="delete">Delete</button>
-        </td>
-      </tr>
-    `;
-  });
+            : ""
+        }
+        <button data-id="${pick.id}" data-action="delete">Delete</button>
+      </td>
+    </tr>
+  `;
+});
+
 
   tbody.querySelectorAll("button").forEach(btn =>
     btn.onclick = () => handlePickAction(btn.dataset.id, btn.dataset.action)
