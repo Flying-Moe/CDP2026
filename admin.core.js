@@ -1,5 +1,8 @@
 console.log("admin.core.js loaded");
 
+import { loadPlayers } from "./admin.players.js";
+import { loadPeople } from "./admin.people.js";
+
 /* =====================================================
    FIREBASE
 ===================================================== */
@@ -299,25 +302,27 @@ document.addEventListener("DOMContentLoaded", () => {
   loginBtn?.addEventListener("click", handleLogin);
   logoutBtn?.addEventListener("click", () => signOut(auth));
 
-  onAuthStateChanged(auth, async user => {
-    if (!user) {
-      loginSection.style.display = "block";
-      adminSection.style.display = "none";
-      return;
-    }
+onAuthStateChanged(auth, async user => {
+  if (!user) {
+    loginSection.style.display = "block";
+    adminSection.style.display = "none";
+    return;
+  }
 
-    const snap = await getDoc(doc(db, "admins", user.email));
-    if (!snap.exists() || snap.data().active !== true) {
-      await signOut(auth);
-      return;
-    }
+  const snap = await getDoc(doc(db, "admins", user.email));
+  if (!snap.exists() || snap.data().active !== true) {
+    await signOut(auth);
+    return;
+  }
 
-    loginSection.style.display = "none";
-    adminSection.style.display = "block";
+  // ✅ AUTH OK
+  loginSection.style.display = "none";
+  adminSection.style.display = "block";
 
-    setupTabs();
-    await autoLinkApprovedPicks();
+  setupTabs();
 
-    // loadPlayers() og loadPeople() kaldes i de andre moduler
-  });
+  // 🔑 DETTE ER DET VIGTIGE
+  await loadPlayers();
+  await loadPeople();
+});
 });
