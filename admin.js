@@ -28,6 +28,46 @@ import {
    HELPERS
 ===================================================== */
 
+async function getOrCreatePerson(rawName, birthDate) {
+  const name = rawName.trim();
+  const normalized = normalizeName(name);
+  const iso = birthDate || "";
+
+  // 1. Prøv exact match (nameNormalized + birthDate)
+  if (iso) {
+    const qExact = query(
+      collection(db, "people"),
+      where("nameNormalized", "==", normalized),
+      where("birthDate", "==", iso)
+    );
+    const exact = await getDocs(qExact);
+    if (!exact.empty) {
+      return exact.docs[0].id;
+    }
+  }
+
+  // 2. Fallback: name only
+  const qName = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", normalized)
+  );
+  const nameSnap = await getDocs(qName);
+
+  if (!nameSnap.empty) {
+    return nameSnap.docs[0].id;
+  }
+
+  // 3. Opret ny person
+  const ref = await addDoc(collection(db, "people"), {
+    name,
+    nameNormalized: normalized,
+    birthDate: iso || "",
+    createdAt: new Date().toISOString()
+  });
+
+  return ref.id;
+}
+
 function parseToISO(input) {
   if (!input) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
@@ -891,6 +931,9 @@ async function openValidateModal(playerId) {
 
 const importBtn = document.getElementById("import-picks-btn");
 const importTextarea = document.getElementById("import-picks");
+document.getElementById("approve-all-btn")
+  ?.addEventListener("click", approveAllPicks);
+
 
 if (importBtn && importTextarea) {
   importBtn.onclick = async () => {
@@ -1013,6 +1056,47 @@ if (action === "approve") {
 
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
+}
+
+async function approveAllPicks() {
+  if (!currentValidatePlayerId) return;
+
+  const ref = doc(db, "players", currentValidatePlayerId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  const picks = data.entries?.["2026"]?.picks || [];
+
+  let changed = false;
+
+  for (const pick of picks) {
+    if (pick.status === "approved") continue;
+
+    const name = (pick.normalizedName || pick.raw || "").trim();
+    if (!name) continue;
+
+    const birthDate = pick.birthDate || "";
+
+    const personId = await getOrCreatePerson(name, birthDate);
+
+    pick.personId = personId;
+    pick.status = "approved";
+    pick.normalizedName = name;
+    // birthDate beholdes præcis som den var
+    changed = true;
+  }
+
+  if (changed) {
+    await updateDoc(ref, {
+      "entries.2026.picks": picks
+    });
+  }
+
+  // 🔁 Opdater UI – men luk ikke modal
+  loadPlayers();
+  loadPeople();
+  openValidateModal(currentValidatePlayerId);
 }
 
 /* =====================================================
