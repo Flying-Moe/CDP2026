@@ -256,7 +256,7 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
         ) {
           p.personId = personId;
           p.birthDate = birthDate;
-          p.normalizedName = group.displayName;
+          p.normalizedName = normalizeName(group.displayName);
           changed = true;
         }
       });
