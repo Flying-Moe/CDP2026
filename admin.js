@@ -1,6 +1,16 @@
 
 console.log("admin.js loaded");
 
+/* =====================================================
+   WIKI LOOKUP CACHE (SESSION)
+===================================================== */
+
+const wikiCache = new Map();
+
+/* =====================================================
+   FIREBASE
+===================================================== */
+
 import { auth, db } from "./firebase.js";
 
 /* ========= AUTH ========= */
@@ -567,6 +577,22 @@ async function loadPeople() {
           <td>${status}</td>
           <td>${usedBy}</td>
           <td>
+            <button
+              class="wiki-check-btn"
+              data-name="${g.displayName}"
+              data-key="${normalizeName(g.displayName)}"
+            >
+              Check Wikipedia
+            </button>
+
+            <span
+              class="wiki-result"
+              data-key="${normalizeName(g.displayName)}"
+              style="margin-left:8px;font-size:0.9em;"
+            ></span>
+          </td>
+
+          <td>
             ${
               showMerge
                 ? `<button class="merge-people-btn"
@@ -691,6 +717,180 @@ async function loadPeople() {
     };
   });
 }
+
+/* =====================================================
+   PEOPLE – WIKIPEDIA CHECK (INLINE)
+===================================================== */
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest(".wiki-check-btn");
+  if (!btn) return;
+
+  const name = btn.dataset.name;
+  const key  = btn.dataset.key;
+  const resultEl = document.querySelector(
+    `.wiki-result[data-key="${key}"]`
+  );
+
+  btn.disabled = true;
+  btn.textContent = "Checking…";
+  resultEl.textContent = "";
+
+  // 1. Cache
+  let wikiDate = wikiCache.get(key);
+  if (!wikiDate) {
+    wikiDate = await fetchBirthDateFromWikipedia(name);
+    wikiCache.set(key, wikiDate || null);
+  }
+
+  if (!wikiDate) {
+    resultEl.textContent = "Not found";
+    resultEl.style.color = "#888";
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  // 2. Find current person
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", key)
+  );
+
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    resultEl.textContent = "Found, but no person";
+    resultEl.style.color = "orange";
+    btn.disabled = false;
+    btn.textContent = "Check Wikipedia";
+    return;
+  }
+
+  const docu = snap.docs[0];
+  const current = docu.data().birthDate || "";
+
+  if (!current) {
+    resultEl.innerHTML = `
+      Found: ${wikiDate}
+      <button class="wiki-apply-btn"
+        data-id="${docu.id}"
+        data-date="${wikiDate}">
+        Apply
+      </button>
+    `;
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  if (current === wikiDate) {
+    resultEl.textContent = "✓ Matches Wikipedia";
+    resultEl.style.color = "green";
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  // Conflict
+  resultEl.innerHTML = `
+    Conflict (Wiki: ${wikiDate})
+    <button class="wiki-apply-btn"
+      data-id="${docu.id}"
+      data-date="${wikiDate}">
+      Apply
+    </button>
+  `;
+  resultEl.style.color = "red";
+  btn.textContent = "Check Wikipedia";
+  btn.disabled = false;
+});
+
+/* =====================================================
+   PEOPLE – WIKIPEDIA CHECK (INLINE)
+===================================================== */
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest(".wiki-check-btn");
+  if (!btn) return;
+
+  const name = btn.dataset.name;
+  const key  = btn.dataset.key;
+  const resultEl = document.querySelector(
+    `.wiki-result[data-key="${key}"]`
+  );
+
+  btn.disabled = true;
+  btn.textContent = "Checking…";
+  resultEl.textContent = "";
+
+  // 1. Cache
+  let wikiDate = wikiCache.get(key);
+  if (!wikiDate) {
+    wikiDate = await fetchBirthDateFromWikipedia(name);
+    wikiCache.set(key, wikiDate || null);
+  }
+
+  if (!wikiDate) {
+    resultEl.textContent = "Not found";
+    resultEl.style.color = "#888";
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  // 2. Find current person
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", key)
+  );
+
+  const snap = await getDocs(q);
+  if (snap.empty) {
+    resultEl.textContent = "Found, but no person";
+    resultEl.style.color = "orange";
+    btn.disabled = false;
+    btn.textContent = "Check Wikipedia";
+    return;
+  }
+
+  const docu = snap.docs[0];
+  const current = docu.data().birthDate || "";
+
+  if (!current) {
+    resultEl.innerHTML = `
+      Found: ${wikiDate}
+      <button class="wiki-apply-btn"
+        data-id="${docu.id}"
+        data-date="${wikiDate}">
+        Apply
+      </button>
+    `;
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  if (current === wikiDate) {
+    resultEl.textContent = "✓ Matches Wikipedia";
+    resultEl.style.color = "green";
+    btn.textContent = "Check Wikipedia";
+    btn.disabled = false;
+    return;
+  }
+
+  // Conflict
+  resultEl.innerHTML = `
+    Conflict (Wiki: ${wikiDate})
+    <button class="wiki-apply-btn"
+      data-id="${docu.id}"
+      data-date="${wikiDate}">
+      Apply
+    </button>
+  `;
+  resultEl.style.color = "red";
+  btn.textContent = "Check Wikipedia";
+  btn.disabled = false;
+});
 
 async function autoLinkApprovedPicks() {
   const peopleSnap  = await getDocs(collection(db, "people"));
