@@ -28,12 +28,6 @@ let currentEditPersonKey = null;
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
 ===================================================== */
 
-function formatDateForDisplay(isoDate) {
-  if (!isoDate || !isoDate.includes("-")) return "";
-  const [y, m, d] = isoDate.split("-");
-  return `${d}-${m}-${y}`;
-}
-
 export async function loadPeople() {
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
