@@ -109,10 +109,6 @@ if (g.birthDates.size > 1) {
   statusClass = "status-conflict";
 }
        
-const similar = groupArray.filter(other =>
-  other !== g && similarNames(g, other)
-);
-
       const usedBy = g.playerIds.size;
       const birthDate =
         g.birthDates.size === 1 ? [...g.birthDates][0] : "—";
