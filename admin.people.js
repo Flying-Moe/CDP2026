@@ -27,6 +27,12 @@ let currentEditPersonKey = null;
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
 ===================================================== */
 
+function formatDateForDisplay(isoDate) {
+  if (!isoDate || !isoDate.includes("-")) return "";
+  const [y, m, d] = isoDate.split("-");
+  return `${d}-${m}-${y}`;
+}
+
 export async function loadPeople() {
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
@@ -121,8 +127,10 @@ if (g.birthDates.size > 1) {
 }
        
       const usedBy = g.playerIds.size;
-      const birthDate =
-        g.birthDates.size === 1 ? [...g.birthDates][0] : "—";
+const birthDate =
+  g.birthDates.size === 1
+    ? formatDateForDisplay([...g.birthDates][0])
+    : "—";
 
       tbody.innerHTML += `
         <tr class="${statusClass}">
@@ -234,8 +242,10 @@ function bindPeopleActions(groups, playersSnap) {
       const modal = document.getElementById("edit-person-modal");
 
       nameInput.value = group.displayName;
-      birthInput.value =
-        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+birthInput.value =
+  group.birthDates.size === 1
+    ? formatDateForDisplay([...group.birthDates][0])
+    : "";
 
       modal.classList.remove("hidden");
     };
@@ -409,6 +419,9 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
   }
 
   document.getElementById("edit-person-modal").classList.add("hidden");
+
+// 🔄 re-render med det samme
+await refreshAdminViews();
 
 });
 
