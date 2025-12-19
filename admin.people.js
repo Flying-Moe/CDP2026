@@ -266,8 +266,6 @@ btn.onclick = async () => {
         }
       }
 
-await autoLinkApprovedPicks();
-
 // 🔥 VIGTIGT: ryd tabellen før reload
 document.querySelector("#people-table tbody").innerHTML = "";
 
@@ -302,8 +300,6 @@ await loadPlayers();
           });
         }
       }
-
-await autoLinkApprovedPicks();
 
 // 🔥 ryd UI
 document.querySelector("#people-table tbody").innerHTML = "";
@@ -379,7 +375,6 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
 
   document.getElementById("edit-person-modal").classList.add("hidden");
 
-  await autoLinkApprovedPicks();
   await loadPeople();
   await loadPlayers();
 });
