@@ -416,6 +416,9 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
 
   document.querySelectorAll(".apply-wikidata-btn").forEach(btn => {
     btn.onclick = async () => {
+
+       console.log("✅ APPLY CLICKED", btn.dataset);
+       
       const key = btn.dataset.key;
       const wikiBirth = btn.dataset.birth || "";
       const wikiDeath = btn.dataset.death || "";
