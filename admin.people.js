@@ -142,7 +142,7 @@ if (g.birthDates.size > 1) {
           <td>${birthDate}</td>
           <td>${status}</td>
 <td>
-  <span
+  <span>
     class="used-by"
     data-names="${[...g.playerIds]
 .map(pid => playerNameMap[pid])
