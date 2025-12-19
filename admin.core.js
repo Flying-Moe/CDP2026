@@ -1,5 +1,7 @@
 console.log("admin.core.js loaded");
 
+let adminInitialized = false;
+
 import { loadPlayers } from "./admin.players.js";
 import { loadPeople } from "./admin.people.js";
 
@@ -324,12 +326,15 @@ onAuthStateChanged(auth, async user => {
   loginSection.style.display = "none";
   adminSection.style.display = "block";
 
-setupTabs();
+  setupTabs();
 
-// 🔑 INIT-SEKVENS (køres ÉN gang)
-await autoLinkApprovedPicks();
-await loadPlayers();
-await loadPeople();
+  // 🔒 INIT-SEKVENS – KØRER KUN ÉN GANG
+  if (adminInitialized) return;
+  adminInitialized = true;
 
+  await autoLinkApprovedPicks();
+  await loadPlayers();
+  await loadPeople();
 });
+
 });
