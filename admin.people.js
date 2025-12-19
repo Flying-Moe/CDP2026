@@ -36,6 +36,13 @@ export async function loadPeople() {
   const playersSnap = await getDocs(collection(db, "players"));
   const peopleSnap  = await getDocs(collection(db, "people"));
 
+// 🔑 map playerId -> playerName (bruges til tooltips)
+const playerNameMap = {};
+playersSnap.forEach(ps => {
+  const data = ps.data();
+  playerNameMap[ps.id] = data.name || data.playerName || ps.id;
+});
+   
   /* --------------------------------------------
      GROUP APPROVED PICKS BY NORMALIZED NAME
   -------------------------------------------- */
@@ -130,9 +137,22 @@ if (g.birthDates.size > 1) {
 
           <td>${birthDate}</td>
           <td>${status}</td>
-          <td title="Used by ${[...g.playerIds].length} player(s)">
-             ${usedBy} 
-          </td>
+<td>
+  <span
+    class="used-by"
+    data-names="${[...g.playerIds]
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .join(", ")}"
+    title="${[...g.playerIds]
+      .map(pid => playerNameMap[pid])
+      .filter(Boolean)
+      .join(", ")}"
+    style="cursor:pointer;text-decoration:underline dotted;"
+  >
+    ${usedBy}
+  </span>
+</td>
           <td>
             <button
               class="wiki-check-btn"
