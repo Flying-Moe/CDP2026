@@ -549,6 +549,7 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
   if (!currentEditPersonKey) return;
 
   const name = document.getElementById("edit-person-name").value.trim();
+  if (!name) return;
 
   const rawBirth = document.getElementById("edit-person-birthdate").value.trim();
   const rawDeath = document.getElementById("edit-person-deathdate").value.trim();
@@ -556,9 +557,13 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
   const birthDate = rawBirth ? parseFlexibleDate(rawBirth) : "";
   const deathDate = rawDeath ? parseFlexibleDate(rawDeath) : "";
 
+  const newNormalized = normalizeName(name);
+  const oldNormalized = currentEditPersonKey;
+
+  // 🔹 find eller opret canonical person
   const q = query(
     collection(db, "people"),
-    where("nameNormalized", "==", currentEditPersonKey)
+    where("nameNormalized", "==", oldNormalized)
   );
   const snap = await getDocs(q);
 
@@ -568,22 +573,21 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
     personId = snap.docs[0].id;
     await updateDoc(doc(db, "people", personId), {
       name,
-      nameNormalized: normalizeName(name),
+      nameNormalized: newNormalized,
       birthDate,
       deathDate
     });
   } else {
-    personId = (
-      await addDoc(collection(db, "people"), {
-        name,
-        nameNormalized: normalizeName(name),
-        birthDate,
-        deathDate
-      })
-    ).id;
+    const ref = await addDoc(collection(db, "people"), {
+      name,
+      nameNormalized: newNormalized,
+      birthDate,
+      deathDate
+    });
+    personId = ref.id;
   }
 
-  // Opdatér ALLE approved picks
+  // 🔥 OPDATÉR ALLE APPROVED PICKS (DET MANGLEDE)
   const playersSnap = await getDocs(collection(db, "players"));
 
   for (const ps of playersSnap.docs) {
@@ -596,8 +600,10 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
     picks.forEach(p => {
       if (
         p.status === "approved" &&
-        normalizeName(p.normalizedName || p.raw) === currentEditPersonKey
+        normalizeName(p.normalizedName || p.raw) === oldNormalized
       ) {
+        p.normalizedName = name;
+        p.raw = name;
         p.birthDate = birthDate;
         p.deathDate = deathDate;
         p.personId = personId;
@@ -612,7 +618,9 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
     }
   }
 
+  currentEditPersonKey = null;
   document.getElementById("edit-person-modal").classList.add("hidden");
 
   await refreshAdminViews();
 });
+
