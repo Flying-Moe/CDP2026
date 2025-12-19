@@ -319,9 +319,14 @@ onAuthStateChanged(auth, async user => {
   loginSection.style.display = "none";
   adminSection.style.display = "block";
 
-  setupTabs();
+setupTabs();
 
-  await autoLinkApprovedPicks();
+// 🔑 INIT-SEKVENS (køres ÉN gang)
+await autoLinkApprovedPicks();
+await loadPlayers();
+await loadPeople();
+
+// 🔄 OFFICIEL RE-RENDER (bruges af People-actions)
 export async function refreshAdminViews() {
   await loadPlayers();
   await loadPeople();
