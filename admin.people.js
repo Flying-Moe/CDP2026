@@ -20,6 +20,8 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+let currentEditPersonKey = null;
+
 /* =====================================================
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
 ===================================================== */
@@ -145,6 +147,28 @@ if (g.birthDates.size > 1) {
 
 function bindPeopleActions(groups, playersSnap) {
 
+  /* ---------- EDIT ---------- */
+
+  document.querySelectorAll(".edit-people-btn").forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.dataset.key;
+      const group = groups.get(key);
+      if (!group) return;
+
+      currentEditPersonKey = key;
+
+      const nameInput = document.getElementById("edit-person-name");
+      const birthInput = document.getElementById("edit-person-birthdate");
+      const modal = document.getElementById("edit-person-modal");
+
+      nameInput.value = group.displayName;
+      birthInput.value =
+        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+
+      modal.classList.remove("hidden");
+    };
+  });
+
   /* ---------- MERGE ---------- */
 
   document.querySelectorAll(".merge-people-btn").forEach(btn => {
@@ -156,7 +180,6 @@ function bindPeopleActions(groups, playersSnap) {
       const birthDate =
         group.birthDates.size === 1 ? [...group.birthDates][0] : "";
 
-      // Find or create canonical person
       let personId = null;
 
       if (group.personIds.size === 1) {
@@ -181,7 +204,6 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-      // Apply to ALL approved picks
       for (const ps of playersSnap.docs) {
         const ref = doc(db, "players", ps.id);
         const data = ps.data();
@@ -208,20 +230,11 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-         await autoLinkApprovedPicks();
-         await loadPeople();
-         await loadPlayers();
-       
+      await autoLinkApprovedPicks();
+      await loadPeople();
+      await loadPlayers();
     };
   });
-
-  /* ---------- EDIT ---------- */
-
-<button
-  class="edit-people-btn"
-  data-key="${normalizeName(g.displayName)}">
-  Edit
-</button>
 
   /* ---------- DELETE ---------- */
 
@@ -249,10 +262,79 @@ function bindPeopleActions(groups, playersSnap) {
         }
       }
 
-await autoLinkApprovedPicks();
-await loadPeople();
-await loadPlayers();
-
+      await autoLinkApprovedPicks();
+      await loadPeople();
+      await loadPlayers();
     };
   });
 }
+
+document.getElementById("save-person-btn")?.addEventListener("click", async () => {
+  if (!currentEditPersonKey) return;
+
+  const name = document.getElementById("edit-person-name").value.trim();
+  const rawDate = document.getElementById("edit-person-birthdate").value.trim();
+  const birthDate = rawDate ? parseFlexibleDate(rawDate) : "";
+
+  // Find canonical person
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", currentEditPersonKey)
+  );
+  const snap = await getDocs(q);
+
+  let personId;
+
+  if (!snap.empty) {
+    personId = snap.docs[0].id;
+    await updateDoc(doc(db, "people", personId), {
+      name,
+      nameNormalized: normalizeName(name),
+      birthDate
+    });
+  } else {
+    personId = (
+      await addDoc(collection(db, "people"), {
+        name,
+        nameNormalized: normalizeName(name),
+        birthDate
+      })
+    ).id;
+  }
+
+  // Update ALL approved picks
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      if (
+        p.status === "approved" &&
+        normalizeName(p.normalizedName || p.raw) === currentEditPersonKey
+      ) {
+        p.normalizedName = name;
+        p.birthDate = birthDate;
+        p.personId = personId;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      await updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  }
+
+  document.getElementById("edit-person-modal").classList.add("hidden");
+
+  await autoLinkApprovedPicks();
+  await loadPeople();
+  await loadPlayers();
+});
+
