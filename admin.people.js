@@ -268,9 +268,6 @@ btn.onclick = async () => {
 
 // 🔥 VIGTIGT: ryd tabellen før reload
 document.querySelector("#people-table tbody").innerHTML = "";
-
-await loadPeople();
-await loadPlayers();
        
     };
   });
@@ -303,9 +300,6 @@ await loadPlayers();
 
 // 🔥 ryd UI
 document.querySelector("#people-table tbody").innerHTML = "";
-
-await loadPeople();
-await loadPlayers();
        
     };
   });
@@ -375,7 +369,5 @@ document.getElementById("save-person-btn")?.addEventListener("click", async () =
 
   document.getElementById("edit-person-modal").classList.add("hidden");
 
-  await loadPeople();
-  await loadPlayers();
 });
 
