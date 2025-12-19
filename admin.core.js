@@ -245,6 +245,7 @@ export async function autoLinkApprovedPicks() {
 
       p.personId = person.id;
       p.birthDate = person.birthDate || p.birthDate || "";
+      p.deathDate = person.deathDate || p.deathDate || "";
       changed = true;
     });
 
