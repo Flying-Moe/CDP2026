@@ -222,7 +222,22 @@ function namesAreSimilar(a, b) {
   `;
 });
 
+// 🔑 gem grupper globalt til Apply Wikidata
+window.__peopleGroups = groups;
 
+// 🔗 bind alle knapper (edit / merge / delete / wiki)
+bindPeopleActions(groups, playersSnap);
+
+// 📱 klik-tooltip til mobil (fallback)
+document.querySelectorAll(".used-by").forEach(el => {
+  el.addEventListener("click", () => {
+    const names = el.dataset.names;
+    if (!names) return;
+    alert(`Picked by: ${names}`);
+  });
+});
+}
+   
 /* =====================================================
    PEOPLE ACTIONS (MERGE / DELETE)
 ===================================================== */
