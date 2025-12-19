@@ -386,12 +386,15 @@ document.querySelectorAll(".merge-people-btn").forEach(btn => {
       if (matching.length <= 1) continue;
 
       // behold én canonical pick
-      const keep = {
-        ...matching[0],
-        normalizedName: key,
-        personId,
-        birthDate: canonicalBirthDate
-      };
+const keep = {
+  ...matching[0],
+  normalizedName: key,
+  personId,
+  birthDate: canonicalBirthDate,
+  deathDate:
+    matching.map(p => p.deathDate).find(Boolean) ||
+    ""
+};
 
       // fjern alle matches og indsæt den ene
       const cleaned = picks.filter(
