@@ -36,6 +36,10 @@ section {
   cursor: pointer;
 }
 
+.status-duplicate {
+  background: #ffe6e6;
+}
+
 /* =========================
    PEOPLE SECTIONS
 ========================= */
