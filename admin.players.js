@@ -277,26 +277,52 @@ async function handlePickAction(pickId, action) {
    APPROVE ALL
 ===================================================== */
 
-document.getElementById("approve-all-btn")
+document
+  .getElementById("approve-all-btn")
   ?.addEventListener("click", approveAllPicks);
 
 async function approveAllPicks() {
+  if (!currentValidatePlayerId) return;
+
   const ref = doc(db, "players", currentValidatePlayerId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
-  const picks = snap.data().entries?.["2026"]?.picks || [];
+  const textarea = document.getElementById("import-picks");
+  const rawText = textarea?.value.trim();
 
+  let picks = snap.data().entries?.["2026"]?.picks || [];
+
+  // 🔹 1. Import fra textarea (hvis der er noget)
+  if (rawText) {
+    const lines = splitLines(rawText);
+    const newPicks = lines
+      .map(parsePickLine)
+      .filter(p => p && p.raw);
+
+    picks = [...picks, ...newPicks];
+    textarea.value = "";
+  }
+
+  // 🔹 2. Approve ALLE picks
   for (const pick of picks) {
     if (pick.status === "approved") continue;
+
     const name = (pick.normalizedName || pick.raw || "").trim();
-    const personId = await getOrCreatePerson(name, pick.birthDate || "");
+    if (!name) continue;
+
+    const personId = await getOrCreatePerson(
+      name,
+      pick.birthDate || ""
+    );
+
     pick.personId = personId;
     pick.normalizedName = name;
     pick.status = "approved";
   }
 
   await updateDoc(ref, { "entries.2026.picks": picks });
+
   openValidateModal(currentValidatePlayerId);
   loadPlayers();
 }
