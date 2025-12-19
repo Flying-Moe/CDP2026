@@ -352,152 +352,223 @@ function parseFlexibleDate(input) {
   return `${y}-${String(mth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+/* =====================================================
+   PEOPLE TAB – DERIVED FROM APPROVED PICKS (FINAL)
+===================================================== */
+
+function normalizeName(name) {
+  return name
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function loadPeople() {
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const peopleSnap  = await getDocs(collection(db, "people"));
   const playersSnap = await getDocs(collection(db, "players"));
+  const peopleSnap  = await getDocs(collection(db, "people"));
 
-  /* -------------------------------------------------
-     1. Collect REAL PEOPLE
-  ------------------------------------------------- */
+  /* --------------------------------------------
+     1. Index existing people by ID
+  -------------------------------------------- */
 
-  const rows = [];
-  const peopleByNormalized = new Map();
-
+  const peopleById = new Map();
   peopleSnap.forEach(d => {
     const p = d.data();
-    const norm = (p.nameNormalized || p.name).toLowerCase().trim();
-
-    peopleByNormalized.set(norm, {
-      type: "person",
+    peopleById.set(d.id, {
       id: d.id,
       name: p.name,
-      nameNormalized: norm,
-      birthDate: p.birthDate || "",
-      usedBy: 0
+      birthDate: p.birthDate || ""
     });
   });
 
-  /* -------------------------------------------------
-     2. Count usage (approved picks with personId)
-  ------------------------------------------------- */
+  /* --------------------------------------------
+     2. Group ALL approved picks by normalized name
+  -------------------------------------------- */
+
+  const groups = new Map();
 
   playersSnap.forEach(ps => {
-    const picks = ps.data().entries?.["2026"]?.picks || [];
-    picks.forEach(p => {
-      if (p.status === "approved" && p.personId) {
-        const match = [...peopleByNormalized.values()]
-          .find(x => x.id === p.personId);
-        if (match) match.usedBy++;
-      }
-    });
-  });
-
-  peopleByNormalized.forEach(p => rows.push(p));
-
-  /* -------------------------------------------------
-     3. Collect APPROVED ORPHANS (no personId)
-  ------------------------------------------------- */
-
-  const orphanMap = new Map();
-
-  playersSnap.forEach(ps => {
+    const playerId = ps.id;
     const picks = ps.data().entries?.["2026"]?.picks || [];
 
     picks.forEach(pick => {
       if (pick.status !== "approved") return;
-      if (pick.personId) return;
 
-      const rawName = (pick.normalizedName || pick.raw || "").trim();
-      if (!rawName) return;
+      const name = (pick.normalizedName || pick.raw || "").trim();
+      if (!name) return;
 
-      const norm = rawName.toLowerCase();
+      const key = normalizeName(name);
 
-      if (peopleByNormalized.has(norm)) return; // already real person
-
-      if (!orphanMap.has(norm)) {
-        orphanMap.set(norm, {
-          type: "orphan",
-          name: rawName,
-          nameNormalized: norm,
-          birthDate: pick.birthDate || "",
-          count: 1
+      if (!groups.has(key)) {
+        groups.set(key, {
+          displayName: name,
+          picks: [],
+          playerIds: new Set(),
+          birthDates: new Set(),
+          personIds: new Set()
         });
-      } else {
-        orphanMap.get(norm).count++;
       }
+
+      const g = groups.get(key);
+      g.picks.push({ ...pick, playerId });
+      g.playerIds.add(playerId);
+
+      if (pick.birthDate) g.birthDates.add(pick.birthDate);
+      if (pick.personId) g.personIds.add(pick.personId);
     });
   });
 
-  orphanMap.forEach(o => rows.push(o));
+  /* --------------------------------------------
+     3. Render rows (alphabetisk)
+  -------------------------------------------- */
 
-  /* -------------------------------------------------
-     4. Sort alphabetically (case-insensitive)
-  ------------------------------------------------- */
+  [...groups.values()]
+    .sort((a, b) =>
+      a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
+    )
+    .forEach(g => {
+      let status = "OK";
+      if (g.birthDates.size === 0) status = "Missing";
+      if (g.birthDates.size > 1) status = "Conflict";
 
-  rows.sort((a, b) =>
-    a.name.localeCompare(b.name, "en", { sensitivity: "base" })
-  );
+      const usedBy = g.playerIds.size;
+      const birthDate =
+        g.birthDates.size === 1 ? [...g.birthDates][0] : "—";
 
-  /* -------------------------------------------------
-     5. Render table
-  ------------------------------------------------- */
+      const showMerge = g.picks.length > 1;
+      const showDelete = true;
 
-  rows.forEach(r => {
-    if (r.type === "person") {
       tbody.innerHTML += `
-        <tr>
-          <td>${r.name}</td>
-          <td>${r.birthDate || "—"}</td>
-          <td>OK (${r.usedBy})</td>
+        <tr style="${status === "Conflict" ? "background:#ffeaea;" : ""}">
+          <td>${g.displayName}</td>
+          <td>${birthDate}</td>
+          <td>${status}</td>
+          <td>${usedBy}</td>
           <td>
-            <button class="edit-person-btn" data-id="${r.id}">Edit</button>
-            <button class="delete-person-btn" data-id="${r.id}">Delete</button>
+            ${
+              showMerge
+                ? `<button class="merge-people-btn"
+                     data-name="${g.displayName}">
+                     Merge
+                   </button>`
+                : ""
+            }
+            ${
+              showDelete
+                ? `<button class="delete-people-btn"
+                     data-name="${g.displayName}">
+                     Delete
+                   </button>`
+                : ""
+            }
           </td>
         </tr>
       `;
-    } else {
-      tbody.innerHTML += `
-        <tr style="background:#fff4e5;">
-          <td>${r.name}</td>
-          <td>
-            <input
-              type="text"
-              class="merge-birthdate"
-              data-name="${r.nameNormalized}"
-              placeholder="DD-MM-YYYY"
-            >
-          </td>
-          <td>Missing (orphan ×${r.count})</td>
-          <td>
-            <button
-              class="merge-orphan-btn"
-              data-name="${r.name}"
-              data-normalized="${r.nameNormalized}"
-            >
-              Merge
-            </button>
-          </td>
-        </tr>
-      `;
-    }
-  });
+    });
 
-  /* -------------------------------------------------
-     6. Actions
-  ------------------------------------------------- */
+  /* --------------------------------------------
+     4. MERGE (admin-click)
+  -------------------------------------------- */
 
-  tbody.querySelectorAll(".edit-person-btn").forEach(btn => {
-    btn.onclick = () => openEditPerson(btn.dataset.id);
-  });
-
-  tbody.querySelectorAll(".delete-person-btn").forEach(btn => {
+  tbody.querySelectorAll(".merge-people-btn").forEach(btn => {
     btn.onclick = async () => {
-      if (!confirm("Delete this person?")) return;
-      await deleteDoc(doc(db, "people", btn.dataset.id));
+      const name = btn.dataset.name;
+      const key = normalizeName(name);
+      const group = groups.get(key);
+      if (!group) return;
+
+      // Canonical birthDate: keep if exactly one, else empty
+      const birthDate =
+        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+
+      // Find or create canonical person
+      let personId = null;
+
+      if (group.personIds.size === 1) {
+        personId = [...group.personIds][0];
+      } else {
+        const q = query(
+          collection(db, "people"),
+          where("nameNormalized", "==", key)
+        );
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          personId = snap.docs[0].id;
+        } else {
+          personId = (
+            await addDoc(collection(db, "people"), {
+              name,
+              nameNormalized: key,
+              birthDate
+            })
+          ).id;
+        }
+      }
+
+      // Update ALL picks in group
+      for (const ps of playersSnap.docs) {
+        const ref = doc(db, "players", ps.id);
+        const data = ps.data();
+        const picks = data.entries?.["2026"]?.picks || [];
+        let changed = false;
+
+        picks.forEach(p => {
+          if (
+            p.status === "approved" &&
+            normalizeName(p.normalizedName || p.raw) === key
+          ) {
+            p.personId = personId;
+            p.birthDate = birthDate;
+            p.normalizedName = name;
+            changed = true;
+          }
+        });
+
+        if (changed) {
+          await updateDoc(ref, {
+            "entries.2026.picks": picks
+          });
+        }
+      }
+
+      loadPeople();
+      loadPlayers();
+    };
+  });
+
+  /* --------------------------------------------
+     5. DELETE (admin-click)
+  -------------------------------------------- */
+
+  tbody.querySelectorAll(".delete-people-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const name = btn.dataset.name;
+      const key = normalizeName(name);
+
+      if (!confirm(`Delete ALL picks named "${name}"?`)) return;
+
+      for (const ps of playersSnap.docs) {
+        const ref = doc(db, "players", ps.id);
+        const data = ps.data();
+        const picks = data.entries?.["2026"]?.picks || [];
+
+        const filtered = picks.filter(
+          p => normalizeName(p.normalizedName || p.raw) !== key
+        );
+
+        if (filtered.length !== picks.length) {
+          await updateDoc(ref, {
+            "entries.2026.picks": filtered
+          });
+        }
+      }
+
       loadPeople();
       loadPlayers();
     };
