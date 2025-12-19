@@ -289,30 +289,36 @@ function bindPeopleActions(groups, playersSnap) {
     };
   });
 
+/* ---------- EDIT ---------- */
 
-  /* ---------- EDIT ---------- */
+document.querySelectorAll(".edit-people-btn").forEach(btn => {
+  btn.onclick = () => {
+    const key = btn.dataset.key;
+    const group = groups.get(key);
+    if (!group) return;
 
-  document.querySelectorAll(".edit-people-btn").forEach(btn => {
-    btn.onclick = () => {
-      const key = btn.dataset.key;
-      const group = groups.get(key);
-      if (!group) return;
+    currentEditPersonKey = key;
 
-      currentEditPersonKey = key;
+    const nameInput  = document.getElementById("edit-person-name");
+    const birthInput = document.getElementById("edit-person-birthdate");
+    const deathInput = document.getElementById("edit-person-deathdate");
+    const modal      = document.getElementById("edit-person-modal");
 
-      const nameInput = document.getElementById("edit-person-name");
-      const birthInput = document.getElementById("edit-person-birthdate");
-      const modal = document.getElementById("edit-person-modal");
+    nameInput.value = group.displayName;
 
-      nameInput.value = group.displayName;
-birthInput.value =
-  group.birthDates.size === 1
-    ? formatDateForDisplay([...group.birthDates][0])
-    : "";
+    birthInput.value =
+      group.birthDates.size === 1
+        ? formatDateForDisplay([...group.birthDates][0])
+        : "";
 
-      modal.classList.remove("hidden");
-    };
-  });
+    deathInput.value =
+      group.deathDates?.size === 1
+        ? formatDateForDisplay([...group.deathDates][0])
+        : "";
+
+    modal.classList.remove("hidden");
+  };
+});
 
 /* ---------- MERGE ---------- */
 
