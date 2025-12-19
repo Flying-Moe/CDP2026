@@ -171,9 +171,19 @@ export async function openValidateModal(playerId) {
   if (textarea) textarea.value = "";
   tbody.innerHTML = "";
 
+   const seen = new Map();
+
+picks.forEach(p => {
+  const key = p.personId || normalizeName(p.normalizedName || p.raw);
+  seen.set(key, (seen.get(key) || 0) + 1);
+});
+
 picks.forEach(pick => {
+  const key = pick.personId || normalizeName(pick.normalizedName || pick.raw);
+  const isDuplicate = seen.get(key) > 1;
+
   tbody.innerHTML += `
-    <tr>
+    <tr class="${isDuplicate ? "status-duplicate" : ""}">
       <td>
         <input
           class="name-input"
@@ -187,36 +197,22 @@ picks.forEach(pick => {
         <input
           class="date-input"
           data-id="${pick.id}"
-          value="${
-            pick.birthDate
-              ? formatDateForDisplay(pick.birthDate)
-              : ""
-          }"
+          value="${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}"
           ${pick.status === "approved" ? "disabled" : ""}
         >
-        ${
-          pick.deathDate
-            ? `<div style="margin-top:2px;font-size:0.85em;color:#900;">
-                 ⚰️ ${formatDateForDisplay(pick.deathDate)}
-               </div>`
-            : ""
-        }
       </td>
 
-      <td>${pick.status}</td>
+      <td>${pick.status}${isDuplicate ? " (duplicate)" : ""}</td>
 
       <td>
-        ${
-          pick.status !== "approved"
-            ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
-            : ""
-        }
+        ${pick.status !== "approved"
+          ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
+          : ""}
         <button data-id="${pick.id}" data-action="delete">Delete</button>
       </td>
     </tr>
   `;
 });
-
 
   tbody.querySelectorAll("button").forEach(btn =>
     btn.onclick = () => handlePickAction(btn.dataset.id, btn.dataset.action)
