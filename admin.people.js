@@ -460,8 +460,8 @@ document.addEventListener("click", async e => {
   const wikiDeath = btn.dataset.death || "";
 
   // groupsMap ligger i closure fra sidste loadPeople
-  const group = window.__peopleGroups?.get(key);
-  if (!group) return;
+const group = window.__peopleGroups?.get(currentEditPersonKey);
+if (!group) return;
 
   let finalBirth =
     group.birthDates.size === 1 ? [...group.birthDates][0] : "";
@@ -550,7 +550,11 @@ document.addEventListener("click", async e => {
 document.getElementById("save-person-btn")?.addEventListener("click", async () => {
   if (!currentEditPersonKey) return;
 
-  const name = document.getElementById("edit-person-name").value.trim();
+  const rawInput = document.getElementById("edit-person-name").value.trim();
+const name =
+  group?.displayName ||
+  rawInput.replace(/\s+/g, " ").trim();
+
   if (!name) return;
 
   const rawBirth = document.getElementById("edit-person-birthdate").value.trim();
