@@ -245,7 +245,10 @@ document.querySelectorAll(".used-by").forEach(el => {
 
 function bindPeopleActions(groups, playersSnap) {
 
-     /* ---------- WIKIDATA LOOKUP ---------- */
+  // 🔑 GØR GROUPS GLOBALT TILGÆNGELIG (bruges af Apply / Save)
+  window.__peopleGroups = groups;
+
+  /* ---------- WIKIDATA LOOKUP ---------- */
 
   document.querySelectorAll(".wiki-check-btn").forEach(btn => {
     btn.onclick = async () => {
@@ -296,7 +299,7 @@ function bindPeopleActions(groups, playersSnap) {
             </button>
           </div>
         `;
-      } catch (err) {
+      } catch {
         resultEl.textContent = "Lookup failed";
       } finally {
         btn.disabled = false;
@@ -305,116 +308,110 @@ function bindPeopleActions(groups, playersSnap) {
     };
   });
 
-/* ---------- EDIT ---------- */
+  /* ---------- EDIT ---------- */
 
-document.querySelectorAll(".edit-people-btn").forEach(btn => {
-  btn.onclick = () => {
-    const key = btn.dataset.key;
-    const group = groups.get(key);
-    if (!group) return;
+  document.querySelectorAll(".edit-people-btn").forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.dataset.key;
+      const group = groups.get(key);
+      if (!group) return;
 
-    currentEditPersonKey = key;
+      currentEditPersonKey = key;
 
-    const nameInput  = document.getElementById("edit-person-name");
-    const birthInput = document.getElementById("edit-person-birthdate");
-    const deathInput = document.getElementById("edit-person-deathdate");
-    const modal      = document.getElementById("edit-person-modal");
+      const nameInput  = document.getElementById("edit-person-name");
+      const birthInput = document.getElementById("edit-person-birthdate");
+      const deathInput = document.getElementById("edit-person-deathdate");
+      const modal      = document.getElementById("edit-person-modal");
 
-    nameInput.value = group.displayName;
+      nameInput.value = group.displayName;
 
-    birthInput.value =
-      group.birthDates.size === 1
-        ? formatDateForDisplay([...group.birthDates][0])
-        : "";
+      birthInput.value =
+        group.birthDates.size === 1
+          ? formatDateForDisplay([...group.birthDates][0])
+          : "";
 
-    deathInput.value =
-      group.deathDates?.size === 1
-        ? formatDateForDisplay([...group.deathDates][0])
-        : "";
+      deathInput.value =
+        group.deathDates?.size === 1
+          ? formatDateForDisplay([...group.deathDates][0])
+          : "";
 
-    modal.classList.remove("hidden");
-  };
-});
+      modal.classList.remove("hidden");
+    };
+  });
 
-/* ---------- MERGE ---------- */
+  /* ---------- MERGE ---------- */
 
-document.querySelectorAll(".merge-people-btn").forEach(btn => {
-  btn.onclick = async () => {
-    const key = btn.dataset.key;
-    const group = groups.get(key);
-    if (!group) return;
+  document.querySelectorAll(".merge-people-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const key = btn.dataset.key;
+      const group = groups.get(key);
+      if (!group) return;
 
-    // 🔑 fastlæg canonical birthDate (hvis entydig)
-    const canonicalBirthDate =
-      group.birthDates.size === 1 ? [...group.birthDates][0] : "";
+      const canonicalBirthDate =
+        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
 
-    // 🔑 find / opret canonical person
-    let personId;
-    if (group.personIds.size === 1) {
-      personId = [...group.personIds][0];
-    } else {
-      const q = query(
-        collection(db, "people"),
-        where("nameNormalized", "==", key)
-      );
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        personId = snap.docs[0].id;
+      let personId;
+      if (group.personIds.size === 1) {
+        personId = [...group.personIds][0];
       } else {
-        personId = (
-          await addDoc(collection(db, "people"), {
-            name: group.displayName,
-            nameNormalized: key,
-            birthDate: canonicalBirthDate
-          })
-        ).id;
+        const q = query(
+          collection(db, "people"),
+          where("nameNormalized", "==", key)
+        );
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          personId = snap.docs[0].id;
+        } else {
+          personId = (
+            await addDoc(collection(db, "people"), {
+              name: group.displayName,
+              nameNormalized: key,
+              birthDate: canonicalBirthDate
+            })
+          ).id;
+        }
       }
-    }
 
-    // 🔥 DEDUPLIKÉR PICKS PR. PLAYER
-    for (const ps of playersSnap.docs) {
-      const ref = doc(db, "players", ps.id);
-      const data = ps.data();
-      const picks = data.entries?.["2026"]?.picks || [];
+      for (const ps of playersSnap.docs) {
+        const ref = doc(db, "players", ps.id);
+        const data = ps.data();
+        const picks = data.entries?.["2026"]?.picks || [];
 
-      const matching = picks.filter(
-        p =>
-          p.status === "approved" &&
-          normalizeName(p.normalizedName || p.raw) === key
-      );
+        const matching = picks.filter(
+          p =>
+            p.status === "approved" &&
+            normalizeName(p.normalizedName || p.raw) === key
+        );
 
-      if (matching.length <= 1) continue;
+        if (matching.length <= 1) continue;
 
-      // behold én canonical pick
-const keep = {
-  ...matching[0],
-  normalizedName: normalizeName(
-    matching[0].normalizedName || matching[0].raw
-  ),
-  personId,
-  birthDate: canonicalBirthDate,
-  deathDate:
-    matching.map(p => p.deathDate).find(Boolean) || ""
-};
+        const keep = {
+          ...matching[0],
+          normalizedName: normalizeName(
+            matching[0].normalizedName || matching[0].raw
+          ),
+          personId,
+          birthDate: canonicalBirthDate,
+          deathDate:
+            matching.map(p => p.deathDate).find(Boolean) || ""
+        };
 
-      // fjern alle matches og indsæt den ene
-      const cleaned = picks.filter(
-        p =>
-          normalizeName(p.normalizedName || p.raw) !== key
-      );
+        const cleaned = picks.filter(
+          p =>
+            normalizeName(p.normalizedName || p.raw) !== key
+        );
 
-      cleaned.push(keep);
+        cleaned.push(keep);
 
-      await updateDoc(ref, {
-        "entries.2026.picks": cleaned
-      });
-    }
+        await updateDoc(ref, {
+          "entries.2026.picks": cleaned
+        });
+      }
 
-    await refreshAdminViews();
-  };
-});
-
+      await refreshAdminViews();
+    };
+  });
 
   /* ---------- DELETE ---------- */
 
@@ -440,7 +437,7 @@ const keep = {
             "entries.2026.picks": filtered
           });
         }
-      }      
+      }
     };
   });
 }
