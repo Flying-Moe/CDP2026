@@ -186,7 +186,7 @@ if (hasDuplicatePerPlayer) {
           class="wiki-check-btn"
           data-name="${g.displayName}"
           data-key="${normalizeName(g.displayName)}">
-          Check Wikipedia
+          Check Wiki
         </button>
         <span
           class="wiki-result"
