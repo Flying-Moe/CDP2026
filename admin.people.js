@@ -423,6 +423,8 @@ document.querySelectorAll(".delete-people-btn").forEach(btn => {
 
     if (!confirm(`Delete ALL picks named "${group.displayName}"?`)) return;
 
+    btn.closest("tr")?.remove();
+     
     const updates = [];
 
     for (const ps of playersSnap.docs) {
