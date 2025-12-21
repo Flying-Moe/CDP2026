@@ -456,9 +456,12 @@ document.addEventListener("click", async e => {
   const wikiBirth = btn.dataset.birth || "";
   const wikiDeath = btn.dataset.death || "";
 
-  // groupsMap ligger i closure fra sidste loadPeople
-const group = window.__peopleGroups?.get(currentEditPersonKey);
-if (!group) return;
+  // Hent korrekt group ud fra knappen, ikke fra currentEditPersonKey
+  const group = window.__peopleGroups?.get(key);
+  if (!group) {
+    console.warn("No group found for key", key);
+    return;
+  }
 
   let finalBirth =
     group.birthDates.size === 1 ? [...group.birthDates][0] : "";
