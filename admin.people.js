@@ -415,31 +415,43 @@ function bindPeopleActions(groups, playersSnap) {
 
   /* ---------- DELETE ---------- */
 
-  document.querySelectorAll(".delete-people-btn").forEach(btn => {
-    btn.onclick = async () => {
-      const key = btn.dataset.key;
-      const group = groups.get(key);
-      if (!group) return;
+document.querySelectorAll(".delete-people-btn").forEach(btn => {
+  btn.onclick = async () => {
+    const key = btn.dataset.key;
+    const group = groups.get(key);
+    if (!group) return;
 
-      if (!confirm(`Delete ALL picks named "${group.displayName}"?`)) return;
+    if (!confirm(`Delete ALL picks named "${group.displayName}"?`)) return;
 
-      for (const ps of playersSnap.docs) {
-        const ref = doc(db, "players", ps.id);
-        const data = ps.data();
-        const picks = data.entries?.["2026"]?.picks || [];
+    const updates = [];
 
-        const filtered = picks.filter(
-          p => normalizeName(p.normalizedName || p.raw) !== key
-        );
+    for (const ps of playersSnap.docs) {
+      const ref = doc(db, "players", ps.id);
+      const data = ps.data();
+      const picks = data.entries?.["2026"]?.picks || [];
 
-        if (filtered.length !== picks.length) {
-          await updateDoc(ref, {
+      const filtered = picks.filter(
+        p => normalizeName(p.normalizedName || p.raw) !== key
+      );
+
+      if (filtered.length !== picks.length) {
+        updates.push(
+          updateDoc(ref, {
             "entries.2026.picks": filtered
-          });
-        }
+          })
+        );
       }
-    };
-  });
+    }
+
+    // 🔥 Kør alle Firestore-opdateringer parallelt
+    if (updates.length) {
+      await Promise.all(updates);
+    }
+
+    // 🔄 Opdatér UI bagefter
+    await refreshAdminViews();
+  };
+});
 }
 
 /* =====================================================
