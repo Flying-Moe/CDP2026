@@ -261,19 +261,30 @@ export async function autoLinkApprovedPicks() {
 
 export function setupTabs() {
   document.querySelectorAll("#admin-tabs button").forEach(btn => {
-    btn.onclick = () => {
-      document
-        .querySelectorAll("#admin-tabs button")
-        .forEach(b => b.classList.remove("active"));
+btn.onclick = async () => {
+  document
+    .querySelectorAll("#admin-tabs button")
+    .forEach(b => b.classList.remove("active"));
 
-      btn.classList.add("active");
+  btn.classList.add("active");
 
-      document
-        .querySelectorAll(".tab-content")
-        .forEach(c => (c.style.display = "none"));
+  document
+    .querySelectorAll(".tab-content")
+    .forEach(c => (c.style.display = "none"));
 
-      document.getElementById(`tab-${btn.dataset.tab}`).style.display = "block";
-    };
+  const tabId = btn.dataset.tab;
+  document.getElementById(`tab-${tabId}`).style.display = "block";
+
+  // 🔄 Always refresh data when switching tabs
+  if (tabId === "players") {
+    await loadPlayers();
+  }
+
+  if (tabId === "people") {
+    await loadPeople();
+  }
+};
+
   });
 
   document.querySelector('[data-tab="players"]')?.click();
