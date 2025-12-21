@@ -544,36 +544,43 @@ if (!group) return;
   await refreshAdminViews();
 });
 
-document.getElementById("save-person-btn")?.addEventListener("click", async () => {
+/* =====================================================
+   SAVE PERSON – EVENT DELEGATION (single source of truth)
+===================================================== */
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest("#save-person-btn");
+  if (!btn) return;
+
   if (!currentEditPersonKey) return;
 
-  const rawInput = document.getElementById("edit-person-name").value.trim();
-const name =
-  group?.displayName ||
-  rawInput.replace(/\s+/g, " ").trim();
+  const nameInput = document.getElementById("edit-person-name");
+  const birthInput = document.getElementById("edit-person-birthdate");
+  const deathInput = document.getElementById("edit-person-deathdate");
 
+  const name = (nameInput?.value || "").replace(/\s+/g, " ").trim();
   if (!name) return;
 
-  const rawBirth = document.getElementById("edit-person-birthdate").value.trim();
-  const rawDeath = document.getElementById("edit-person-deathdate").value.trim();
+  const rawBirth = (birthInput?.value || "").trim();
+  const rawDeath = (deathInput?.value || "").trim();
 
   const birthDate = rawBirth ? parseFlexibleDate(rawBirth) : "";
   const deathDate = rawDeath ? parseFlexibleDate(rawDeath) : "";
 
-  const newNormalized = normalizeName(name);
   const oldNormalized = currentEditPersonKey;
+  const newNormalized = normalizeName(name);
 
-  // 🔹 find eller opret canonical person
-  const q = query(
+  // 1) Upsert i people (find på oldNormalized)
+  const qPeople = query(
     collection(db, "people"),
     where("nameNormalized", "==", oldNormalized)
   );
-  const snap = await getDocs(q);
+  const snapPeople = await getDocs(qPeople);
 
   let personId;
 
-  if (!snap.empty) {
-    personId = snap.docs[0].id;
+  if (!snapPeople.empty) {
+    personId = snapPeople.docs[0].id;
     await updateDoc(doc(db, "people", personId), {
       name,
       nameNormalized: newNormalized,
@@ -590,40 +597,40 @@ const name =
     personId = ref.id;
   }
 
-  // 🔥 OPDATÉR ALLE APPROVED PICKS (DET MANGLEDE)
+  // 2) Opdatér ALLE approved picks der matcher oldNormalized
   const playersSnap = await getDocs(collection(db, "players"));
 
   for (const ps of playersSnap.docs) {
-    const ref = doc(db, "players", ps.id);
-    const data = ps.data();
-    const picks = data.entries?.["2026"]?.picks || [];
+    const playerRef = doc(db, "players", ps.id);
+    const picks = ps.data().entries?.["2026"]?.picks || [];
 
     let changed = false;
 
     picks.forEach(p => {
-      if (
-        p.status === "approved" &&
-        normalizeName(p.normalizedName || p.raw) === oldNormalized
-      ) {
-        p.normalizedName = name;
-        p.raw = name;
-        p.birthDate = birthDate;
-        p.deathDate = deathDate;
-        p.personId = personId;
-        changed = true;
-      }
+      if (p.status !== "approved") return;
+
+      const norm = normalizeName(p.normalizedName || p.raw || "");
+      if (norm !== oldNormalized) return;
+
+      // vigtigt: navn/normalizedName skal opdateres, ellers bliver grouping ved med at vise det gamle
+      p.normalizedName = name;
+      p.raw = name;
+
+      p.birthDate = birthDate;
+      p.deathDate = deathDate;
+      p.personId = personId;
+
+      changed = true;
     });
 
     if (changed) {
-      await updateDoc(ref, {
-        "entries.2026.picks": picks
-      });
+      await updateDoc(playerRef, { "entries.2026.picks": picks });
     }
   }
 
+  // 3) Luk + refresh
   currentEditPersonKey = null;
-  document.getElementById("edit-person-modal").classList.add("hidden");
-
+  document.getElementById("edit-person-modal")?.classList.add("hidden");
   await refreshAdminViews();
 });
 
