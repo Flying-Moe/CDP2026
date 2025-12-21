@@ -627,3 +627,81 @@ const name =
   await refreshAdminViews();
 });
 
+/* =====================================================
+   SAVE PERSON – EVENT DELEGATION
+===================================================== */
+
+document.addEventListener("click", async e => {
+  const btn = e.target.closest("#save-person-btn");
+  if (!btn) return;
+
+  if (!currentEditPersonKey) return;
+
+  const name = document.getElementById("edit-person-name")?.value.trim();
+  const rawBirth = document.getElementById("edit-person-birthdate")?.value.trim();
+  const rawDeath = document.getElementById("edit-person-deathdate")?.value.trim();
+
+  const birthDate = rawBirth ? parseFlexibleDate(rawBirth) : "";
+  const deathDate = rawDeath ? parseFlexibleDate(rawDeath) : "";
+
+  const q = query(
+    collection(db, "people"),
+    where("nameNormalized", "==", currentEditPersonKey)
+  );
+  const snap = await getDocs(q);
+
+  let personId;
+
+  if (!snap.empty) {
+    personId = snap.docs[0].id;
+    await updateDoc(doc(db, "people", personId), {
+      name,
+      nameNormalized: normalizeName(name),
+      birthDate,
+      deathDate
+    });
+  } else {
+    personId = (
+      await addDoc(collection(db, "people"), {
+        name,
+        nameNormalized: normalizeName(name),
+        birthDate,
+        deathDate
+      })
+    ).id;
+  }
+
+  // 🔁 Opdatér ALLE approved picks
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
+
+    let changed = false;
+
+    picks.forEach(p => {
+      if (
+        p.status === "approved" &&
+        normalizeName(p.normalizedName || p.raw) === currentEditPersonKey
+      ) {
+        p.birthDate = birthDate;
+        p.deathDate = deathDate;
+        p.personId = personId;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      await updateDoc(ref, {
+        "entries.2026.picks": picks
+      });
+    }
+  }
+
+  document.getElementById("edit-person-modal")?.classList.add("hidden");
+
+  await refreshAdminViews();
+});
+
