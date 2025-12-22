@@ -245,6 +245,10 @@ picks.forEach(pick => {
   document.getElementById("validate-picks-modal").classList.remove("hidden");
 }
 
+<button id="delete-all-picks-btn" class="danger">
+  Delete all
+</button>
+
 document.getElementById("close-validate-btn")?.addEventListener("click", () => {
   document.getElementById("validate-picks-modal").classList.add("hidden");
 });
