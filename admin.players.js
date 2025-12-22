@@ -103,25 +103,6 @@ function bindPlayerActions() {
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
 
-  document.querySelectorAll(".edit-player-btn").forEach(btn =>
-  btn.onclick = async () => {
-    const playerId = btn.dataset.id;
-    const ref = doc(db, "players", playerId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    const currentName = snap.data().name;
-    const newName = prompt("Edit player name:", currentName);
-    if (!newName) return;
-
-    const trimmed = newName.trim();
-    if (!trimmed || trimmed === currentName) return;
-
-    await updateDoc(ref, { name: trimmed });
-    loadPlayers();
-  }
-);
-
   document.querySelectorAll(".delete-player-btn").forEach(b =>
     b.onclick = async () => {
       if (!confirm("Deactivate this player?")) return;
