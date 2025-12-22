@@ -142,6 +142,18 @@ if (hasDuplicatePerPlayer) {
       ? formatDateForDisplay([...g.deathDates][0])
       : "—";
 
+   let potentialPoints = "—";
+
+if (g.birthDates?.size === 1) {
+  const birthISO = [...g.birthDates][0];
+
+  // hvis død: brug deathDate, ellers i dag
+  const deathISO =
+    g.deathDates?.size === 1 ? [...g.deathDates][0] : "";
+
+  potentialPoints = calculateHitPoints(birthISO, deathISO);
+}
+   
   tbody.innerHTML += `
     <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
       <td>
