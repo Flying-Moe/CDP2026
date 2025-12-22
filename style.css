@@ -353,8 +353,14 @@ footer {
 /* ===== Name ===== */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
-  width: auto;               /* tager resten */
+  width: auto;
   text-align: left;
+}
+
+#validate-picks-modal td:nth-child(1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ===== Birth date ===== */
@@ -378,11 +384,16 @@ footer {
 }
 
 /* ===== Status ===== */
-#validate-picks-modal th:nth-child(4),
+#validate-picks-modal th:nth-child(4) {
+  width: 70px;
+  text-align: center;
+  font-size: 0.85rem; /* header normal */
+}
+
 #validate-picks-modal td:nth-child(4) {
   width: 70px;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.75rem; /* indhold mindre */
 }
 
 /* ===== Actions ===== */
