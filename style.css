@@ -517,3 +517,8 @@ footer {
 #people-table td {
   text-align: center;
 }
+
+th[title],
+td[title] {
+  text-decoration: none !important;
+}
