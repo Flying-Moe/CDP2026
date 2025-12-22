@@ -12,7 +12,8 @@ import {
   splitLines,
   getOrCreatePerson,
   formatDateForDisplay,
-  calculatePlayerTotals 
+  calculatePlayerTotals,
+  refreshAdminViews
 } from "./admin.core.js";
 
 import {
