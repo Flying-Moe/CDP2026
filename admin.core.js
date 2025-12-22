@@ -495,6 +495,9 @@ document.addEventListener("input", e => {
   const modal = e.target.closest(".modal");
   if (!modal) return;
 
+  // Ignorér programmatisk init
+  if (e.isTrusted !== true) return;
+
   markModalDirty(modal);
 });
 
