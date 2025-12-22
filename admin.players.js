@@ -11,7 +11,8 @@ import {
   parsePickLine,
   splitLines,
   getOrCreatePerson,
-  formatDateForDisplay
+  formatDateForDisplay,
+  calculatePlayerTotals 
 } from "./admin.core.js";
 
 import {
@@ -40,38 +41,18 @@ export async function loadPlayers() {
 
 snap.forEach(docu => {
   const p = docu.data();
-  const picks = p.entries?.["2026"]?.picks || [];
 
-  let approved = 0;
-  let hitsScore = 0;
-
-  picks.forEach(pick => {
-    if (pick.status !== "approved") return;
-
-    approved++;
-
-    if (pick.birthDate && pick.deathDate) {
-      const birth = new Date(pick.birthDate);
-      const death = new Date(pick.deathDate);
-
-      let age = death.getFullYear() - birth.getFullYear();
-      const hadBirthday =
-        death.getMonth() > birth.getMonth() ||
-        (death.getMonth() === birth.getMonth() &&
-         death.getDate() >= birth.getDate());
-
-      if (!hadBirthday) age--;
-
-      const points = age >= 99 ? 1 : Math.max(1, 100 - age);
-      hitsScore += points;
-    }
-  });
-
-  const penalty =
-    (p.scoreHistory || []).filter(h => h.delta === -1).length;
+  const {
+    hitPoints,
+    penalty,
+    approvedCount
+  } = calculatePlayerTotals(p);
 
   const scoreDisplay =
-    penalty !== 0 ? `${hitsScore} (${penalty})` : `${hitsScore}`;
+    penalty !== 0
+      ? `${hitPoints} (${penalty})`
+      : `${hitPoints}`;
+
 
   if (p.active !== false && activeBody) {
     activeBody.innerHTML += `
