@@ -45,17 +45,32 @@ export const wikiCache = new Map();
 ===================================================== */
 
 export function calculateAgeAtDeath(birthISO, deathISO) {
-  if (!birthISO || !deathISO) return null;
+  if (!birthISO) return null;
 
   const birth = new Date(birthISO);
-  const death = new Date(deathISO);
+  if (isNaN(birth)) return null;
 
-  let age = death.getFullYear() - birth.getFullYear();
+  let endDate = null;
+
+  // 🔑 Brug deathDate hvis den findes og er gyldig
+  if (typeof deathISO === "string" && deathISO.trim() !== "") {
+    const d = new Date(deathISO);
+    if (!isNaN(d)) {
+      endDate = d;
+    }
+  }
+
+  // 🔁 Fallback: stadig i live → brug dags dato
+  if (!endDate) {
+    endDate = new Date();
+  }
+
+  let age = endDate.getFullYear() - birth.getFullYear();
 
   const hadBirthday =
-    death.getMonth() > birth.getMonth() ||
-    (death.getMonth() === birth.getMonth() &&
-     death.getDate() >= birth.getDate());
+    endDate.getMonth() > birth.getMonth() ||
+    (endDate.getMonth() === birth.getMonth() &&
+      endDate.getDate() >= birth.getDate());
 
   if (!hadBirthday) age--;
 
@@ -81,18 +96,24 @@ export function calculatePlayerTotals(player) {
 
   picks.forEach(pick => {
     if (pick.status !== "approved") return;
-    if (!pick.birthDate || !pick.deathDate) return;
+    if (!pick.birthDate) return;
 
     const points = calculateHitPoints(
       pick.birthDate,
-      pick.deathDate
+      pick.deathDate || ""
     );
 
-    if (points > 0) {
+    if (points > 0 && pick.deathDate) {
       hitPoints += points;
       hits++;
     }
   });
+
+  return {
+    hitPoints,
+    hits
+  };
+}
 
   const scoreHistory = player.scoreHistory || [];
 
