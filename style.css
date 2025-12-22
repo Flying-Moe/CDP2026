@@ -286,13 +286,6 @@ footer {
     font-size: 0.85rem;
   }
 
-  /* Remove fixed column widths on mobile */
-  table.list-table th,
-  table.list-table td {
-    width: auto;
-  }
-
-  /* Keep name readable */
   table.list-table th:nth-child(1),
   table.list-table td:nth-child(1) {
     word-break: break-word;
@@ -306,8 +299,8 @@ footer {
     padding: 3px 4px;
   }
 
-  #validate-modal td:nth-child(2) input {
-    max-width: 8.5ch;
+  #validate-modal td.birth input {
+    width: 8.5ch;
     font-size: 0.8rem;
   }
 }
@@ -334,7 +327,7 @@ footer {
   background: #fff;
   padding: 1rem 1.1rem;
   border-radius: 6px;
-  max-width: 540px;
+  max-width: 520px;
   width: 100%;
   max-height: 90vh;
   overflow: auto;
@@ -349,13 +342,13 @@ footer {
 }
 
 /* =========================
-   VALIDATE MODAL – TABLE
+   VALIDATE MODAL – TABLE (FINAL)
 ========================= */
 
 #validate-modal table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto; /* 🔑 lad browseren måle kolonner */
+  table-layout: fixed; /* 🔑 stabil kolonnefordeling */
 }
 
 #validate-modal th,
@@ -366,46 +359,51 @@ footer {
 }
 
 /* ===== Name ===== */
-/* Auto-bredde, højrestillet */
+/* Får AL resterende plads */
 #validate-modal th:nth-child(1),
 #validate-modal td:nth-child(1) {
-  text-align: right;
+  width: auto;
+  text-align: left;
 }
 
-/* ===== Birth + Death ===== */
-/* Samme visuelle bredde, centreret */
+/* ===== Birth date ===== */
 #validate-modal th:nth-child(2),
-#validate-modal td:nth-child(2),
-#validate-modal th:nth-child(3),
-#validate-modal td:nth-child(3) {
+#validate-modal td:nth-child(2) {
+  width: 92px;           /* præcis DD-MM-YYYY */
   text-align: center;
 }
 
 #validate-modal td:nth-child(2) input {
-  width: 100%;
-  max-width: 9.5ch;   /* DD-MM-YYYY */
+  width: 92px;
   text-align: center;
   box-sizing: border-box;
 }
 
+/* ===== Death date ===== */
+#validate-modal th:nth-child(3),
+#validate-modal td:nth-child(3) {
+  width: 92px;
+  text-align: center;
+}
+
 /* ===== Status ===== */
-/* Mindre tekst, centreret */
 #validate-modal th:nth-child(4),
 #validate-modal td:nth-child(4) {
+  width: 70px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;   /* mindre, roligere */
 }
 
 /* ===== Actions ===== */
-/* Kompakt og centreret */
 #validate-modal th:nth-child(5),
 #validate-modal td:nth-child(5) {
+  width: 70px;
   text-align: center;
   padding-left: 4px;
   padding-right: 4px;
 }
 
-/* 🔒 Safety: hidden modal ALWAYS wins */
+/* 🔒 Safety */
 .modal.hidden {
   display: none !important;
 }
