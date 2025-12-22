@@ -150,7 +150,7 @@ function bindPlayerActions() {
   );
 }
 
-/* EDIT PLAYER -------------------/
+  /* ---------- Edit player ---------- */
 
 let currentEditPlayerId = null;
 
