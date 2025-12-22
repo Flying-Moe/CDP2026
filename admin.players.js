@@ -226,6 +226,15 @@ picks.forEach(pick => {
         >
       </td>
 
+      <td>
+  ${
+    pick.deathDate
+      ? formatDateForDisplay(pick.deathDate)
+      : "—"
+  }
+</td>
+
+
       <td>${pick.status}${isDuplicate ? " (duplicate)" : ""}</td>
 
       <td>
