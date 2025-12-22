@@ -43,24 +43,47 @@ snap.forEach(docu => {
   const picks = p.entries?.["2026"]?.picks || [];
 
   let approved = 0;
-  let pending = 0;
+  let hitsScore = 0;
 
-  picks.forEach(x => {
-    if (x.status === "approved") approved++;
-    else pending++;
+  picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+
+    approved++;
+
+    if (pick.birthDate && pick.deathDate) {
+      const birth = new Date(pick.birthDate);
+      const death = new Date(pick.deathDate);
+
+      let age = death.getFullYear() - birth.getFullYear();
+      const hadBirthday =
+        death.getMonth() > birth.getMonth() ||
+        (death.getMonth() === birth.getMonth() &&
+         death.getDate() >= birth.getDate());
+
+      if (!hadBirthday) age--;
+
+      const points = age >= 99 ? 1 : Math.max(1, 100 - age);
+      hitsScore += points;
+    }
   });
+
+  const penalty =
+    (p.scoreHistory || []).filter(h => h.delta === -1).length;
+
+  const scoreDisplay =
+    penalty !== 0 ? `${hitsScore} (${penalty})` : `${hitsScore}`;
 
   if (p.active !== false && activeBody) {
     activeBody.innerHTML += `
       <tr>
         <td>${p.name}</td>
-        <td>${approved}</td>
-        <td>${pending}</td>
+        <td>${approved} / 20</td>
+        <td>${scoreDisplay}</td>
         <td>
           <button class="validate-btn" data-id="${docu.id}">Validate</button>
           <button class="minus-btn" data-id="${docu.id}">−1</button>
           <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-          <button disabled>Edit</button>
+          <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
           <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
         </td>
       </tr>
