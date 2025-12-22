@@ -10,7 +10,8 @@ import {
   parseFlexibleDate,
   refreshAdminViews,
   fetchWikidataPerson,
-  formatDateForDisplay
+  formatDateForDisplay,
+  calculateHitPoints
 } from "./admin.core.js";
 
 import {
