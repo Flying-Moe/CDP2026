@@ -297,11 +297,26 @@ footer {
   table.list-table td:nth-child(1) {
     word-break: break-word;
   }
-}
 
-/* =========================
-   MODALS (ADMIN)
-========================= */
+  /* ===== Validate modal table on mobile ===== */
+
+  #validate-modal table {
+    table-layout: fixed;
+  }
+
+  #validate-modal th:nth-child(2),
+  #validate-modal td:nth-child(2),
+  #validate-modal th:nth-child(3),
+  #validate-modal td:nth-child(3) {
+    width: 95px;           /* Birth + Death */
+    white-space: nowrap;
+    font-size: 0.8rem;
+  }
+
+  #validate-modal td {
+    padding: 0.25rem 0.35rem;
+  }
+}
 
 /* =========================
    MODALS (ADMIN)
@@ -323,9 +338,9 @@ footer {
 
 .modal-content {
   background: #fff;
-  padding: 1rem 1.2rem;
+  padding: 1rem 1.1rem;
   border-radius: 6px;
-  max-width: 520px;
+  max-width: 540px;       /* lidt bredere til validate */
   width: 100%;
   max-height: 90vh;
   overflow: auto;
@@ -342,6 +357,28 @@ footer {
 .modal table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.modal table th,
+.modal table td {
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+/* ===== Validate modal desktop tightening ===== */
+
+#validate-modal th:nth-child(2),
+#validate-modal td:nth-child(2),
+#validate-modal th:nth-child(3),
+#validate-modal td:nth-child(3) {
+  width: 110px;          /* Birth + Death */
+  white-space: nowrap;
+}
+
+#validate-modal th:nth-child(1),
+#validate-modal td:nth-child(1) {
+  width: auto;           /* Name gets remaining space */
 }
 
 /* 🔒 Safety: hidden modal ALWAYS wins */
