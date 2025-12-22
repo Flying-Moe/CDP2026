@@ -8,6 +8,8 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import { calculatePlayerTotals } from "./admin.core.js";
+
 /* =====================================================
    BADGES – LOGIC (LOCAL, SAFE)
 ===================================================== */
@@ -104,91 +106,94 @@ async function renderLeaderboard() {
     query(collection(db, "deaths"), where("approved", "==", true))
   );
 
-  /* ---------- Hits pr. spiller ---------- */
+/* ---------- Saml data (fælles score-engine) ---------- */
 
-  const hitsByPlayer = {};
-  deathsSnap.forEach(d => {
-    const death = d.data();
-    hitsByPlayer[death.playerId] =
-      (hitsByPlayer[death.playerId] || 0) + 1;
+const results = [];
+
+playersSnap.forEach(pDoc => {
+  const p = pDoc.data();
+
+  const {
+    hitPoints,
+    hits,
+    penalty,
+    totalScore,
+    approvedCount
+  } = calculatePlayerTotals(p);
+
+  results.push({
+    id: pDoc.id,
+    name: p.name,
+    hitPoints,
+    hits,
+    penalty,
+    totalScore,
+    approvedCount,
+    firstBlood: p.firstBlood === true
   });
+});
 
-  /* ---------- Saml data ---------- */
-
-  const results = [];
-
-  playersSnap.forEach(pDoc => {
-    const p = pDoc.data();
-    const history = p.scoreHistory || [];
-    const minus = history.filter(h => h.delta === -1);
-
-    results.push({
-      id: pDoc.id,
-      name: p.name,
-      points: p.score || 0,
-      hits: hitsByPlayer[pDoc.id] || 0,
-      approvedCount:
-        p.entries?.["2026"]?.picks?.filter(x => x.status === "approved").length || 0,
-      firstBlood: p.firstBlood === true,
-      minusCount: minus.length,
-      lastMinusAt: minus.length
-        ? Math.max(...minus.map(h => new Date(h.at).getTime()))
-        : 0
-    });
-  });
-
-  /* ---------- Sortering ---------- */
-  results.sort((a, b) => {
-    // 1. Points (DESC)
-    if (b.points !== a.points) return b.points - a.points;
-
-    // 2. Færrest minuspoint vinder
-    if (a.minusCount !== b.minusCount)
-      return a.minusCount - b.minusCount;
-
-    // 3. Seneste minuspoint nederst
-    return a.lastMinusAt - b.lastMinusAt;
-  });
-
-  results.forEach((p, i) => (p.rank = i + 1));
-
-  const badgesByPlayer = computeBadges(results);
-
-  /* ---------- Render ---------- */
-
-  tbody.innerHTML = "";
-
-  results.forEach((r, index) => {
-    const tr = document.createElement("tr");
-
-    if (index === 0 && r.points > 0) {
-      tr.classList.add("leader");
-    }
-
-    const badgeIcons = (badgesByPlayer[r.id] || [])
-      .map(
-        b =>
-          `<span class="badge ${b.class}" title="${b.name} – ${b.reason}">${b.icon}</span>`
-      )
-      .join(" ");
-
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>
-        ${r.name}
-        ${badgeIcons}
-      </td>
-      <td>${r.points}</td>
-      <td>${r.hits}</td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-
-  if (!results.length) {
-    tbody.innerHTML =
-      "<tr><td colspan='4'>No players yet.</td></tr>";
+/* ---------- Sortering ---------- */
+results.sort((a, b) => {
+  // 1. TotalScore (DESC)
+  if (b.totalScore !== a.totalScore) {
+    return b.totalScore - a.totalScore;
   }
+
+  // 2. Hits (DESC)
+  if (b.hits !== a.hits) {
+    return b.hits - a.hits;
+  }
+
+  // 3. Alfabetisk
+  return a.name.localeCompare(b.name);
+});
+
+results.forEach((p, i) => (p.rank = i + 1));
+
+const badgesByPlayer = computeBadges(results);
+
+/* ---------- Render ---------- */
+
+tbody.innerHTML = "";
+
+results.forEach((r, index) => {
+  const tr = document.createElement("tr");
+
+  if (index === 0 && r.totalScore > 0) {
+    tr.classList.add("leader");
+  }
+
+  const badgeIcons = (badgesByPlayer[r.id] || [])
+    .map(
+      b =>
+        `<span class="badge ${b.class}" title="${b.name} – ${b.reason}">${b.icon}</span>`
+    )
+    .join(" ");
+
+  tr.innerHTML = `
+    <td>${index + 1}</td>
+    <td>
+      ${r.name}
+      ${badgeIcons}
+    </td>
+    <td title="${
+      r.penalty
+        ? `Would have had ${r.hitPoints} points`
+        : ""
+    }">
+      ${r.totalScore}
+      ${r.penalty ? ` (${r.penalty})` : ""}
+    </td>
+    <td>${r.hits}</td>
+  `;
+
+  tbody.appendChild(tr);
+});
+
+if (!results.length) {
+  tbody.innerHTML =
+    "<tr><td colspan='4'>No players yet.</td></tr>";
 }
 
 /* =====================================================
