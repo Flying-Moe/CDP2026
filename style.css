@@ -188,6 +188,16 @@ table.list-table th {
   font-style: italic;
 }
 
+/* ===== Deceased styling (global) ===== */
+
+.is-dead {
+  background-color: #f2f2f2;
+}
+
+.is-dead td {
+  color: #555;
+}
+
 .death-mark {
   margin-left: 6px;
   font-size: 0.9em;
@@ -207,10 +217,6 @@ table.list-table th {
 .status-missing {
   background: #fff6d6;
 }
-
-/* =========================
-   LEADERBOARD
-========================= */
 
 table.leaderboard {
   width: auto;
