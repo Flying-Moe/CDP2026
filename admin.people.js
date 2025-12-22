@@ -11,7 +11,8 @@ import {
   refreshAdminViews,
   fetchWikidataPerson,
   formatDateForDisplay,
-  calculateHitPoints
+  calculateHitPoints,
+  attachModalDirtyTracking
 } from "./admin.core.js";
 
 import {
@@ -350,6 +351,9 @@ function bindPeopleActions(groups, playersSnap) {
           : "";
 
       modal.classList.remove("hidden");
+attachModalDirtyTracking(modal);
+modal.__resetDirty();
+
     };
   });
 
