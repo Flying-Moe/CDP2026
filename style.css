@@ -49,6 +49,12 @@ button[disabled] {
   cursor: not-allowed;
 }
 
+.pp-cell {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 /* =========================
    TABLES – BASELINE
 ========================= */
