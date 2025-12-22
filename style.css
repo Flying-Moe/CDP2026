@@ -334,123 +334,95 @@ footer {
 }
 
 /* =========================
-   VALIDATE PICKS TABLE (FINAL)
+   VALIDATE PICKS TABLE
 ========================= */
 
 #validate-picks-modal table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* 🔑 afgørende */
+  table-layout: fixed;
 }
 
 #validate-picks-modal th,
 #validate-picks-modal td {
   padding: 4px 6px;
   vertical-align: middle;
-  white-space: nowrap;
 }
 
-/* ===== Name ===== */
+/* ===== NAME ===== */
+/* Fast minimumsbredde + wrap (ingen ellipsis) */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
+  min-width: 200px;      /* 🔑 mere plads til navne */
   width: auto;
   text-align: left;
+  white-space: normal;
+  word-break: break-word;
 }
 
-#validate-picks-modal td:nth-child(1) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ===== Birth date ===== */
+/* ===== BIRTH DATE ===== */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 90px;
+  width: 96px;           /* DD-MM-YYYY */
   text-align: center;
 }
 
 #validate-picks-modal td:nth-child(2) input {
-  width: 90px;
+  width: 96px;
   text-align: center;
   box-sizing: border-box;
 }
 
-/* ===== Death date ===== */
+/* ===== DEATH DATE ===== */
+/* Samme bredde og alignment som birth date */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
-  width: 90px;
+  width: 96px;
   text-align: center;
 }
 
-/* ===== Status ===== */
+/* ===== STATUS ===== */
+/* Header normal størrelse, indhold mindre */
 #validate-picks-modal th:nth-child(4) {
-  width: 70px;
+  width: 72px;
   text-align: center;
-  font-size: 0.85rem; /* header normal */
+  font-size: 0.85rem;
 }
 
 #validate-picks-modal td:nth-child(4) {
-  width: 70px;
+  width: 72px;
   text-align: center;
-  font-size: 0.75rem; /* indhold mindre */
+  font-size: 0.75rem;
 }
 
-/* ===== Actions ===== */
+/* ===== ACTIONS ===== */
 #validate-picks-modal th:nth-child(5),
 #validate-picks-modal td:nth-child(5) {
-  width: 70px;
+  width: 72px;
   text-align: center;
+}
+
+/* =========================
+   MOBILE OVERRIDES
+========================= */
+
+@media (max-width: 600px) {
+
+  #validate-picks-modal th,
+  #validate-picks-modal td {
+    font-size: 0.8rem;
+  }
+
+  /* Endnu mere plads til navne på mobil */
+  #validate-picks-modal th:nth-child(1),
+  #validate-picks-modal td:nth-child(1) {
+    min-width: 240px;
+  }
 }
 
 /* 🔒 Safety first */
 .modal.hidden {
   display: none !important;
-}
-
-/* =========================
-   VALIDATE MODAL – DATE NORMALIZATION
-========================= */
-
-/* Death date skal ligne birth date visuelt */
-#validate-picks-modal td:nth-child(3) {
-  font-family: inherit;
-  font-size: 0.85rem;
-  padding: 4px 6px;
-}
-
-#validate-picks-modal td:nth-child(3)::before {
-  content: "";
-}
-
-/* Giv death-date "input-look" */
-#validate-picks-modal td:nth-child(3) {
-  border: 1px solid #ccc;
-  border-radius: 2px;
-  background: #f9f9f9;
-  height: 26px;
-  line-height: 18px;
-}
-
-/* =========================
-   NAME COLUMN BEHAVIOR
-========================= */
-
-/* Desktop: én linje, ingen overlap */
-@media (min-width: 601px) {
-  #validate-picks-modal td:nth-child(1) {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-/* Mobil: vis HELE navnet */
-@media (max-width: 600px) {
-  #validate-picks-modal td:nth-child(1) {
-    white-space: normal;
-    word-break: break-word;
-  }
 }
 
 /* =========================
