@@ -504,6 +504,29 @@ window.__modalHelpers = {
   clearModalDirty,
   closeModal
 };
-
-
 });
+
+/* =====================================================
+   MODAL DIRTY-STATE HELPERS
+===================================================== */
+
+export function attachModalDirtyTracking(modal) {
+  if (!modal) return;
+
+  let dirty = false;
+
+  const markDirty = () => {
+    dirty = true;
+  };
+
+  modal.querySelectorAll("input, textarea, select").forEach(el => {
+    el.addEventListener("input", markDirty);
+    el.addEventListener("change", markDirty);
+  });
+
+  modal.__isDirty = () => dirty;
+  modal.__resetDirty = () => {
+    dirty = false;
+  };
+}
+
