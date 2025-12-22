@@ -145,7 +145,10 @@ if (hasDuplicatePerPlayer) {
   tbody.innerHTML += `
     <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
       <td>
-        ${g.displayName}
+        <td>
+           ${g.displayName}
+           ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+
         ${
           similarGroups.length
             ? `<div style="font-size:0.8em;color:#666;">
