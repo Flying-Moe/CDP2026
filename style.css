@@ -345,7 +345,7 @@ footer {
 /* Fylder kun det nødvendige, ikke “resten af verden” */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
-  width: 38%;              /* mindre end før */
+  width: 30%;              /* mindre end før */
   text-align: left;
   white-space: normal;
   word-break: break-word;
@@ -354,12 +354,12 @@ footer {
 /* ===== BIRTH DATE ===== */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 88px;             /* stramt omkring dato */
+  width: 70px;             /* stramt omkring dato */
   text-align: center;
 }
 
 #validate-picks-modal td:nth-child(2) input {
-  width: 100%;
+  width: 90%;
   text-align: center;
   padding: 2px 3px;
   box-sizing: border-box;
@@ -368,19 +368,19 @@ footer {
 /* ===== DEATH DATE ===== */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
-  width: 88px;
+  width: 70px;
   text-align: center;
 }
 
 /* ===== STATUS ===== */
 #validate-picks-modal th:nth-child(4) {
-  width: 64px;
+  width: 55px;
   text-align: center;
   font-size: 0.85rem;
 }
 
 #validate-picks-modal td:nth-child(4) {
-  width: 64px;
+  width: 55px;
   text-align: center;
   font-size: 0.75rem;
 }
@@ -388,7 +388,7 @@ footer {
 /* ===== ACTIONS ===== */
 #validate-picks-modal th:nth-child(5),
 #validate-picks-modal td:nth-child(5) {
-  width: 60px;
+  width: 55px;
   text-align: center;
 }
 
