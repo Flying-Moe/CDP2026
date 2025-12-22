@@ -421,7 +421,74 @@ onAuthStateChanged(auth, async user => {
    
 });
 
-  
+  /* =====================================================
+   MODAL BEHAVIOR (ESC + OVERLAY + DIRTY CHECK)
+===================================================== */
+
+const modalState = new Map();
+
+function markModalDirty(modal) {
+  modalState.set(modal, true);
+}
+
+function clearModalDirty(modal) {
+  modalState.set(modal, false);
+}
+
+function isModalDirty(modal) {
+  return modalState.get(modal) === true;
+}
+
+function closeModal(modal) {
+  clearModalDirty(modal);
+  modal.classList.add("hidden");
+}
+
+function confirmCloseIfDirty(modal) {
+  if (!isModalDirty(modal)) {
+    closeModal(modal);
+    return;
+  }
+
+  if (confirm("You have unsaved changes. Close anyway?")) {
+    closeModal(modal);
+  }
+}
+
+/* ESC key */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+
+  document.querySelectorAll(".modal:not(.hidden)").forEach(modal => {
+    confirmCloseIfDirty(modal);
+  });
+});
+
+/* Overlay click */
+document.addEventListener("click", e => {
+  const modal = e.target.classList?.contains("modal")
+    ? e.target
+    : null;
+
+  if (!modal || modal.classList.contains("hidden")) return;
+
+  confirmCloseIfDirty(modal);
+});
+
+/* Input change tracking */
+document.addEventListener("input", e => {
+  const modal = e.target.closest(".modal");
+  if (!modal) return;
+
+  markModalDirty(modal);
+});
+
+/* Expose helpers (bruges i save/cancel) */
+window.__modalHelpers = {
+  markModalDirty,
+  clearModalDirty,
+  closeModal
+};
 
 
 });
