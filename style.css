@@ -188,6 +188,12 @@ table.list-table th {
   font-style: italic;
 }
 
+.death-mark {
+  margin-left: 6px;
+  font-size: 0.9em;
+  opacity: 0.75;
+}
+
 /* =========================
    LEADERBOARD
 ========================= */
