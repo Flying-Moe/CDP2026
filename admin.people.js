@@ -155,23 +155,21 @@ if (g.birthDates?.size === 1) {
   potentialPoints = calculateHitPoints(birthISO, deathISO);
 }
    
-  tbody.innerHTML += `
-    <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
-      <td>
-        <td>
-           ${g.displayName}
-           ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-
-        ${
-          similarGroups.length
-            ? `<div style="font-size:0.8em;color:#666;">
-                 Possible matches: ${similarGroups
-                   .map(s => s.displayName)
-                   .join(", ")}
-               </div>`
-            : ""
-        }
-      </td>
+tbody.innerHTML += `
+  <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
+    <td>
+      ${g.displayName}
+      ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+      ${
+        similarGroups.length
+          ? `<div style="font-size:0.8em;color:#666;">
+               Possible matches: ${similarGroups
+                 .map(s => s.displayName)
+                 .join(", ")}
+             </div>`
+          : ""
+      }
+    </td>
 
       <td>${birthDate}</td>
       <td>${deathDate}</td>
