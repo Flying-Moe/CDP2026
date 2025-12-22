@@ -88,8 +88,10 @@ export function calculateHitPoints(birthISO, deathISO) {
  * Beregner ALLE score-relaterede tal for en player
  * Dette er den ENESTE funktion views må bruge
  */
+
 export function calculatePlayerTotals(player) {
   const picks = player.entries?.["2026"]?.picks || [];
+  const scoreHistory = player.scoreHistory || [];
 
   let hitPoints = 0;
   let hits = 0;
@@ -97,27 +99,20 @@ export function calculatePlayerTotals(player) {
   picks.forEach(pick => {
     if (pick.status !== "approved") return;
     if (!pick.birthDate) return;
+    if (!pick.deathDate) return;
 
     const points = calculateHitPoints(
       pick.birthDate,
-      pick.deathDate || ""
+      pick.deathDate
     );
 
-    if (points > 0 && pick.deathDate) {
+    if (points > 0) {
       hitPoints += points;
       hits++;
     }
   });
 
-  return {
-    hitPoints,
-    hits
-  };
-}
-
-  const scoreHistory = player.scoreHistory || [];
-
-  // 🔑 VIGTIGT: penalty er SUMMEN af delta (NEGATIV)
+  // 🔑 penalty = SUM af alle delta (negative tal)
   const penalty = scoreHistory.reduce(
     (sum, h) => sum + (h.delta || 0),
     0
@@ -132,12 +127,11 @@ export function calculatePlayerTotals(player) {
   return {
     hitPoints,
     hits,
-    penalty,       // fx -3
-    totalScore,    // fx 45
+    penalty,        // fx -3
+    totalScore,     // fx 45
     approvedCount
   };
 }
-
 
 /* =====================================================
    GENERIC HELPERS
