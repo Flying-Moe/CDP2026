@@ -38,47 +38,47 @@ export async function loadPlayers() {
   if (activeBody) activeBody.innerHTML = "";
   if (inactiveBody) inactiveBody.innerHTML = "";
 
-  snap.forEach(docu => {
-    const p = docu.data();
-    const picks = p.entries?.["2026"]?.picks || [];
+snap.forEach(docu => {
+  const p = docu.data();
+  const picks = p.entries?.["2026"]?.picks || [];
 
-    let approved = 0;
-    let pending = 0;
+  let approved = 0;
+  let pending = 0;
 
-    picks.forEach(x => {
-      if (x.status === "approved") approved++;
-      else pending++;
-    });
-
-    if (p.active !== false && activeBody) {
-      activeBody.innerHTML += `
-        <tr>
-          <td>${p.name}</td>
-          <td>${approved}</td>
-          <td>${pending}</td>
-          <td>
-            <button class="validate-btn" data-id="${docu.id}">Validate</button>
-            <button class="minus-btn" data-id="${docu.id}">−1</button>
-            <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-            <button disabled>Edit</button>
-            <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
-          </td>
-        </tr>
-      `;
-    }
-
-    if (p.active === false && inactiveBody) {
-      inactiveBody.innerHTML += `
-        <tr style="opacity:.6">
-          <td>${p.name}</td>
-          <td>
-            <button class="restore-player-btn" data-id="${docu.id}">Restore</button>
-            <button class="perma-delete-player-btn" data-id="${docu.id}">Delete permanently</button>
-          </td>
-        </tr>
-      `;
-    }
+  picks.forEach(x => {
+    if (x.status === "approved") approved++;
+    else pending++;
   });
+
+  if (p.active !== false && activeBody) {
+    activeBody.innerHTML += `
+      <tr>
+        <td>${p.name}</td>
+        <td>${approved}</td>
+        <td>${pending}</td>
+        <td>
+          <button class="validate-btn" data-id="${docu.id}">Validate</button>
+          <button class="minus-btn" data-id="${docu.id}">−1</button>
+          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
+          <button disabled>Edit</button>
+          <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  if (p.active === false && inactiveBody) {
+    inactiveBody.innerHTML += `
+      <tr style="opacity:.6">
+        <td>${p.name}</td>
+        <td>
+          <button class="restore-player-btn" data-id="${docu.id}">Restore</button>
+          <button class="perma-delete-player-btn" data-id="${docu.id}">Delete permanently</button>
+        </td>
+      </tr>
+    `;
+  }
+});
 
   bindPlayerActions();
 }
