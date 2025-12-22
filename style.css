@@ -409,6 +409,51 @@ footer {
 }
 
 /* =========================
+   VALIDATE MODAL – DATE NORMALIZATION
+========================= */
+
+/* Death date skal ligne birth date visuelt */
+#validate-picks-modal td:nth-child(3) {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 4px 6px;
+}
+
+#validate-picks-modal td:nth-child(3)::before {
+  content: "";
+}
+
+/* Giv death-date "input-look" */
+#validate-picks-modal td:nth-child(3) {
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  background: #f9f9f9;
+  height: 26px;
+  line-height: 18px;
+}
+
+/* =========================
+   NAME COLUMN BEHAVIOR
+========================= */
+
+/* Desktop: én linje, ingen overlap */
+@media (min-width: 601px) {
+  #validate-picks-modal td:nth-child(1) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Mobil: vis HELE navnet */
+@media (max-width: 600px) {
+  #validate-picks-modal td:nth-child(1) {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+/* =========================
   BADGES
 ========================= */
 
