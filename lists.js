@@ -88,18 +88,26 @@ function computeBadges(players) {
    HELPERS
 ===================================================== */
 
-function calculateAge(birthISO) {
+function calculateAgeForList(birthISO, deathISO) {
   if (!birthISO) return null;
-  const b = new Date(birthISO);
-  const today = new Date();
 
-  let age = today.getFullYear() - b.getFullYear();
-  const m = today.getMonth() - b.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+  const birth = new Date(birthISO);
+  const end = deathISO ? new Date(deathISO) : new Date();
+
+  let age = end.getFullYear() - birth.getFullYear();
+
+  const hadBirthday =
+    end.getMonth() > birth.getMonth() ||
+    (end.getMonth() === birth.getMonth() &&
+     end.getDate() >= birth.getDate());
+
+  if (!hadBirthday) age--;
+
   return age;
 }
 
-function calculatePotentialPoints(age) {
+function calculatePotentialPointsForList(birthISO, deathISO) {
+  const age = calculateAgeForList(birthISO, deathISO);
   if (age === null) return null;
   if (age >= 99) return 1;
   return Math.max(1, 100 - age);
@@ -175,20 +183,28 @@ async function renderLists() {
     let rows = "";
     let totalPotential = 0;
 
-    player.approved.forEach(pick => {
-      const age = calculateAge(pick.birthDate);
-      const points = calculatePotentialPoints(age);
-      totalPotential += points ?? 0;
+player.approved.forEach(pick => {
+  const age = calculateAgeForList(
+    pick.birthDate,
+    pick.deathDate
+  );
 
-      rows += `
-        <tr>
-          <td>${pick.normalizedName || pick.raw}</td>
-          <td>${age ?? "—"}</td>
-          <td>${points ?? "—"}</td>
-          <td>${pickCount[pick.normalizedName] || 1}</td>
-        </tr>
-      `;
-    });
+  const points = calculatePotentialPointsForList(
+    pick.birthDate,
+    pick.deathDate
+  );
+
+  totalPotential += points ?? 0;
+
+  rows += `
+    <tr>
+      <td>${pick.normalizedName || pick.raw}</td>
+      <td>${age ?? "—"}</td>
+      <td>${points ?? "—"}</td>
+      <td>${pickCount[pick.normalizedName] || 1}</td>
+    </tr>
+  `;
+});
 
     if (!rows) {
       rows = `
