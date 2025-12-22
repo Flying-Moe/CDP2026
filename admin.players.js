@@ -249,6 +249,30 @@ document.getElementById("close-validate-btn")?.addEventListener("click", () => {
   document.getElementById("validate-picks-modal").classList.add("hidden");
 });
 
+const julyBtn = document.getElementById("july-sweep-btn");
+
+if (julyBtn) {
+  const now = new Date();
+  const july1 = new Date("2026-07-01");
+
+  if (now >= july1) {
+    julyBtn.disabled = false;
+  }
+
+  julyBtn.onclick = () => {
+    if (now < july1) {
+      alert(
+        "July Sweep can be activated from July 1st.\n\nThis replaces the active list."
+      );
+      return;
+    }
+
+    alert(
+      "July Sweep activation will be implemented next.\n\nUI is ready."
+    );
+  };
+}
+
 document
   .getElementById("delete-all-picks-btn")
   ?.addEventListener("click", async () => {
