@@ -501,3 +501,19 @@ footer {
   font-size: 0.95em;
   line-height: 1;
 }
+
+/* =========================
+   PEOPLE TAB – PICKED BY
+========================= */
+
+#people-table td .used-by {
+  display: inline-block;
+  min-width: 2.2ch;        /* plads nok til 1–2 cifre */
+  text-align: center;
+  white-space: nowrap;
+  overflow: visible;       /* 🔥 stop "..." */
+}
+
+#people-table td {
+  text-align: center;
+}
