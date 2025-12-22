@@ -228,67 +228,85 @@ export async function openValidateModal(playerId) {
   if (textarea) textarea.value = "";
   tbody.innerHTML = "";
 
-   const seen = new Map();
+  /* ---------- duplicate detection ---------- */
 
-picks.forEach(p => {
-  const key = p.personId || normalizeName(p.normalizedName || p.raw);
-  seen.set(key, (seen.get(key) || 0) + 1);
-});
+  const seen = new Map();
 
-picks.forEach(pick => {
-  const key = pick.personId || normalizeName(pick.normalizedName || pick.raw);
-  const isDuplicate = seen.get(key) > 1;
+  picks.forEach(p => {
+    const key = p.personId || normalizeName(p.normalizedName || p.raw);
+    seen.set(key, (seen.get(key) || 0) + 1);
+  });
 
-  <tbody.innerHTML += `
-     <tr class="${isDuplicate ? "status-duplicate" : ""} ${pick.deathDate ? "is-dead" : ""}">
-         <td>
-           <input
-             class="name-input"
-             data-id="${pick.id}"
-             value="${pick.normalizedName || pick.raw || ""}"
-             ${pick.status === "approved" ? "disabled" : ""}
-           >
-           ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-         </td>
-      <td>
-        <input
-          class="date-input"
-          data-id="${pick.id}"
-          value="${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}"
-          ${pick.status === "approved" ? "disabled" : ""}
-        >
-      </td>
+  /* ---------- render rows ---------- */
 
-      <td>
-  ${
-    pick.deathDate
-      ? formatDateForDisplay(pick.deathDate)
-      : "—"
-  }
-</td>
+  picks.forEach(pick => {
+    const key = pick.personId || normalizeName(pick.normalizedName || pick.raw);
+    const isDuplicate = seen.get(key) > 1;
 
-      <td>${pick.status}${isDuplicate ? " (duplicate)" : ""}</td>
+    tbody.innerHTML += `
+      <tr class="${isDuplicate ? "status-duplicate" : ""} ${pick.deathDate ? "is-dead" : ""}">
+        <td>
+          <input
+            class="name-input"
+            data-id="${pick.id}"
+            value="${pick.normalizedName || pick.raw || ""}"
+            ${pick.status === "approved" ? "disabled" : ""}
+          >
+          ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+        </td>
 
-      <td>
-        ${pick.status !== "approved"
-          ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
-          : ""}
-        <button data-id="${pick.id}" data-action="delete">Delete</button>
-      </td>
-    </tr>
-  `;
-});
+        <td>
+          <input
+            class="date-input"
+            data-id="${pick.id}"
+            value="${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}"
+            ${pick.status === "approved" ? "disabled" : ""}
+          >
+        </td>
 
-  tbody.querySelectorAll("button").forEach(btn =>
-    btn.onclick = () => handlePickAction(btn.dataset.id, btn.dataset.action)
-  );
+        <td>
+          ${pick.deathDate ? formatDateForDisplay(pick.deathDate) : "—"}
+        </td>
 
-  document.getElementById("validate-picks-modal").classList.remove("hidden");
+        <td>
+          ${pick.status}${isDuplicate ? " (duplicate)" : ""}
+        </td>
+
+        <td>
+          ${
+            pick.status !== "approved"
+              ? `<button data-id="${pick.id}" data-action="approve">Approve</button>`
+              : ""
+          }
+          <button data-id="${pick.id}" data-action="delete">Delete</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  /* ---------- bind actions ---------- */
+
+  tbody.querySelectorAll("button").forEach(btn => {
+    btn.onclick = () =>
+      handlePickAction(btn.dataset.id, btn.dataset.action);
+  });
+
+  document
+    .getElementById("validate-picks-modal")
+    .classList.remove("hidden");
 }
 
-document.getElementById("close-validate-btn")?.addEventListener("click", () => {
-  document.getElementById("validate-picks-modal").classList.add("hidden");
-});
+/* ---------- close modal ---------- */
+
+document
+  .getElementById("close-validate-btn")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("validate-picks-modal")
+      .classList.add("hidden");
+  });
+
+/* ---------- July Sweep (UI only) ---------- */
 
 const julyBtn = document.getElementById("july-sweep-btn");
 
@@ -296,9 +314,7 @@ if (julyBtn) {
   const now = new Date();
   const july1 = new Date("2026-07-01");
 
-  if (now >= july1) {
-    julyBtn.disabled = false;
-  }
+  julyBtn.disabled = now < july1;
 
   julyBtn.onclick = () => {
     if (now < july1) {
