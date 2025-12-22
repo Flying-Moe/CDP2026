@@ -326,7 +326,7 @@ footer {
 
 #edit-player-modal .modal-content,
 #edit-person-modal .modal-content {
-  max-width: 420px;        /* markant mindre */
+  max-width: 210px;        /* markant mindre */
   padding: 0.8rem 1rem;
 }
 
