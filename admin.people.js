@@ -143,7 +143,7 @@ if (hasDuplicatePerPlayer) {
       : "—";
 
   tbody.innerHTML += `
-    <tr class="${statusClass}">
+    <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
       <td>
         ${g.displayName}
         ${
