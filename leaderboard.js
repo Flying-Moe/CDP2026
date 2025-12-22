@@ -171,22 +171,26 @@ results.forEach((r, index) => {
     )
     .join(" ");
 
-  tr.innerHTML = `
-    <td>${index + 1}</td>
-    <td>
-      ${r.name}
-      ${badgeIcons}
-    </td>
-    <td title="${
-      r.penalty
-        ? `Would have had ${r.hitPoints} points`
-        : ""
-    }">
-      ${r.totalScore}
-      ${r.penalty ? ` (${r.penalty})` : ""}
-    </td>
-    <td>${r.hits}</td>
-  `;
+tr.innerHTML = `
+  <td>${index + 1}</td>
+  <td>
+    ${r.name}
+    ${badgeIcons}
+  </td>
+  <td title="${
+    r.penalty !== 0
+      ? `Hit points: ${r.hitPoints}, penalty: ${r.penalty}`
+      : ""
+  }">
+    ${
+      r.penalty !== 0
+        ? `${r.hitPoints} (${r.penalty}) = ${r.totalScore}`
+        : `${r.hitPoints}`
+    }
+  </td>
+  <td>${r.hits}</td>
+`;
+
 
   tbody.appendChild(tr);
 });
