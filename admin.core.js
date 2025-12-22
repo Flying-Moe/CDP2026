@@ -41,6 +41,78 @@ import {
 export const wikiCache = new Map();
 
 /* =====================================================
+   SCORE & AGE ENGINE (single source of truth)
+===================================================== */
+
+export function calculateAgeAtDeath(birthISO, deathISO) {
+  if (!birthISO || !deathISO) return null;
+
+  const birth = new Date(birthISO);
+  const death = new Date(deathISO);
+
+  let age = death.getFullYear() - birth.getFullYear();
+
+  const hadBirthday =
+    death.getMonth() > birth.getMonth() ||
+    (death.getMonth() === birth.getMonth() &&
+     death.getDate() >= birth.getDate());
+
+  if (!hadBirthday) age--;
+
+  return age;
+}
+
+export function calculateHitPoints(birthISO, deathISO) {
+  const age = calculateAgeAtDeath(birthISO, deathISO);
+  if (age === null) return 0;
+  if (age >= 99) return 1;
+  return Math.max(1, 100 - age);
+}
+
+/**
+ * Beregner ALLE score-relaterede tal for en player
+ * Dette er den ENESTE funktion views må bruge
+ */
+export function calculatePlayerTotals(playerDoc) {
+  const picks =
+    playerDoc.entries?.["2026"]?.picks || [];
+
+  let hitPoints = 0;
+  let hits = 0;
+  let approvedCount = 0;
+
+  picks.forEach(p => {
+    if (p.status !== "approved") return;
+
+    approvedCount++;
+
+    if (p.birthDate && p.deathDate) {
+      hits++;
+      hitPoints += calculateHitPoints(
+        p.birthDate,
+        p.deathDate
+      );
+    }
+  });
+
+  // penalty udledes fortsat af scoreHistory (som aftalt)
+  const penalty =
+    (playerDoc.scoreHistory || [])
+      .filter(h => h.delta === -1)
+      .length;
+
+  const totalScore = hitPoints - penalty;
+
+  return {
+    hitPoints,
+    hits,
+    approvedCount,
+    penalty,
+    totalScore
+  };
+}
+
+/* =====================================================
    GENERIC HELPERS
 ===================================================== */
 
