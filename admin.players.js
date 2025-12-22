@@ -159,7 +159,8 @@ document.addEventListener("click", e => {
 document.getElementById("cancel-edit-player-btn")
   ?.addEventListener("click", () => {
     currentEditPlayerId = null;
-    document.getElementById("edit-player-modal")?.classList.add("hidden");
+    const modal = document.getElementById("edit-player-modal");
+    window.__modalHelpers.closeModal(modal);
   });
 
 document.getElementById("save-edit-player-btn")
