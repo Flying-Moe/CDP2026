@@ -13,7 +13,8 @@ import {
   getOrCreatePerson,
   formatDateForDisplay,
   calculatePlayerTotals,
-  refreshAdminViews
+  refreshAdminViews,
+  attachModalDirtyTracking
 } from "./admin.core.js";
 
 import {
@@ -153,14 +154,24 @@ document.addEventListener("click", e => {
   const input = document.getElementById("edit-player-name");
   input.value = currentName;
 
-  document.getElementById("edit-player-modal").classList.remove("hidden");
+  const modal = document.getElementById("edit-player-modal");
+modal.classList.remove("hidden");
+attachModalDirtyTracking(modal);
+modal.__resetDirty();
+
 });
 
 document.getElementById("cancel-edit-player-btn")
   ?.addEventListener("click", () => {
     currentEditPlayerId = null;
     const modal = document.getElementById("edit-player-modal");
-    window.__modalHelpers.closeModal(modal);
+    if (modal.__isDirty && modal.__isDirty()) {
+  if (!confirm("You have unsaved changes. Close anyway?")) return;
+}
+
+modal.classList.add("hidden");
+currentEditPlayerId = null;
+
   });
 
 document.getElementById("save-edit-player-btn")
