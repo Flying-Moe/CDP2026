@@ -249,6 +249,31 @@ document.getElementById("close-validate-btn")?.addEventListener("click", () => {
   document.getElementById("validate-picks-modal").classList.add("hidden");
 });
 
+document
+  .getElementById("delete-all-picks-btn")
+  ?.addEventListener("click", async () => {
+    if (!currentValidatePlayerId) return;
+
+    if (
+      !confirm(
+        "Delete ALL picks for this player?\n\nThis cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    const ref = doc(db, "players", currentValidatePlayerId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return;
+
+    await updateDoc(ref, {
+      "entries.2026.picks": []
+    });
+
+    await loadPlayers();
+    closeValidateModal();
+  });
+
 /* =====================================================
    IMPORT PICKS
 ===================================================== */
