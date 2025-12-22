@@ -48,10 +48,11 @@ snap.forEach(docu => {
     approvedCount
   } = calculatePlayerTotals(p);
 
-  const scoreDisplay =
-    penalty !== 0
-      ? `${hitPoints} (${penalty})`
-      : `${hitPoints}`;
+const scoreDisplay =
+  penalty !== 0
+    ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
+    : `${hitPoints}`;
+
 
 
   if (p.active !== false && activeBody) {
