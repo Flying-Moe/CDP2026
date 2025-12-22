@@ -274,7 +274,6 @@ footer {
 
 @media (max-width: 600px) {
 
-  /* Lists table becomes fluid on mobile */
   table.list-table {
     width: 100%;
     table-layout: auto;
@@ -293,15 +292,15 @@ footer {
 
   /* ===== Validate modal (mobile) ===== */
 
-  #validate-modal th,
-  #validate-modal td {
+  #validate-picks-modal th,
+  #validate-picks-modal td {
     font-size: 0.8rem;
     padding: 3px 4px;
   }
 
-  #validate-modal td.birth input {
+  #validate-picks-modal td:nth-child(2) input {
     width: 8.5ch;
-    font-size: 0.8rem;
+    text-align: center;
   }
 }
 
@@ -334,76 +333,66 @@ footer {
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35);
 }
 
-.modal-actions {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
 /* =========================
-   VALIDATE MODAL – TABLE (FINAL)
+   VALIDATE PICKS TABLE (FINAL)
 ========================= */
 
-#validate-modal table {
+#validate-picks-modal table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* 🔑 stabil kolonnefordeling */
+  table-layout: fixed; /* 🔑 afgørende */
 }
 
-#validate-modal th,
-#validate-modal td {
+#validate-picks-modal th,
+#validate-picks-modal td {
   padding: 4px 6px;
   vertical-align: middle;
   white-space: nowrap;
 }
 
 /* ===== Name ===== */
-/* Får AL resterende plads */
-#validate-modal th:nth-child(1),
-#validate-modal td:nth-child(1) {
-  width: auto;
+#validate-picks-modal th:nth-child(1),
+#validate-picks-modal td:nth-child(1) {
+  width: auto;               /* tager resten */
   text-align: left;
 }
 
 /* ===== Birth date ===== */
-#validate-modal th:nth-child(2),
-#validate-modal td:nth-child(2) {
-  width: 92px;           /* præcis DD-MM-YYYY */
+#validate-picks-modal th:nth-child(2),
+#validate-picks-modal td:nth-child(2) {
+  width: 90px;
   text-align: center;
 }
 
-#validate-modal td:nth-child(2) input {
-  width: 92px;
+#validate-picks-modal td:nth-child(2) input {
+  width: 90px;
   text-align: center;
   box-sizing: border-box;
 }
 
 /* ===== Death date ===== */
-#validate-modal th:nth-child(3),
-#validate-modal td:nth-child(3) {
-  width: 92px;
+#validate-picks-modal th:nth-child(3),
+#validate-picks-modal td:nth-child(3) {
+  width: 90px;
   text-align: center;
 }
 
 /* ===== Status ===== */
-#validate-modal th:nth-child(4),
-#validate-modal td:nth-child(4) {
+#validate-picks-modal th:nth-child(4),
+#validate-picks-modal td:nth-child(4) {
   width: 70px;
   text-align: center;
-  font-size: 0.75rem;   /* mindre, roligere */
+  font-size: 0.75rem;
 }
 
 /* ===== Actions ===== */
-#validate-modal th:nth-child(5),
-#validate-modal td:nth-child(5) {
+#validate-picks-modal th:nth-child(5),
+#validate-picks-modal td:nth-child(5) {
   width: 70px;
   text-align: center;
-  padding-left: 4px;
-  padding-right: 4px;
 }
 
-/* 🔒 Safety */
+/* 🔒 Safety first */
 .modal.hidden {
   display: none !important;
 }
