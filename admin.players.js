@@ -53,8 +53,6 @@ const scoreDisplay =
     ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
     : `${hitPoints}`;
 
-
-
   if (p.active !== false && activeBody) {
     activeBody.innerHTML += `
       <tr>
@@ -152,6 +150,31 @@ function bindPlayerActions() {
   );
 }
 
+/* EDIT PLAYER -------------------/
+
+let currentEditPlayerId = null;
+
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".edit-player-btn");
+  if (!btn) return;
+
+  const playerId = btn.dataset.id;
+  const row = btn.closest("tr");
+  if (!row) return;
+
+  const nameCell = row.querySelector("td");
+  const currentName = nameCell?.textContent?.trim();
+  if (!currentName) return;
+
+  currentEditPlayerId = playerId;
+
+  const input = document.getElementById("edit-player-name");
+  input.value = currentName;
+
+  document.getElementById("edit-player-modal").classList.remove("hidden");
+});
+
+
 /* =====================================================
    ADD PLAYER
 ===================================================== */
@@ -233,7 +256,6 @@ picks.forEach(pick => {
       : "—"
   }
 </td>
-
 
       <td>${pick.status}${isDuplicate ? " (duplicate)" : ""}</td>
 
