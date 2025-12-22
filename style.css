@@ -287,8 +287,8 @@ footer {
   }
 
   /* Remove fixed column widths on mobile */
-  table.list-table th:nth-child(n),
-  table.list-table td:nth-child(n) {
+  table.list-table th,
+  table.list-table td {
     width: auto;
   }
 
@@ -298,23 +298,17 @@ footer {
     word-break: break-word;
   }
 
-  /* ===== Validate modal table on mobile ===== */
+  /* ===== Validate modal (mobile) ===== */
 
-  #validate-modal table {
-    table-layout: fixed;
-  }
-
-  #validate-modal th:nth-child(2),
-  #validate-modal td:nth-child(2),
-  #validate-modal th:nth-child(3),
-  #validate-modal td:nth-child(3) {
-    width: 95px;           /* Birth + Death */
-    white-space: nowrap;
-    font-size: 0.8rem;
-  }
-
+  #validate-modal th,
   #validate-modal td {
-    padding: 0.25rem 0.35rem;
+    font-size: 0.8rem;
+    padding: 3px 4px;
+  }
+
+  #validate-modal td:nth-child(2) input {
+    max-width: 8.5ch;
+    font-size: 0.8rem;
   }
 }
 
@@ -340,7 +334,7 @@ footer {
   background: #fff;
   padding: 1rem 1.1rem;
   border-radius: 6px;
-  max-width: 540px;       /* lidt bredere til validate */
+  max-width: 540px;
   width: 100%;
   max-height: 90vh;
   overflow: auto;
@@ -354,31 +348,61 @@ footer {
   justify-content: flex-end;
 }
 
-.modal table {
+/* =========================
+   VALIDATE MODAL – TABLE
+========================= */
+
+#validate-modal table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto; /* 🔑 lad browseren måle kolonner */
 }
 
-.modal table th,
-.modal table td {
+#validate-modal th,
+#validate-modal td {
   padding: 4px 6px;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
-/* ===== Validate modal desktop tightening ===== */
+/* ===== Name ===== */
+/* Auto-bredde, højrestillet */
+#validate-modal th:nth-child(1),
+#validate-modal td:nth-child(1) {
+  text-align: right;
+}
 
+/* ===== Birth + Death ===== */
+/* Samme visuelle bredde, centreret */
 #validate-modal th:nth-child(2),
 #validate-modal td:nth-child(2),
 #validate-modal th:nth-child(3),
 #validate-modal td:nth-child(3) {
-  width: 110px;          /* Birth + Death */
-  white-space: nowrap;
+  text-align: center;
 }
 
-#validate-modal th:nth-child(1),
-#validate-modal td:nth-child(1) {
-  width: auto;           /* Name gets remaining space */
+#validate-modal td:nth-child(2) input {
+  width: 100%;
+  max-width: 9.5ch;   /* DD-MM-YYYY */
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ===== Status ===== */
+/* Mindre tekst, centreret */
+#validate-modal th:nth-child(4),
+#validate-modal td:nth-child(4) {
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+/* ===== Actions ===== */
+/* Kompakt og centreret */
+#validate-modal th:nth-child(5),
+#validate-modal td:nth-child(5) {
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 /* 🔒 Safety: hidden modal ALWAYS wins */
