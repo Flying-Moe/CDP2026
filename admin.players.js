@@ -239,17 +239,17 @@ picks.forEach(pick => {
   const key = pick.personId || normalizeName(pick.normalizedName || pick.raw);
   const isDuplicate = seen.get(key) > 1;
 
-  tbody.innerHTML += `
-    <tr class="${isDuplicate ? "status-duplicate" : ""}">
-      <td>
-        <input
-          class="name-input"
-          data-id="${pick.id}"
-          value="${pick.normalizedName || pick.raw || ""}"
-          ${pick.status === "approved" ? "disabled" : ""}
-        >
-      </td>
-
+  <tbody.innerHTML += `
+     <tr class="${isDuplicate ? "status-duplicate" : ""} ${pick.deathDate ? "is-dead" : ""}">
+         <td>
+           <input
+             class="name-input"
+             data-id="${pick.id}"
+             value="${pick.normalizedName || pick.raw || ""}"
+             ${pick.status === "approved" ? "disabled" : ""}
+           >
+           ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+         </td>
       <td>
         <input
           class="date-input"
