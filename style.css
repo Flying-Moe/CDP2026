@@ -321,6 +321,43 @@ footer {
 }
 
 /* =========================
+   EDIT MODALS – COMPACT
+========================= */
+
+#edit-player-modal .modal-content,
+#edit-person-modal .modal-content {
+  max-width: 420px;        /* markant mindre */
+  padding: 0.8rem 1rem;
+}
+
+#edit-player-modal h2,
+#edit-person-modal h2 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+}
+
+#edit-player-modal label,
+#edit-person-modal label {
+  font-size: 0.85rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+#edit-player-modal input,
+#edit-person-modal input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#edit-player-modal .modal-actions,
+#edit-person-modal .modal-actions {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* =========================
    VALIDATE PICKS TABLE – COMPACT
 ========================= */
 
