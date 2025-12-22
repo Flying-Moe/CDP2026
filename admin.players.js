@@ -58,7 +58,7 @@ snap.forEach(docu => {
     activeBody.innerHTML += `
       <tr>
         <td>${p.name}</td>
-        <td>${approved} / 20</td>
+        <td>${approvedCount} / 20</td>
         <td>${scoreDisplay}</td>
         <td>
           <button class="validate-btn" data-id="${docu.id}">Validate</button>
