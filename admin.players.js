@@ -174,6 +174,33 @@ document.addEventListener("click", e => {
   document.getElementById("edit-player-modal").classList.remove("hidden");
 });
 
+document.getElementById("cancel-edit-player-btn")
+  ?.addEventListener("click", () => {
+    currentEditPlayerId = null;
+    document.getElementById("edit-player-modal")?.classList.add("hidden");
+  });
+
+document.getElementById("save-edit-player-btn")
+  ?.addEventListener("click", async () => {
+
+    if (!currentEditPlayerId) return;
+
+    const input = document.getElementById("edit-player-name");
+    const newName = (input.value || "").replace(/\s+/g, " ").trim();
+    if (!newName) return;
+
+    const ref = doc(db, "players", currentEditPlayerId);
+
+    await updateDoc(ref, {
+      name: newName
+    });
+
+    currentEditPlayerId = null;
+    document.getElementById("edit-player-modal")?.classList.add("hidden");
+
+    // 🔄 Single source refresh
+    await refreshAdminViews();
+  });
 
 /* =====================================================
    ADD PLAYER
