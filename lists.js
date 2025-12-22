@@ -197,11 +197,11 @@ player.approved.forEach(pick => {
   totalPotential += points ?? 0;
 
   rows += `
-    <tr>
+    <tr class="${pick.deathDate ? "is-dead" : ""}">
       <td>
-  ${pick.normalizedName || pick.raw}
-  ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-</td>
+        ${pick.normalizedName || pick.raw}
+        ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+      </td>
       <td>${age ?? "—"}</td>
       <td>${points ?? "—"}</td>
       <td>${pickCount[pick.normalizedName] || 1}</td>
