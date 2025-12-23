@@ -112,6 +112,7 @@ const results = [];
 
 playersSnap.forEach(pDoc => {
   const p = pDoc.data();
+if (p.entries?.["2026"]?.active === false) return;
 
   const {
     hitPoints,
