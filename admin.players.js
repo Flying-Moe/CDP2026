@@ -250,6 +250,13 @@ export async function openValidateModal(playerId) {
 
 currentValidateListActive = listActive;
 
+   const title = document.getElementById("validate-title");
+if (title) {
+  title.textContent = listActive
+    ? "Validate picks"
+    : "Validate picks ❄️ (list deactivated)";
+}
+
   const tbody = document.querySelector("#validate-picks-table tbody");
   const textarea = document.getElementById("import-picks");
 
@@ -322,6 +329,14 @@ currentValidateListActive = listActive;
   document
     .getElementById("validate-picks-modal")
     .classList.remove("hidden");
+ const deactivateBtnUI =
+  document.getElementById("deactivate-list-btn");
+
+if (deactivateBtnUI) {
+  deactivateBtnUI.textContent = currentValidateListActive
+    ? "Deactivate list ❄️"
+    : "Restore list";
+}
 }
 
 /* ---------- close modal ---------- */
