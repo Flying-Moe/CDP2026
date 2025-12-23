@@ -355,8 +355,10 @@ const deactivateBtn = document.createElement("button");
 deactivateBtn.id = "deactivate-list-btn";
 
 const deleteBtn = document.getElementById("delete-all-picks-btn");
+const julyBtn = document.getElementById("july-sweep-btn");
 
 if (julyBtn) {
+
   const now = new Date();
   const july1 = new Date("2026-07-01");
 
