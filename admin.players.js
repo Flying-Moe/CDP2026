@@ -237,6 +237,7 @@ document.getElementById("add-player-btn")?.addEventListener("click", async () =>
 ===================================================== */
 
 let currentValidatePlayerId = null;
+let currentValidateListActive = true;
 
 export async function openValidateModal(playerId) {
   currentValidatePlayerId = playerId;
@@ -244,7 +245,11 @@ export async function openValidateModal(playerId) {
   const snap = await getDoc(doc(db, "players", playerId));
   if (!snap.exists()) return;
 
-  const picks = snap.data().entries?.["2026"]?.picks || [];
+  const listActive =
+  snap.data().entries?.["2026"]?.active !== false;
+
+currentValidateListActive = listActive;
+
   const tbody = document.querySelector("#validate-picks-table tbody");
   const textarea = document.getElementById("import-picks");
 
@@ -331,7 +336,10 @@ document
 
 /* ---------- July Sweep (UI only) ---------- */
 
-const julyBtn = document.getElementById("july-sweep-btn");
+const deactivateBtn = document.createElement("button");
+deactivateBtn.id = "deactivate-list-btn";
+
+const deleteBtn = document.getElementById("delete-all-picks-btn");
 
 if (julyBtn) {
   const now = new Date();
@@ -356,19 +364,23 @@ if (julyBtn) {
 document
   .getElementById("delete-all-picks-btn")
   ?.addEventListener("click", async () => {
+
     if (!currentValidatePlayerId) return;
 
-    if (
-      !confirm(
-        "Delete ALL picks for this player?\n\nThis cannot be undone."
-      )
-    ) {
+    if (currentValidateListActive) {
+      alert(
+        "You must deactivate the list before it can be permanently deleted."
+      );
       return;
     }
 
+    if (
+      !confirm(
+        "PERMANENTLY delete this list?\n\nThis cannot be undone."
+      )
+    ) return;
+
     const ref = doc(db, "players", currentValidatePlayerId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
 
     await updateDoc(ref, {
       "entries.2026.picks": []
@@ -377,6 +389,44 @@ document
     await loadPlayers();
     closeValidateModal();
   });
+
+const modalActions = document.querySelector(
+  "#validate-picks-modal .modal-content"
+);
+
+if (modalActions && !document.getElementById("deactivate-list-btn")) {
+  const btn = document.createElement("button");
+  btn.id = "deactivate-list-btn";
+  modalActions.insertBefore(
+    btn,
+    document.getElementById("delete-all-picks-btn")
+  );
+
+  btn.addEventListener("click", async () => {
+    if (!currentValidatePlayerId) return;
+
+    const ref = doc(db, "players", currentValidatePlayerId);
+
+    if (currentValidateListActive) {
+      if (
+        !confirm(
+          "Deactivate this list?\n\nIt will be removed from the game but can be restored."
+        )
+      ) return;
+
+      await updateDoc(ref, {
+        "entries.2026.active": false
+      });
+    } else {
+      await updateDoc(ref, {
+        "entries.2026.active": true
+      });
+    }
+
+    await loadPlayers();
+    openValidateModal(currentValidatePlayerId);
+  });
+}
 
 /* =====================================================
    IMPORT PICKS
