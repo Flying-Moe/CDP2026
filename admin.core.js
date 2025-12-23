@@ -353,34 +353,42 @@ export async function autoLinkApprovedPicks() {
 ===================================================== */
 
 export function setupTabs() {
-  document.querySelectorAll("#admin-tabs button").forEach(btn => {
-btn.onclick = async () => {
-  document
-    .querySelectorAll("#admin-tabs button")
-    .forEach(b => b.classList.remove("active"));
+  const STORAGE_KEY = "cdp_admin_active_tab";
 
-  btn.classList.add("active");
+  const buttons = document.querySelectorAll("#admin-tabs button");
+  const contents = document.querySelectorAll(".tab-content");
 
-  document
-    .querySelectorAll(".tab-content")
-    .forEach(c => (c.style.display = "none"));
+  async function activateTab(tabId) {
+    buttons.forEach(b => b.classList.remove("active"));
+    contents.forEach(c => (c.style.display = "none"));
 
-  const tabId = btn.dataset.tab;
-  document.getElementById(`tab-${tabId}`).style.display = "block";
+    const btn = document.querySelector(`#admin-tabs button[data-tab="${tabId}"]`);
+    const content = document.getElementById(`tab-${tabId}`);
 
-  // 🔄 Always refresh data when switching tabs
-  if (tabId === "players") {
-    await loadPlayers();
+    if (!btn || !content) return;
+
+    btn.classList.add("active");
+    content.style.display = "block";
+
+    localStorage.setItem(STORAGE_KEY, tabId);
+
+    // 🔄 Always refresh data when switching tabs
+    if (tabId === "players") {
+      await loadPlayers();
+    }
+
+    if (tabId === "people") {
+      await loadPeople();
+    }
   }
 
-  if (tabId === "people") {
-    await loadPeople();
-  }
-};
-
+  buttons.forEach(btn => {
+    btn.onclick = () => activateTab(btn.dataset.tab);
   });
 
-  document.querySelector('[data-tab="players"]')?.click();
+  // 🔑 Restore last active tab (fallback: players)
+  const savedTab = localStorage.getItem(STORAGE_KEY) || "players";
+  activateTab(savedTab);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
