@@ -74,7 +74,7 @@ const scoreDisplay = listActive
 <td>${scoreDisplay}</td>
 
 <td>
-  <button class="validate-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Validate</button>
+  <button class="validate-btn" data-id="${docu.id}">Validate</button>
   <button class="minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>−1</button>
   <button class="undo-minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Undo</button>
   <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
