@@ -250,12 +250,15 @@ export async function openValidateModal(playerId) {
 
 currentValidateListActive = listActive;
 
-   const title = document.getElementById("validate-title");
+const title = document.getElementById("validate-title");
 if (title) {
   title.textContent = listActive
     ? "Validate picks"
     : "Validate picks ❄️ (list deactivated)";
 }
+
+const picks =
+  snap.data().entries?.["2026"]?.picks || [];
 
   const tbody = document.querySelector("#validate-picks-table tbody");
   const textarea = document.getElementById("import-picks");
