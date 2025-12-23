@@ -50,24 +50,36 @@ snap.forEach(docu => {
     approvedCount
   } = calculatePlayerTotals(p);
 
-const scoreDisplay =
-  penalty !== 0
-    ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
-    : `${hitPoints}`;
+   const listActive =
+  p.entries?.["2026"]?.active !== false;
+   
+const scoreDisplay = listActive
+  ? (penalty !== 0
+      ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
+      : `${hitPoints}`)
+  : "—";
 
   if (p.active !== false && activeBody) {
     activeBody.innerHTML += `
       <tr>
-        <td>${p.name}</td>
-        <td>${approvedCount} / 20</td>
-        <td>${scoreDisplay}</td>
-        <td>
-          <button class="validate-btn" data-id="${docu.id}">Validate</button>
-          <button class="minus-btn" data-id="${docu.id}">−1</button>
-          <button class="undo-minus-btn" data-id="${docu.id}">Undo</button>
-          <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
-          <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
-        </td>
+<td>
+  ${p.name}
+  ${listActive ? "" : `<span title="List deactivated"> ❄️</span>`}
+</td>
+
+<td>
+  ${listActive ? `${approvedCount} / 20` : "inactive"}
+</td>
+
+<td>${scoreDisplay}</td>
+
+<td>
+  <button class="validate-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Validate</button>
+  <button class="minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>−1</button>
+  <button class="undo-minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Undo</button>
+  <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
+  <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
+</td>
       </tr>
     `;
   }
