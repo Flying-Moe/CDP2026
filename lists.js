@@ -138,6 +138,7 @@ async function renderLists() {
 
   playersSnap.forEach(pDoc => {
     const p = pDoc.data();
+    if (p.entries?.["2026"]?.active === false) return;
     const picks = p.entries?.["2026"]?.picks || [];
 
     const approved = picks.filter(x => x.status === "approved");
