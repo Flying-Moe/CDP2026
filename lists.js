@@ -1,5 +1,8 @@
 console.log("lists.js loaded");
 
+let listsSortKey = "pp";   // name | age | pp | pb
+let listsSortDir = "desc"; // asc | desc
+
 import { db } from "./firebase.js";
 import {
   collection,
