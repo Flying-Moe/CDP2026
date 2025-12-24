@@ -522,3 +522,9 @@ th[title],
 td[title] {
   text-decoration: none !important;
 }
+
+/* Celebrities – name column should be left-aligned */
+#people-table th:first-child,
+#people-table td:first-child {
+  text-align: left;
+}
