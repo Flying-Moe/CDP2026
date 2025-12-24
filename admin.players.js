@@ -131,6 +131,24 @@ const scoreDisplay = listActive
   bindPlayerActions();
 }
 
+document
+  .querySelectorAll("#players-table th[data-sort]")
+  .forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+
+      if (playersSortKey === key) {
+        playersSortDir =
+          playersSortDir === "asc" ? "desc" : "asc";
+      } else {
+        playersSortKey = key;
+        playersSortDir = "asc";
+      }
+
+      loadPlayers();
+    });
+  });
+
 /* =====================================================
    PLAYER ACTIONS
 ===================================================== */
