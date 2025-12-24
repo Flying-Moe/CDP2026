@@ -32,6 +32,37 @@ import {
    PLAYER OVERVIEW
 ===================================================== */
 
+function sortPlayers(players) {
+  return players.sort((a, b) => {
+    let A, B;
+
+    switch (playersSortKey) {
+      case "approved":
+        A = a.approvedCount ?? 0;
+        B = b.approvedCount ?? 0;
+        break;
+
+      case "score":
+        A = a.score ?? 0;
+        B = b.score ?? 0;
+        break;
+
+      case "name":
+      default:
+        A = a.name || "";
+        B = b.name || "";
+    }
+
+    if (A === B) return 0;
+
+    if (playersSortDir === "asc") {
+      return A > B ? 1 : -1;
+    } else {
+      return A < B ? 1 : -1;
+    }
+  });
+}
+
 export async function loadPlayers() {
   const snap = await getDocs(collection(db, "players"));
 
@@ -238,6 +269,9 @@ document.getElementById("add-player-btn")?.addEventListener("click", async () =>
 
 let currentValidatePlayerId = null;
 let currentValidateListActive = true;
+
+let playersSortKey = "name"; // name | approved | score
+let playersSortDir = "asc"; // asc | desc
 
 export async function openValidateModal(playerId) {
   currentValidatePlayerId = playerId;
