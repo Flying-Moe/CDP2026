@@ -203,24 +203,6 @@ async function renderLists() {
 
   const badgesByPlayer = computeBadges(players);
 
-  sortListRows(rowData);
-
-let rows = "";
-
-rowData.forEach(r => {
-  rows += `
-    <tr class="${r.isDead ? "is-dead" : ""}">
-      <td>
-        ${r.name}
-        ${r.isDead ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-      </td>
-      <td>${r.age ?? "—"}</td>
-      <td>${r.pp ?? "—"}</td>
-      <td>${r.pickedBy}</td>
-    </tr>
-  `;
-});
-
   /* ---------- Picked-by counter ---------- */
 
   const pickCount = {};
@@ -261,6 +243,23 @@ player.approved.forEach(pick => {
     pickedBy: pickCount[pick.normalizedName] || 1,
     isDead: !!pick.deathDate
   });
+});
+    sortListRows(rowData);
+
+let rows = "";
+
+rowData.forEach(r => {
+  rows += `
+    <tr class="${r.isDead ? "is-dead" : ""}">
+      <td>
+        ${r.name}
+        ${r.isDead ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+      </td>
+      <td>${r.age ?? "—"}</td>
+      <td>${r.pp ?? "—"}</td>
+      <td>${r.pickedBy}</td>
+    </tr>
+  `;
 });
 
     if (!rows) {
