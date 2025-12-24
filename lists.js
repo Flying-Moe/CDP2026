@@ -291,10 +291,10 @@ player.approved.forEach(pick => {
         <table class="list-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Age</th>
-              <th>Potential points</th>
-              <th>Picked by</th>
+              <th data-sort="name">Name</th>
+              <th data-sort="age">Age</th>
+              <th data-sort="pp" title="Potential points">P.P.</th>
+              <th data-sort="pb" title="Picked by">P.B.</th>
             </tr>
           </thead>
           <tbody>
@@ -318,3 +318,19 @@ player.approved.forEach(pick => {
 ===================================================== */
 
 document.addEventListener("DOMContentLoaded", renderLists);
+
+document.addEventListener("click", e => {
+  const th = e.target.closest("th[data-sort]");
+  if (!th) return;
+
+  const key = th.dataset.sort;
+
+  if (listsSortKey === key) {
+    listsSortDir = listsSortDir === "asc" ? "desc" : "asc";
+  } else {
+    listsSortKey = key;
+    listsSortDir = key === "pp" ? "desc" : "asc";
+  }
+
+  renderLists();
+});
