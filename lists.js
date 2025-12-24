@@ -220,8 +220,8 @@ async function renderLists() {
   container.innerHTML = "";
 
   players.forEach(player => {
-    let rows = "";
-    let totalPotential = 0;
+let rowData = [];
+let totalPotential = 0;
 
 player.approved.forEach(pick => {
   const age = calculateAgeForList(
@@ -236,17 +236,13 @@ player.approved.forEach(pick => {
 
   totalPotential += points ?? 0;
 
-  rows += `
-    <tr class="${pick.deathDate ? "is-dead" : ""}">
-      <td>
-        ${pick.normalizedName || pick.raw}
-        ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-      </td>
-      <td>${age ?? "—"}</td>
-      <td>${points ?? "—"}</td>
-      <td>${pickCount[pick.normalizedName] || 1}</td>
-    </tr>
-  `;
+  rowData.push({
+    name: pick.normalizedName || pick.raw,
+    age,
+    pp: points,
+    pickedBy: pickCount[pick.normalizedName] || 1,
+    isDead: !!pick.deathDate
+  });
 });
 
     if (!rows) {
