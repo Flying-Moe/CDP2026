@@ -49,8 +49,8 @@ function sortPlayers(players) {
 
       case "name":
       default:
-        A = a.name || "";
-        B = b.name || "";
+        A = (a.p?.name || "").toLowerCase();
+        B = (b.p?.name || "").toLowerCase();
     }
 
     if (A === B) return 0;
