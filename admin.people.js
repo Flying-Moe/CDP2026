@@ -308,7 +308,23 @@ document.querySelectorAll(".used-by").forEach(el => {
   });
 });
 }
-   
+
+document.querySelectorAll("#people-table th[data-sort]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.sort;
+
+    if (peopleSortKey === key) {
+      peopleSortDir = peopleSortDir === "asc" ? "desc" : "asc";
+    } else {
+      peopleSortKey = key;
+      peopleSortDir = "asc";
+    }
+
+    loadPeople();
+  });
+});
+
+
 /* =====================================================
    PEOPLE ACTIONS (MERGE / DELETE)
 ===================================================== */
