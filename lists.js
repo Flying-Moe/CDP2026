@@ -322,6 +322,8 @@ document.addEventListener("click", e => {
   const th = e.target.closest("th[data-sort]");
   if (!th) return;
 
+  const scrollY = window.scrollY;
+
   const key = th.dataset.sort;
 
   if (listsSortKey === key) {
@@ -332,4 +334,8 @@ document.addEventListener("click", e => {
   }
 
   renderLists();
+
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: scrollY });
+  });
 });
