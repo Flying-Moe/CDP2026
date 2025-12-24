@@ -27,6 +27,9 @@ import {
 
 let currentEditPersonKey = null;
 
+let peopleSortKey = "name";   // default
+let peopleSortDir = "asc";   // asc | desc
+
 /* =====================================================
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
 ===================================================== */
