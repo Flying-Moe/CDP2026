@@ -1,5 +1,8 @@
 console.log("lists.js loaded");
 
+let listsSortKey = "pp";   // name | age | pp | pb
+let listsSortDir = "desc"; // asc | desc
+
 import { db } from "./firebase.js";
 import {
   collection,
@@ -116,6 +119,42 @@ function calculatePotentialPointsForList(birthISO, deathISO) {
 /* =====================================================
    LOAD + RENDER LISTS
 ===================================================== */
+
+function sortListRows(rows) {
+  return rows.sort((a, b) => {
+    let A, B;
+
+    switch (listsSortKey) {
+      case "name":
+        A = a.name || "";
+        B = b.name || "";
+        break;
+
+      case "age":
+        A = a.age ?? -1;
+        B = b.age ?? -1;
+        break;
+
+      case "pb":
+        A = a.pickedBy ?? 0;
+        B = b.pickedBy ?? 0;
+        break;
+
+      case "pp":
+      default:
+        A = a.pp ?? 0;
+        B = b.pp ?? 0;
+    }
+
+    if (A === B) return 0;
+
+    if (listsSortDir === "asc") {
+      return A > B ? 1 : -1;
+    } else {
+      return A < B ? 1 : -1;
+    }
+  });
+}
 
 async function renderLists() {
   const container = document.getElementById("lists-container");
