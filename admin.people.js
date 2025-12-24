@@ -34,6 +34,57 @@ let peopleSortDir = "asc";   // asc | desc
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
 ===================================================== */
 
+function sortPeople(groups) {
+  const arr = [...groups.values()];
+
+  return arr.sort((a, b) => {
+    let A, B;
+
+    switch (peopleSortKey) {
+      case "birth":
+        A = [...a.birthDates][0] || "";
+        B = [...b.birthDates][0] || "";
+        break;
+
+      case "death":
+        A = [...a.deathDates][0] || "";
+        B = [...b.deathDates][0] || "";
+        break;
+
+      case "pp": {
+        const aBirth = [...a.birthDates][0];
+        const bBirth = [...b.birthDates][0];
+        A = aBirth ? calculateHitPoints(aBirth, [...a.deathDates][0] || "") : -1;
+        B = bBirth ? calculateHitPoints(bBirth, [...b.deathDates][0] || "") : -1;
+        break;
+      }
+
+      case "pb":
+        A = a.playerIds.size;
+        B = b.playerIds.size;
+        break;
+
+      case "status":
+        A = a.birthDates.size === 0 ? 2 : a.birthDates.size > 1 ? 1 : 0;
+        B = b.birthDates.size === 0 ? 2 : b.birthDates.size > 1 ? 1 : 0;
+        break;
+
+      case "name":
+      default:
+        A = a.displayName;
+        B = b.displayName;
+    }
+
+    if (A === B) return 0;
+
+    if (peopleSortDir === "asc") {
+      return A > B ? 1 : -1;
+    } else {
+      return A < B ? 1 : -1;
+    }
+  });
+}
+
 export async function loadPeople() {
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
@@ -102,11 +153,7 @@ function namesAreSimilar(a, b) {
    RENDER TABLE
 -------------------------------------------- */
 
-[...groups.values()]
-  .sort((a, b) =>
-    a.displayName.localeCompare(b.displayName, "en", { sensitivity: "base" })
-  )
-.forEach(g => {
+sortPeople(groups).forEach(g => {
 
   const similarGroups = groupArray.filter(
     other => other !== g && namesAreSimilar(g, other)
