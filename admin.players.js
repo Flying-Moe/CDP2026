@@ -72,6 +72,9 @@ export async function loadPlayers() {
   if (activeBody) activeBody.innerHTML = "";
   if (inactiveBody) inactiveBody.innerHTML = "";
 
+const activePlayers = [];
+const inactivePlayers = [];
+
 snap.forEach(docu => {
   const p = docu.data();
 
@@ -81,51 +84,75 @@ snap.forEach(docu => {
     approvedCount
   } = calculatePlayerTotals(p);
 
-   const listActive =
-  p.entries?.["2026"]?.active !== false;
-   
-const scoreDisplay = listActive
-  ? (penalty !== 0
-      ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
-      : `${hitPoints}`)
-  : "—";
+  const listActive =
+    p.entries?.["2026"]?.active !== false;
 
-  if (p.active !== false && activeBody) {
-    activeBody.innerHTML += `
-      <tr>
-<td>
-  ${p.name}
-  ${listActive ? "" : `<span title="List deactivated"> ❄️</span>`}
-</td>
+  const scoreDisplay = listActive
+    ? (penalty !== 0
+        ? `${hitPoints} (${penalty}) = ${hitPoints + penalty}`
+        : `${hitPoints}`)
+    : "—";
 
-<td>
-  ${listActive ? `${approvedCount} / 20` : "inactive"}
-</td>
+  const rowData = {
+    docu,
+    p,
+    approvedCount,
+    score: hitPoints + penalty,
+    scoreDisplay,
+    listActive
+  };
 
-<td>${scoreDisplay}</td>
-
-<td>
-  <button class="validate-btn" data-id="${docu.id}">Validate</button>
-  <button class="minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>−1</button>
-  <button class="undo-minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Undo</button>
-  <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
-  <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
-</td>
-      </tr>
-    `;
+  if (p.active !== false) {
+    activePlayers.push(rowData);
+  } else {
+    inactivePlayers.push(rowData);
   }
+});
 
-  if (p.active === false && inactiveBody) {
-    inactiveBody.innerHTML += `
-      <tr style="opacity:.6">
-        <td>${p.name}</td>
-        <td>
-          <button class="restore-player-btn" data-id="${docu.id}">Restore</button>
-          <button class="perma-delete-player-btn" data-id="${docu.id}">Delete permanently</button>
-        </td>
-      </tr>
-    `;
-  }
+/* ---------- SORT ACTIVE PLAYERS ---------- */
+sortPlayers(activePlayers);
+
+/* ---------- RENDER ACTIVE ---------- */
+activePlayers.forEach(({ docu, p, approvedCount, scoreDisplay, listActive }) => {
+  if (!activeBody) return;
+
+  activeBody.innerHTML += `
+    <tr>
+      <td>
+        ${p.name}
+        ${listActive ? "" : `<span title="List deactivated"> ❄️</span>`}
+      </td>
+
+      <td>
+        ${listActive ? `${approvedCount} / 20` : "inactive"}
+      </td>
+
+      <td>${scoreDisplay}</td>
+
+      <td>
+        <button class="validate-btn" data-id="${docu.id}">Validate</button>
+        <button class="minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>−1</button>
+        <button class="undo-minus-btn" data-id="${docu.id}" ${listActive ? "" : "disabled"}>Undo</button>
+        <button class="edit-player-btn" data-id="${docu.id}">Edit</button>
+        <button class="delete-player-btn" data-id="${docu.id}">Deactivate</button>
+      </td>
+    </tr>
+  `;
+});
+
+/* ---------- RENDER INACTIVE (unchanged order) ---------- */
+inactivePlayers.forEach(({ docu, p }) => {
+  if (!inactiveBody) return;
+
+  inactiveBody.innerHTML += `
+    <tr style="opacity:.6">
+      <td>${p.name}</td>
+      <td>
+        <button class="restore-player-btn" data-id="${docu.id}">Restore</button>
+        <button class="perma-delete-player-btn" data-id="${docu.id}">Delete permanently</button>
+      </td>
+    </tr>
+  `;
 });
 
   bindPlayerActions();
