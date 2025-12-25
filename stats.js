@@ -169,29 +169,26 @@ function computeBadges(players) {
    RENDER (PLACEHOLDERS FIRST)
 ===================================================== */
 
-function renderFun(players) {
-  const mostMinus = [...players].sort((a,b)=>b.minusPoints-a.minusPoints)[0];
-  document.getElementById("stats-fun").innerHTML = `
-    <ul>
-      <li>Most minus points: <strong>${mostMinus?.name || "—"}</strong> (${mostMinus?.minusPoints || 0})</li>
-      <li>Chaos level: ☠️☠️☠️</li>
-    </ul>
-  `;
-}
-
 function renderBadges(badgeWinners) {
-  document.getElementById("stats-badges").innerHTML = BADGES.map(b => {
+  const container = document.getElementById("badges-stats");
+  if (!container) return;
+
+  container.innerHTML = BADGES.map(b => {
     const winners = badgeWinners[b.id] || [];
+
     return `
-      <section class="badge">
-        <h3>${b.icon} ${b.name}</h3>
+      <div class="badge">
+        <div class="badge-title">${b.icon} ${b.name}</div>
+
         ${
           winners.length
-            ? `<p class="badge-desc">${b.description}</p>
-               <p class="badge-winners">${winners.join(", ")}</p>`
-            : `<p class="muted">Not yet claimed</p>`
+            ? `
+              <div class="badge-description"><em>${b.description}</em></div>
+              <div class="badge-winner"><strong>${winners.join(", ")}</strong></div>
+            `
+            : `<div class="muted">Not yet claimed</div>`
         }
-      </section>
+      </div>
     `;
   }).join("");
 }
@@ -215,7 +212,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { players, deaths } = await loadData();
   const badgeWinners = computeBadges(players);
 
-  renderFun(players);
   renderBadges(badgeWinners);
   renderHall();
 });
