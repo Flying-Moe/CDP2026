@@ -144,6 +144,8 @@ function renderHall() {
     `<p class="muted">Hall of Fame will unlock after the 2026 season.</p>`;
 }
 
+renderDeathStatsFromPlayers(players)
+
 /* =====================================================
    INIT
 ===================================================== */
@@ -170,6 +172,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  renderDeathStatsFromPlayers(players);
+  
   // Render Deaths
 
   // Badges + Hall
