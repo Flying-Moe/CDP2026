@@ -169,16 +169,6 @@ function computeBadges(players) {
    RENDER (PLACEHOLDERS FIRST)
 ===================================================== */
 
-function renderOverall(players, deaths) {
-  document.getElementById("stats-overall").innerHTML = `
-    <ul>
-      <li>Total players: <strong>${players.length}</strong></li>
-      <li>Deaths so far: <strong>${deaths.unique}</strong> (${deaths.total} hits)</li>
-      <li>Average score: <strong>${avg(players.map(p => p.score)).toFixed(1)}</strong></li>
-    </ul>
-  `;
-}
-
 function renderFun(players) {
   const mostMinus = [...players].sort((a,b)=>b.minusPoints-a.minusPoints)[0];
   document.getElementById("stats-fun").innerHTML = `
@@ -218,10 +208,13 @@ function renderHall() {
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
 
+  // Overall is standalone and read-only
+  renderOverallStats();
+
+  // Other stats depend on aggregated data (later)
   const { players, deaths } = await loadData();
   const badgeWinners = computeBadges(players);
 
-  renderOverall(players, deaths);
   renderFun(players);
   renderBadges(badgeWinners);
   renderHall();
@@ -233,6 +226,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function renderOverallStats() {
   const playersSnap = await getDocs(collection(db, "players"));
+  const peopleSnap = await getDocs(collection(db, "people"));
 
   let activePlayers = 0;
   let totalPicks = 0;
@@ -242,7 +236,6 @@ async function renderOverallStats() {
 
   playersSnap.forEach(docu => {
     const p = docu.data();
-
     if (p.active === false) return;
 
     activePlayers++;
@@ -270,16 +263,17 @@ async function renderOverallStats() {
   const prizePool =
     activePlayers * 15 + julySweepUsers * 15;
 
-  // render to DOM
-  const set = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  };
+  const container = document.getElementById("stats");
+  if (!container) return;
 
-  set("stat-active-players", activePlayers);
-  set("stat-total-picks", totalPicks);
-  set("stat-total-celebrity-picks", totalCelebrityPicks);
-  set("stat-unique-celebrities", uniqueCelebrities.size);
-  set("stat-prize-pool", prizePool);
+  container.innerHTML = `
+    <h2>Overview</h2>
+    <ul>
+      <li>Players: ${activePlayers}</li>
+      <li>Total celebrity picks: ${totalCelebrityPicks}</li>
+      <li>Unique celebrities picked: ${uniqueCelebrities.size}</li>
+      <li>Total picks: ${totalPicks}</li>
+      <li>Prize pool: ${prizePool} €</li>
+    </ul>
+  `;
 }
-
