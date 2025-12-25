@@ -338,9 +338,15 @@ document.addEventListener("click", e => {
     listsSortDir = key === "pp" ? "desc" : "asc";
   }
 
-  // hent alle rows undtagen total
-  const rows = Array.from(tbody.querySelectorAll("tr"))
-    .filter(tr => !tr.classList.contains("total-row"));
+  const allRows = Array.from(tbody.querySelectorAll("tr"));
+
+  // find total row robustly
+  const totalRow = allRows.find(tr =>
+    tr.textContent.trim().toLowerCase().startsWith("total")
+  );
+
+  // rows to sort (exclude total)
+  const rows = allRows.filter(tr => tr !== totalRow);
 
   rows.sort((a, b) => {
     let A, B;
@@ -377,6 +383,11 @@ document.addEventListener("click", e => {
       : A < B ? 1 : -1;
   });
 
-  // re-append i ny rækkefølge
+  // re-append sorted rows
   rows.forEach(tr => tbody.appendChild(tr));
+
+  // ensure Total is always last
+  if (totalRow) {
+    tbody.appendChild(totalRow);
+  }
 });
