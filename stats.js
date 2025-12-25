@@ -79,9 +79,6 @@ function initTabs() {
 
 async function loadData() {
   const playersSnap = await getDocs(collection(db, "players"));
-  const deathsSnap = await getDocs(
-    query(collection(db, "deaths"), where("approved", "==", true))
-  );
 
   const deathsByPlayer = {};
   const uniqueDeaths = new Set();
