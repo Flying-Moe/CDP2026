@@ -131,6 +131,8 @@ async function loadData() {
   };
 }
 
+renderOverallStats();
+
 /* =====================================================
    COMPUTE BADGES (TIES SUPPORTED)
 ===================================================== */
