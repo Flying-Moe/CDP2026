@@ -322,10 +322,15 @@ document.addEventListener("click", e => {
   const th = e.target.closest("th[data-sort]");
   if (!th) return;
 
-  const scrollY = window.scrollY;
+  const table = th.closest("table");
+  if (!table) return;
+
+  const tbody = table.querySelector("tbody");
+  if (!tbody) return;
 
   const key = th.dataset.sort;
 
+  // toggle direction
   if (listsSortKey === key) {
     listsSortDir = listsSortDir === "asc" ? "desc" : "asc";
   } else {
@@ -333,9 +338,45 @@ document.addEventListener("click", e => {
     listsSortDir = key === "pp" ? "desc" : "asc";
   }
 
-  renderLists();
+  // hent alle rows undtagen total
+  const rows = Array.from(tbody.querySelectorAll("tr"))
+    .filter(tr => !tr.classList.contains("total-row"));
 
-  requestAnimationFrame(() => {
-    window.scrollTo({ top: scrollY });
+  rows.sort((a, b) => {
+    let A, B;
+
+    switch (key) {
+      case "name":
+        A = a.children[0].innerText.trim().toLowerCase();
+        B = b.children[0].innerText.trim().toLowerCase();
+        break;
+
+      case "age":
+        A = parseInt(a.children[1].innerText) || -1;
+        B = parseInt(b.children[1].innerText) || -1;
+        break;
+
+      case "pp":
+        A = parseInt(a.children[2].innerText) || -1;
+        B = parseInt(b.children[2].innerText) || -1;
+        break;
+
+      case "pb":
+        A = parseInt(a.children[3].innerText) || -1;
+        B = parseInt(b.children[3].innerText) || -1;
+        break;
+
+      default:
+        return 0;
+    }
+
+    if (A === B) return 0;
+
+    return listsSortDir === "asc"
+      ? A > B ? 1 : -1
+      : A < B ? 1 : -1;
   });
+
+  // re-append i ny rækkefølge
+  rows.forEach(tr => tbody.appendChild(tr));
 });
