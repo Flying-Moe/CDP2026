@@ -24,59 +24,110 @@
 <!-- ================= STATS TABS ================= -->
 
 <div id="stats-tabs">
-  <button data-tab="overall" class="active">Overall stats</button>
+  <button data-tab="overall" class="active">Overall</button>
+  <button data-tab="deaths">Deaths</button>
   <button data-tab="fun">Fun stats</button>
   <button data-tab="badges">Badges</button>
   <button data-tab="hof">Hall of Fame</button>
 </div>
 
 <!-- ================= TAB CONTENT ================= -->
-  <!-- ================= OVER ALL STATS ================= -->
 
-<div class="overall-stats">
-  <div class="stat-row">
-    <span class="stat-label">Active players</span>
-    <span class="stat-value" id="stat-active-players">—</span>
+<!-- ===== OVERALL ===== -->
+<div id="stats-overall" class="stats-tab">
+
+  <h2>Overview</h2>
+
+  <div class="overall-stats">
+    <div class="stat-row">
+      <span class="stat-label">Active players</span>
+      <span class="stat-value" id="stat-active-players">—</span>
+    </div>
+
+    <div class="stat-row">
+      <span class="stat-label">Total picks</span>
+      <span class="stat-value" id="stat-total-picks">—</span>
+    </div>
+
+    <div class="stat-row">
+      <span class="stat-label">Total celebrity picks</span>
+      <span class="stat-value" id="stat-total-celebrity-picks">—</span>
+    </div>
+
+    <div class="stat-row">
+      <span class="stat-label">Unique celebrities picked</span>
+      <span class="stat-value" id="stat-unique-celebrities">—</span>
+    </div>
+
+    <div class="stat-row">
+      <span class="stat-label">Prize pool (€)</span>
+      <span class="stat-value" id="stat-prize-pool">—</span>
+    </div>
   </div>
 
-  <div class="stat-row">
-    <span class="stat-label">Total picks</span>
-    <span class="stat-value" id="stat-total-picks">—</span>
-  </div>
-
-  <div class="stat-row">
-    <span class="stat-label">Total celebrity picks</span>
-    <span class="stat-value" id="stat-total-celebrity-picks">—</span>
-  </div>
-
-  <div class="stat-row">
-    <span class="stat-label">Unique celebrities picked</span>
-    <span class="stat-value" id="stat-unique-celebrities">—</span>
-  </div>
-
-  <div class="stat-row">
-    <span class="stat-label">Prize pool (€)</span>
-    <span class="stat-value" id="stat-prize-pool">—</span>
-  </div>
 </div>
-  
-  <!-- ================= FUN STATS ================= -->
 
+<!-- ===== DEATHS ===== -->
+<div id="stats-deaths" class="stats-tab" style="display:none;">
+
+  <h2>Death statistics</h2>
+
+  <ul>
+    <li>
+      Confirmed deaths:
+      <strong id="stat-deaths-count">—</strong>
+    </li>
+    <li>
+      Average age at death:
+      <strong id="stat-deaths-average-age">—</strong>
+    </li>
+    <li>
+      Youngest death:
+      <strong id="stat-deaths-youngest">—</strong>
+    </li>
+    <li>
+      Oldest death:
+      <strong id="stat-deaths-oldest">—</strong>
+    </li>
+    <li>
+      First blood:
+      <strong id="stat-deaths-first-blood">—</strong>
+    </li>
+  </ul>
+
+</div>
+
+<!-- ===== FUN STATS ===== -->
 <div id="stats-fun" class="stats-tab" style="display:none;">
+
   <h2>Fun & dark statistics</h2>
-  <div id="fun-stats"></div>
+
+  <div id="fun-stats">
+    <!-- JS renders content here -->
+  </div>
+
 </div>
 
+<!-- ===== BADGES ===== -->
 <div id="stats-badges" class="stats-tab" style="display:none;">
+
   <h2>Badges</h2>
-  <div id="badges-stats"></div>
+
+  <div id="badges-stats">
+    <!-- JS renders content here -->
+  </div>
+
 </div>
 
+<!-- ===== HALL OF FAME ===== -->
 <div id="stats-hof" class="stats-tab" style="display:none;">
+
   <h2>Hall of Fame</h2>
+
   <p class="muted">
     The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
   </p>
+
 </div>
 
 <footer>
