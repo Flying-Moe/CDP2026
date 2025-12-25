@@ -198,6 +198,65 @@ function renderHall() {
     `<p class="muted">Hall of Fame will unlock after the 2026 season.</p>`;
 }
 
+function renderDeathStats(deathDocs, players) {
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  if (!deathDocs.length) {
+    set("stat-deaths-count", "0");
+    set("stat-deaths-average-age", "—");
+    set("stat-deaths-youngest", "—");
+    set("stat-deaths-oldest", "—");
+    set("stat-deaths-first-blood", "—");
+    return;
+  }
+
+  // Calculate ages at death
+  const deathsWithAge = deathDocs
+    .map(d => {
+      const age = calculateAge(d.birthDate, d.deathDate);
+      return age !== null ? { ...d, age } : null;
+    })
+    .filter(Boolean);
+
+  // Count
+  set("stat-deaths-count", deathsWithAge.length);
+
+  // Average age
+  const avgAge = avg(deathsWithAge.map(d => d.age)).toFixed(1);
+  set("stat-deaths-average-age", avgAge);
+
+  // Youngest / Oldest
+  const youngest = deathsWithAge.reduce((a, b) => a.age < b.age ? a : b);
+  const oldest = deathsWithAge.reduce((a, b) => a.age > b.age ? a : b);
+
+  set(
+    "stat-deaths-youngest",
+    `${youngest.name} (${youngest.age})`
+  );
+
+  set(
+    "stat-deaths-oldest",
+    `${oldest.name} (${oldest.age})`
+  );
+
+  // First Blood
+  const first = deathsWithAge.reduce((a, b) =>
+    new Date(a.deathDate) < new Date(b.deathDate) ? a : b
+  );
+
+  const killers = players
+    .filter(p => p.hits > 0)
+    .map(p => p.name);
+
+  set(
+    "stat-deaths-first-blood",
+    `${first.name} – ${first.deathDate}`
+  );
+}
+
 /* =====================================================
    INIT
 ===================================================== */
@@ -208,10 +267,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Overall is standalone and read-only
   renderOverallStats();
 
-  // Other stats depend on aggregated data (later)
-  const { players, deaths } = await loadData();
-  const badgeWinners = computeBadges(players);
+  // Load all aggregated data
+  const playersSnap = await getDocs(collection(db, "players"));
+  const deathsSnap = await getDocs(
+    query(collection(db, "deaths"), where("approved", "==", true))
+  );
 
+  const players = [];
+  playersSnap.forEach(pDoc => {
+    const p = pDoc.data();
+    if (p.active === false) return;
+    if (p.entries?.["2026"]?.active === false) return;
+
+    players.push({
+      id: pDoc.id,
+      name: p.name,
+      hits: p.hits || 0
+    });
+  });
+
+  const deaths = [];
+  deathsSnap.forEach(d => deaths.push(d.data()));
+
+  // Render Deaths
+  renderDeathStats(deaths, players);
+
+  // Badges + Hall
+  const badgeWinners = computeBadges(players);
   renderBadges(badgeWinners);
   renderHall();
 });
