@@ -224,3 +224,60 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderBadges(badgeWinners);
   renderHall();
 });
+
+/* =====================================================
+   RENDER OVERALL STATS
+===================================================== */
+
+async function renderOverallStats() {
+  const playersSnap = await getDocs(collection(db, "players"));
+
+  let activePlayers = 0;
+  let totalPicks = 0;
+  let totalCelebrityPicks = 0;
+  const uniqueCelebrities = new Set();
+  let julySweepUsers = 0;
+
+  playersSnap.forEach(docu => {
+    const p = docu.data();
+
+    if (p.active === false) return;
+
+    activePlayers++;
+
+    const entry = p.entries?.["2026"];
+    if (!entry) return;
+
+    const picks = entry.picks || [];
+    totalPicks += picks.length;
+    totalCelebrityPicks += picks.length;
+
+    if (entry.usedJulySweep === true) {
+      julySweepUsers++;
+    }
+
+    picks.forEach(pick => {
+      if (pick.personId) {
+        uniqueCelebrities.add(pick.personId);
+      } else if (pick.normalizedName) {
+        uniqueCelebrities.add(pick.normalizedName);
+      }
+    });
+  });
+
+  const prizePool =
+    activePlayers * 15 + julySweepUsers * 15;
+
+  // render to DOM
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  set("stat-active-players", activePlayers);
+  set("stat-total-picks", totalPicks);
+  set("stat-total-celebrity-picks", totalCelebrityPicks);
+  set("stat-unique-celebrities", uniqueCelebrities.size);
+  set("stat-prize-pool", prizePool);
+}
+
