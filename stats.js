@@ -226,7 +226,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function renderOverallStats() {
   const playersSnap = await getDocs(collection(db, "players"));
-  const peopleSnap = await getDocs(collection(db, "people"));
 
   let activePlayers = 0;
   let totalPicks = 0;
@@ -244,6 +243,7 @@ async function renderOverallStats() {
     if (!entry) return;
 
     const picks = entry.picks || [];
+
     totalPicks += picks.length;
     totalCelebrityPicks += picks.length;
 
@@ -263,17 +263,15 @@ async function renderOverallStats() {
   const prizePool =
     activePlayers * 15 + julySweepUsers * 15;
 
-  const container = document.getElementById("stats");
-  if (!container) return;
+  // Update DOM (match existing HTML)
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
 
-  container.innerHTML = `
-    <h2>Overview</h2>
-    <ul>
-      <li>Players: ${activePlayers}</li>
-      <li>Total celebrity picks: ${totalCelebrityPicks}</li>
-      <li>Unique celebrities picked: ${uniqueCelebrities.size}</li>
-      <li>Total picks: ${totalPicks}</li>
-      <li>Prize pool: ${prizePool} €</li>
-    </ul>
-  `;
+  set("stat-active-players", activePlayers);
+  set("stat-total-picks", totalPicks);
+  set("stat-total-celebrity-picks", totalCelebrityPicks);
+  set("stat-unique-celebrities", uniqueCelebrities.size);
+  set("stat-prize-pool", prizePool);
 }
