@@ -27,6 +27,7 @@
   <button data-tab="overall" class="active">Overall</button>
   <button data-tab="deaths">Deaths</button>
   <button data-tab="fun">Fun stats</button>
+  <button data-tab="misses">Misses</button>
   <button data-tab="badges">Badges</button>
   <button data-tab="hof">Hall of Fame</button>
 </div>
@@ -102,9 +103,43 @@
 
   <h2>Fun & dark statistics</h2>
 
-  <div id="fun-stats">
-    <!-- JS renders content here -->
-  </div>
+  <ul>
+    <li>
+      Most picked celebrity:
+      <strong id="stat-fun-most-picked">—</strong>
+    </li>
+    <li>
+      Most controversial pick:
+      <strong id="stat-fun-controversial">—</strong>
+    </li>
+    <li>
+      Highest single score:
+      <strong id="stat-fun-highest-score">—</strong>
+    </li>
+    <li>
+      Player with most penalties:
+      <strong id="stat-fun-most-penalties">—</strong>
+    </li>
+    <li>
+      Most unlucky player:
+      <strong id="stat-fun-unlucky">—</strong>
+    </li>
+  </ul>
+
+</div>
+
+<!-- ===== MISSES ===== -->
+<div id="stats-misses" class="stats-tab" style="display:none;">
+
+  <h2>Missed opportunities</h2>
+
+  <p class="muted">
+    Celebrities who passed away but were not picked by any player.
+  </p>
+
+  <ul id="stat-misses-list">
+    <li class="muted">No data yet</li>
+  </ul>
 
 </div>
 
@@ -114,7 +149,7 @@
   <h2>Badges</h2>
 
   <div id="badges-stats">
-    <!-- JS renders content here -->
+    <!-- JS renders badges here -->
   </div>
 
 </div>
@@ -127,6 +162,10 @@
   <p class="muted">
     The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
   </p>
+
+  <div id="hof-content">
+    <!-- Finalized seasons will appear here -->
+  </div>
 
 </div>
 
