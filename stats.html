@@ -38,33 +38,17 @@
 <div id="stats-overall" class="stats-tab">
 
   <h2>Overview</h2>
+  <p class="muted description">
+    A high-level overview of the game as it stands right now.
+  </p>
 
-  <div class="overall-stats">
-    <div class="stat-row">
-      <span class="stat-label">Active players</span>
-      <span class="stat-value" id="stat-active-players">—</span>
-    </div>
-
-    <div class="stat-row">
-      <span class="stat-label">Total picks</span>
-      <span class="stat-value" id="stat-total-picks">—</span>
-    </div>
-
-    <div class="stat-row">
-      <span class="stat-label">Total celebrity picks</span>
-      <span class="stat-value" id="stat-total-celebrity-picks">—</span>
-    </div>
-
-    <div class="stat-row">
-      <span class="stat-label">Unique celebrities picked</span>
-      <span class="stat-value" id="stat-unique-celebrities">—</span>
-    </div>
-
-    <div class="stat-row">
-      <span class="stat-label">Prize pool (€)</span>
-      <span class="stat-value" id="stat-prize-pool">—</span>
-    </div>
-  </div>
+  <ul>
+    <li>Active players: <strong id="stat-active-players">—</strong></li>
+    <li>Total picks: <strong id="stat-total-picks">—</strong></li>
+    <li>Total celebrity picks: <strong id="stat-total-celebrity-picks">—</strong></li>
+    <li>Unique celebrities picked: <strong id="stat-unique-celebrities">—</strong></li>
+    <li>Prize pool (€): <strong id="stat-prize-pool">—</strong></li>
+  </ul>
 
 </div>
 
@@ -72,28 +56,16 @@
 <div id="stats-deaths" class="stats-tab" style="display:none;">
 
   <h2>Death statistics</h2>
+  <p class="muted description">
+    Statistics based solely on confirmed deaths during the season.
+  </p>
 
   <ul>
-    <li>
-      Confirmed deaths:
-      <strong id="stat-deaths-count">—</strong>
-    </li>
-    <li>
-      Average age at death:
-      <strong id="stat-deaths-average-age">—</strong>
-    </li>
-    <li>
-      Youngest death:
-      <strong id="stat-deaths-youngest">—</strong>
-    </li>
-    <li>
-      Oldest death:
-      <strong id="stat-deaths-oldest">—</strong>
-    </li>
-    <li>
-      First blood:
-      <strong id="stat-deaths-first-blood">—</strong>
-    </li>
+    <li>Confirmed deaths: <strong id="stat-deaths-count">—</strong></li>
+    <li>Average age at death: <strong id="stat-deaths-average-age">—</strong></li>
+    <li>Youngest death: <strong id="stat-deaths-youngest">—</strong></li>
+    <li>Oldest death: <strong id="stat-deaths-oldest">—</strong></li>
+    <li>First blood: <strong id="stat-deaths-first-blood">—</strong></li>
   </ul>
 
 </div>
@@ -102,28 +74,16 @@
 <div id="stats-fun" class="stats-tab" style="display:none;">
 
   <h2>Fun & dark statistics</h2>
+  <p class="muted description">
+    Light-hearted, slightly morbid insights into how the game is unfolding.
+  </p>
 
   <ul>
-    <li>
-      Most picked celebrity:
-      <strong id="stat-fun-most-picked">—</strong>
-    </li>
-    <li>
-      Most controversial pick:
-      <strong id="stat-fun-controversial">—</strong>
-    </li>
-    <li>
-      Highest single score:
-      <strong id="stat-fun-highest-score">—</strong>
-    </li>
-    <li>
-      Player with most penalties:
-      <strong id="stat-fun-most-penalties">—</strong>
-    </li>
-    <li>
-      Most unlucky player:
-      <strong id="stat-fun-unlucky">—</strong>
-    </li>
+    <li>Most picked celebrity: <strong id="stat-fun-most-picked">—</strong></li>
+    <li>Most controversial pick: <strong id="stat-fun-controversial">—</strong></li>
+    <li>Highest single score: <strong id="stat-fun-highest-score">—</strong></li>
+    <li>Player with most penalties: <strong id="stat-fun-most-penalties">—</strong></li>
+    <li>Most unlucky player: <strong id="stat-fun-unlucky">—</strong></li>
   </ul>
 
 </div>
@@ -132,8 +92,7 @@
 <div id="stats-misses" class="stats-tab" style="display:none;">
 
   <h2>Missed opportunities</h2>
-
-  <p class="muted">
+  <p class="muted description">
     Celebrities who passed away but were not picked by any player.
   </p>
 
@@ -147,9 +106,20 @@
 <div id="stats-badges" class="stats-tab" style="display:none;">
 
   <h2>Badges</h2>
+  <p class="muted description">
+    Special achievements unlocked by players during the season.
+  </p>
 
   <div id="badges-stats">
-    <!-- JS renders badges here -->
+    <!--
+      Expected structure per badge (rendered by JS):
+
+      <div class="badge">
+        <div class="badge-title">🦅 The Vulture</div>
+        <div class="badge-description"><em>Lowest average pick age</em></div>
+        <div class="badge-winner"><strong>Chris the Victim</strong></div>
+      </div>
+    -->
   </div>
 
 </div>
@@ -158,13 +128,14 @@
 <div id="stats-hof" class="stats-tab" style="display:none;">
 
   <h2>Hall of Fame</h2>
-
-  <p class="muted">
-    The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
+  <p class="muted description">
+    A permanent record of the most glorious (and grim) seasons.
   </p>
 
   <div id="hof-content">
-    <!-- Finalized seasons will appear here -->
+    <p class="muted">
+      The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
+    </p>
   </div>
 
 </div>
