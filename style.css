@@ -502,6 +502,41 @@ footer {
   line-height: 1;
 }
 
+/* ===============================
+   Badges – visual hierarchy
+   =============================== */
+
+#badges-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8em; /* space between badges */
+}
+
+.badge {
+  padding-bottom: 0.2em;
+}
+
+.badge-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.25em;
+}
+
+.badge-description {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 0.35em;
+}
+
+.badge-winner {
+  font-weight: bold;
+}
+
+.badge .muted {
+  margin-top: 0.3em;
+  font-style: italic;
+}
+
 /* =========================
    PEOPLE TAB – PICKED BY
 ========================= */
@@ -528,3 +563,37 @@ td[title] {
 #people-table td:first-child {
   text-align: left;
 }
+
+/* ===============================
+   Stats – global spacing & rhythm
+   =============================== */
+
+.stats-tab {
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.stats-tab h2 {
+  font-size: 1.35rem;
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+}
+
+.stats-tab .description {
+  margin-bottom: 1.2em;
+  font-style: italic;
+  color: #666;
+}
+
+.stats-tab ul {
+  margin-bottom: 2em;
+}
+
+.stats-tab ul li {
+  margin-bottom: 0.6em;
+}
+
+.stat-row {
+  margin-bottom: 0.6em;
+}
+
