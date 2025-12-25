@@ -468,38 +468,39 @@ footer {
   display: none !important;
 }
 
-/* =========================
-  BADGES
-========================= */
+/* ===============================
+   Badges – visual hierarchy
+   =============================== */
+
+#badges-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2em; /* lidt mere luft mellem badges */
+}
 
 .badge {
-  font-size: 1.1em;
-  margin-left: 4px;
-  cursor: default;
+  font-size: 1.15rem; /* hele badge-blokken en tak større */
 }
 
-.badge-gold { color: #d4af37; }
-.badge-dark { color: #222; }
-.badge-red { color: #8b0000; }
-.badge-green { color: #2e8b57; }
-.badge-orange { color: #ff8c00; }
-.badge-gray { color: #666; }
+.badge-title {
+  font-size: 1.4rem; /* tydeligt større end resten */
+  font-weight: 600;
+  margin-bottom: 0.3em;
+}
 
-.badge-unclaimed {
+.badge-description {
   font-style: italic;
-  color: #999;
+  color: #666;
+  margin-bottom: 0.4em;
 }
 
-.badges {
-  margin-left: 6px;
-  display: inline-flex;
-  gap: 4px;
+.badge-winner {
+  font-weight: bold;
 }
 
-.badge-icon {
-  cursor: help;
-  font-size: 0.95em;
-  line-height: 1;
+.badge .muted {
+  margin-top: 0.4em;
+  font-style: italic;
 }
 
 /* ===============================
