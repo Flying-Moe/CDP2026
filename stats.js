@@ -139,12 +139,84 @@ function renderBadges(badgeWinners) {
   }).join("");
 }
 
+function renderDeathStatsFromPlayers(players) {
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  const deathMap = new Map();
+
+  players.forEach(player => {
+    const entry = player.entries?.["2026"];
+    if (!entry || entry.active === false) return;
+
+    (entry.picks || []).forEach(pick => {
+      if (!pick.deathDate) return;
+
+      const key = pick.personId || pick.normalizedName;
+      if (!key) return;
+
+      if (!deathMap.has(key)) {
+        deathMap.set(key, {
+          name: pick.name,
+          birthDate: pick.birthDate,
+          deathDate: pick.deathDate,
+          players: new Set()
+        });
+      }
+
+      deathMap.get(key).players.add(player.name);
+    });
+  });
+
+  const deaths = Array.from(deathMap.values());
+
+  if (deaths.length === 0) {
+    set("stat-deaths-count", "0");
+    set("stat-deaths-average-age", "—");
+    set("stat-deaths-youngest", "—");
+    set("stat-deaths-oldest", "—");
+    set("stat-deaths-first-blood", "—");
+    return;
+  }
+
+  const deathsWithAge = deaths
+    .map(d => {
+      const age = calculateAge(d.birthDate, d.deathDate);
+      return age != null ? { ...d, age } : null;
+    })
+    .filter(Boolean);
+
+  set("stat-deaths-count", deathsWithAge.length);
+
+  const avgAge = (
+    deathsWithAge.reduce((sum, d) => sum + d.age, 0) /
+    deathsWithAge.length
+  ).toFixed(1);
+
+  set("stat-deaths-average-age", avgAge);
+
+  const youngest = deathsWithAge.reduce((a, b) => a.age < b.age ? a : b);
+  const oldest   = deathsWithAge.reduce((a, b) => a.age > b.age ? a : b);
+
+  set("stat-deaths-youngest", `${youngest.name} (${youngest.age})`);
+  set("stat-deaths-oldest", `${oldest.name} (${oldest.age})`);
+
+  const first = deathsWithAge.reduce((a, b) =>
+    new Date(a.deathDate) < new Date(b.deathDate) ? a : b
+  );
+
+  set(
+    "stat-deaths-first-blood",
+    `${first.name} – ${first.deathDate} (${[...first.players].join(", ")})`
+  );
+}
+
 function renderHall() {
   document.getElementById("stats-hall").innerHTML =
     `<p class="muted">Hall of Fame will unlock after the 2026 season.</p>`;
 }
-
-renderDeathStatsFromPlayers(players)
 
 /* =====================================================
    INIT
@@ -168,7 +240,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     players.push({
       id: pDoc.id,
       name: p.name,
-      hits: p.hits || 0
+      hits: p.hits || 0,
+      entries: p.entries || {}
     });
   });
 
