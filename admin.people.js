@@ -309,21 +309,76 @@ document.querySelectorAll(".used-by").forEach(el => {
 });
 }
 
-document.querySelectorAll("#people-table th[data-sort]").forEach(th => {
-  th.addEventListener("click", () => {
-    const key = th.dataset.sort;
+document.addEventListener("click", e => {
+  const th = e.target.closest("#people-table th[data-sort]");
+  if (!th) return;
 
-    if (peopleSortKey === key) {
-      peopleSortDir = peopleSortDir === "asc" ? "desc" : "asc";
-    } else {
-      peopleSortKey = key;
-      peopleSortDir = "asc";
+  const table = th.closest("table");
+  if (!table) return;
+
+  const tbody = table.querySelector("tbody");
+  if (!tbody) return;
+
+  const key = th.dataset.sort;
+
+  // toggle direction
+  if (peopleSortKey === key) {
+    peopleSortDir = peopleSortDir === "asc" ? "desc" : "asc";
+  } else {
+    peopleSortKey = key;
+    peopleSortDir = "asc";
+  }
+
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  rows.sort((a, b) => {
+    let A, B;
+
+    switch (key) {
+      case "name":
+        A = a.children[0].innerText.trim().toLowerCase();
+        B = b.children[0].innerText.trim().toLowerCase();
+        break;
+
+      case "birth":
+        A = a.children[1].innerText.trim();
+        B = b.children[1].innerText.trim();
+        break;
+
+      case "death":
+        A = a.children[2].innerText.trim();
+        B = b.children[2].innerText.trim();
+        break;
+
+      case "pp":
+        A = parseInt(a.children[3].innerText) || -1;
+        B = parseInt(b.children[3].innerText) || -1;
+        break;
+
+      case "pb":
+        A = parseInt(a.children[4].innerText) || -1;
+        B = parseInt(b.children[4].innerText) || -1;
+        break;
+
+      case "status":
+        A = a.children[7].innerText.trim();
+        B = b.children[7].innerText.trim();
+        break;
+
+      default:
+        return 0;
     }
 
-    loadPeople();
-  });
-});
+    if (A === B) return 0;
 
+    return peopleSortDir === "asc"
+      ? A > B ? 1 : -1
+      : A < B ? 1 : -1;
+  });
+
+  // re-append sorted rows
+  rows.forEach(tr => tbody.appendChild(tr));
+});
 
 /* =====================================================
    PEOPLE ACTIONS (MERGE / DELETE)
