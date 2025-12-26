@@ -13,6 +13,23 @@ console.log("Common loaded");
   });
 })();
 
+function calculatePoints(birthISO, deathISO) {
+  if (!birthISO || !deathISO) return 0;
+
+  const birth = new Date(birthISO);
+  const death = new Date(deathISO);
+
+  let age = death.getFullYear() - birth.getFullYear();
+  if (
+    death.getMonth() < birth.getMonth() ||
+    (death.getMonth() === birth.getMonth() && death.getDate() < birth.getDate())
+  ) {
+    age--;
+  }
+
+  return Math.max(0, 100 - age);
+}
+
 function buildScoreTable(players, year = "2026") {
   const result = [];
 
