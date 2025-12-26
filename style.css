@@ -598,28 +598,32 @@ footer {
   flex-wrap: wrap;
 }
 
-/* En tier (badge + playerliste) */
+/* En tier: badge til venstre, player-liste til højre */
 .badge-tier {
-  min-width: 90px;
-  text-align: center;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 320px;
+  text-align: left;
 }
 
-/* Locked tiers lidt mere tydeligt */
+/* Locked tiers */
 .badge-tier.locked img {
   opacity: 0.35;
 }
 
-/* Badge PNG */
+/* Badge PNG – STØRRE */
 .badge-tier img {
-  width: 64px;
+  width: 128px;       /* 2× større */
   height: auto;
-  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
-/* Player-liste under tier */
+/* Player-liste TIL HØJRE */
 .badge-tier-players {
-  font-size: 0.8rem;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
 }
 
 /* Player-navn */
@@ -652,15 +656,20 @@ footer {
 
 @media (max-width: 600px) {
   .badge-tiers {
-    gap: 12px;
+    gap: 14px;
   }
 
   .badge-tier {
-    min-width: 72px;
+    flex-direction: row;
+    min-width: unset;
   }
 
   .badge-tier img {
-    width: 56px;
+    width: 96px;
+  }
+
+  .badge-tier-players {
+    font-size: 0.85rem;
   }
 
   .badge-title {
