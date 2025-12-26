@@ -186,7 +186,6 @@ function renderBadges(players, peopleMap) {
     setOwner(4, `<strong>${highestHit.player}</strong>`);
   }
 }
-}
 
 /* =====================================================
    RENDER DEATH STATS
