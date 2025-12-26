@@ -343,6 +343,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     renderDeathStatsFromPlayers(players, peopleMap);
     renderFunStats(players, peopleMap);
+    renderBadges(players, peopleMap);
+
 
   // Badges + Hall
   const badgeWinners = computeBadges(players);
