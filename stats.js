@@ -336,6 +336,9 @@ setupBadgePlayerDropdown(badgeContext.players, (playerId) => {
 
 renderBadges(badgeContext, storedPlayer);
 
+renderDeathStatsFromPlayers(players, peopleMap);
+renderFunStats(players, peopleMap);
+
 });
 
 /* =====================================================
