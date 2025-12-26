@@ -251,31 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       entries: p.entries || {}
     });
   });
-
-   /* =========================
-   BADGES — DEBUG (TEMP)
-========================= */
-
-const scoreTable = buildScoreTable(players, "2026");
-
-const unlockedBadges = evaluateBadges(
-  scoreTable.map(p => ({
-    name: p.name,
-    hits: p.hits,
-    totalScore: p.total
-  }))
-);
-
-console.group("🏅 Unlocked Badges");
-unlockedBadges.forEach(b => {
-  console.log(
-    `${b.name} [${b.tier.toUpperCase()}]`,
-    b.winners.map(w => `${w.name} (${w.value})`).join(", ")
-  );
-});
-console.groupEnd();
-
-   
+  
     const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = {};
 
@@ -283,9 +259,38 @@ console.groupEnd();
       peopleMap[doc.id] = doc.data();
     });
 
+   // Build deaths map for badges (playerId -> [deathDate])
+const deathsByPlayer = {};
+
+players.forEach(player => {
+  const entry = player.entries?.["2026"];
+  if (!entry) return;
+
+  (entry.picks || []).forEach(pick => {
+    if (!pick.deathDate) return;
+
+    if (!deathsByPlayer[player.id]) {
+      deathsByPlayer[player.id] = [];
+    }
+    deathsByPlayer[player.id].push(pick.deathDate);
+  });
+});
+
     renderDeathStatsFromPlayers(players, peopleMap);
     renderFunStats(players, peopleMap);
-    renderBadges(players, peopleMap);
+    renderBadges({
+  players: players.map(p => {
+    const score = buildScoreTable([p], "2026")[0] || {};
+    return {
+      ...p,
+      totalScore: score.total || 0,
+      penalty: score.penalty || 0,
+      approvedPicks: score.picks?.filter(x => x.status === "approved").length || 0,
+      avgPickAge: score.avgPickAge || null
+    };
+  }),
+  deaths: deathsByPlayer
+});
 
   renderHall();
 });
