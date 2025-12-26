@@ -7,7 +7,8 @@ console.log("stats.js loaded");
 import {
   calculateAgeAtDeath,
   calculateHitPoints,
-  calculatePlayerTotals
+  calculatePlayerTotals,
+  buildScoreTable
 } from "./admin.core.js";
 
 import { db } from "./firebase.js";
