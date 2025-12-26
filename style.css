@@ -553,6 +553,10 @@ footer {
   padding: 4px 8px;
 }
 
+.badge-player.demoted {
+  opacity: 0.45;
+}
+
 /* =========================
    PEOPLE TAB – PICKED BY
 ========================= */
