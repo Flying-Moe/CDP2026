@@ -133,6 +133,39 @@ export function calculatePlayerTotals(player) {
   };
 }
 
+/**
+ * Fælles score-table builder (READ-ONLY)
+ * Bruges af stats, leaderboard og badges
+ */
+export function buildScoreTable(players, year = "2026") {
+  const result = [];
+
+  players.forEach(player => {
+    const entry = player.entries?.[year];
+    if (!entry || entry.active === false) return;
+
+    const {
+      hitPoints,
+      hits,
+      penalty,
+      totalScore,
+      approvedCount
+    } = calculatePlayerTotals(player);
+
+    result.push({
+      id: player.id,
+      name: player.name,
+      total: totalScore,
+      hits,
+      penalty,
+      approvedCount,
+      picks: entry.picks || []
+    });
+  });
+
+  return result;
+}
+
 /* =====================================================
    GENERIC HELPERS
 ===================================================== */
