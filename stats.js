@@ -208,27 +208,6 @@ function renderBadges(players, peopleMap) {
   }).join("");
 }
 
-/* =========================
-   BADGES — DEBUG (TEMP)
-========================= */
-
-const unlockedBadges = evaluateBadges(
-  scoreTable.map(p => ({
-    name: p.name,
-    hits: p.hits,
-    totalScore: p.total
-  }))
-);
-
-console.group("🏅 Unlocked Badges");
-unlockedBadges.forEach(b => {
-  console.log(
-    `${b.name} [${b.tier.toUpperCase()}]`,
-    b.winners.map(w => `${w.name} (${w.value})`).join(", ")
-  );
-});
-console.groupEnd();
-
 /* =====================================================
    RENDER DEATH STATS
 ===================================================== */
@@ -352,7 +331,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-   const scoreTable = buildScoreTable(players, "2026");
+   /* =========================
+   BADGES — DEBUG (TEMP)
+========================= */
+
+const scoreTable = buildScoreTable(players, "2026");
+
+const unlockedBadges = evaluateBadges(
+  scoreTable.map(p => ({
+    name: p.name,
+    hits: p.hits,
+    totalScore: p.total
+  }))
+);
+
+console.group("🏅 Unlocked Badges");
+unlockedBadges.forEach(b => {
+  console.log(
+    `${b.name} [${b.tier.toUpperCase()}]`,
+    b.winners.map(w => `${w.name} (${w.value})`).join(", ")
+  );
+});
+console.groupEnd();
+
    
     const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = {};
