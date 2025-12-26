@@ -159,7 +159,7 @@ function renderDeathStatsFromPlayers(players) {
 
       if (!deathMap.has(key)) {
         deathMap.set(key, {
-          name: pick.name,
+          name: pick.personName || pick.displayName || "Unknown",
           birthDate: pick.birthDate,
           deathDate: pick.deathDate,
           players: new Set()
