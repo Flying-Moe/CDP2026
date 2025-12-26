@@ -220,7 +220,6 @@ const unlockedBadges = evaluateBadges(
   }))
 );
 
-/* Let læsbart console-output */
 console.group("🏅 Unlocked Badges");
 unlockedBadges.forEach(b => {
   console.log(
@@ -352,7 +351,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       entries: p.entries || {}
     });
   });
-  
+
+   const scoreTable = buildScoreTable(players, "2026");
+   
     const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = {};
 
