@@ -263,6 +263,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   peopleMap[doc.id] = doc.data();
 
       renderDeathStatsFromPlayers(players, peopleMap);
+    renderFunStats(players, peopleMap);
+
 });
 
   
@@ -328,4 +330,129 @@ async function renderOverallStats() {
   set("stat-total-celebrity-picks", totalCelebrityPicks);
   set("stat-unique-celebrities", uniqueCelebrities.size);
   set("stat-prize-pool", prizePool);
+}
+
+/* =====================================================
+   RENDER FUN STATS
+===================================================== */
+
+function renderFunStats(players, peopleMap) {
+  const container = document.getElementById("tab-fun");
+  if (!container) return;
+
+  // ---------- Most minus points ----------
+  const withPenalty = players.filter(p => p.penalty < 0);
+  const worstPenalty = withPenalty.length
+    ? Math.min(...withPenalty.map(p => p.penalty))
+    : null;
+
+  const mostMinus =
+    worstPenalty !== null
+      ? withPenalty.filter(p => p.penalty === worstPenalty)
+      : [];
+
+  // ---------- Highest single hit ----------
+  let highestHit = null;
+
+  players.forEach(p => {
+    const picks = p.entries?.["2026"]?.picks || [];
+    picks.forEach(pick => {
+      if (
+        pick.status === "approved" &&
+        pick.birthDate &&
+        pick.deathDate
+      ) {
+        const points =
+          100 -
+          (new Date(pick.deathDate).getFullYear() -
+            new Date(pick.birthDate).getFullYear());
+
+        if (!highestHit || points > highestHit.points) {
+          highestHit = {
+            player: p.name,
+            person:
+              (pick.personId && peopleMap[pick.personId]?.name) ||
+              pick.normalizedName ||
+              "Unknown",
+            points
+          };
+        }
+      }
+    });
+  });
+
+  // ---------- Most picked celebrity ----------
+  const pickCount = new Map();
+
+  players.forEach(p => {
+    const picks = p.entries?.["2026"]?.picks || [];
+    picks.forEach(pick => {
+      if (pick.status !== "approved") return;
+      const key =
+        pick.personId ||
+        pick.normalizedName ||
+        pick.raw;
+      pickCount.set(key, (pickCount.get(key) || 0) + 1);
+    });
+  });
+
+  let mostPicked = null;
+  pickCount.forEach((count, key) => {
+    if (!mostPicked || count > mostPicked.count) {
+      mostPicked = { key, count };
+    }
+  });
+
+  // ---------- Chaos level ----------
+  const chaosLevel =
+    mostMinus.length +
+    (highestHit ? 1 : 0) +
+    (mostPicked ? 1 : 0);
+
+  // ---------- Render ----------
+  container.innerHTML = `
+    <h2>Fun stats</h2>
+    <p class="stats-note">
+      Light-hearted statistics based on the current state of the game.
+    </p>
+
+    <ul class="stats-list">
+      <li>
+        <strong>Most minus points:</strong>
+        ${
+          mostMinus.length
+            ? mostMinus
+                .map(p => `${p.name} (${p.penalty})`)
+                .join(", ")
+            : "—"
+        }
+      </li>
+
+      <li>
+        <strong>Highest single hit:</strong>
+        ${
+          highestHit
+            ? `${highestHit.player} – ${highestHit.person} (${highestHit.points})`
+            : "—"
+        }
+      </li>
+
+      <li>
+        <strong>Most picked celebrity:</strong>
+        ${
+          mostPicked
+            ? `${
+                peopleMap[mostPicked.key]?.name ||
+                mostPicked.key
+              } (${mostPicked.count})`
+            : "—"
+        }
+      </li>
+
+      <li>
+        <strong>Chaos level:</strong>
+        ${"☠️".repeat(Math.min(chaosLevel, 5))}
+      </li>
+    </ul>
+  `;
 }
