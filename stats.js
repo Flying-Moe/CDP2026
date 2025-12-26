@@ -143,7 +143,7 @@ function renderBadges(context, selectedPlayerId = "all") {
       const tier = badge.tiers[tierId];
       const unlocked = tier.unlocked;
 
-      const imgSrc = `/assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
+      const imgSrc = `assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
 
 const tierOrder = ["bronze", "silver", "gold", "prestige"];
 const tierIndex = tierOrder.indexOf(tierId);
