@@ -325,7 +325,7 @@ async function renderOverallStats() {
 ===================================================== */
 
 function renderFunStats(players, peopleMap) {
-  const container = document.getElementById("tab-fun");
+  const container = document.getElementById("stats-fun");
   if (!container) return;
 
   const scores = buildScoreTable(players, "2026");
