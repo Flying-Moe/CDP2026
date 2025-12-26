@@ -91,7 +91,7 @@ export const BADGES = [
     }
   },
 
-    /* =========================
+  /* =========================
      GLASS CANNON
      Accumulated minus points
   ========================= */
