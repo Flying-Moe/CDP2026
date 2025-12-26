@@ -35,20 +35,6 @@ function avg(arr) {
 }
 
 /* =====================================================
-   BADGES (ALWAYS VISIBLE)
-===================================================== */
-
-const BADGES = [
-  { id: "grim_favorite", icon: "🥇", name: "Grim’s Favorite", description: "Highest total score" },
-  { id: "undertaker", icon: "☠️", name: "The Undertaker", description: "Most confirmed deaths" },
-  { id: "vulture", icon: "🦅", name: "The Vulture", description: "Lowest average pick age" },
-  { id: "pension_sniper", icon: "🐢", name: "The Pension Sniper", description: "Highest average pick age" },
-  { id: "optimist", icon: "🪦", name: "The Optimist", description: "20 approved picks, no deaths" },
-  { id: "glass_cannon", icon: "🧨", name: "Glass Cannon", description: "At least 2 minus points" },
-  { id: "blood_thief", icon: "🩸", name: "Blood Thief", description: "First player to score First Blood" }
-];
-
-/* =====================================================
    TAB SYSTEM (FIXED)
 ===================================================== */
 
@@ -80,132 +66,63 @@ function initTabs() {
 }
 
 /* =====================================================
-   COMPUTE BADGES (TIES SUPPORTED)
+   RENDER BADGES
 ===================================================== */
 
-function computeBadges(players) {
-  const out = {};
-
-  function award(id, names) {
-    out[id] = names;
-  }
-
-  const maxScore = Math.max(...players.map(p => p.score), 0);
-  award("grim_favorite", players.filter(p => p.score === maxScore && maxScore > 0).map(p => p.name));
-
-  const maxHits = Math.max(...players.map(p => p.hits), 0);
-  award("undertaker", players.filter(p => p.hits === maxHits && maxHits > 0).map(p => p.name));
-
-  const withAge = players.filter(p => p.avgAge > 0);
-  if (withAge.length) {
-    const minAge = Math.min(...withAge.map(p => p.avgAge));
-    const maxAge = Math.max(...withAge.map(p => p.avgAge));
-    award("vulture", withAge.filter(p => p.avgAge === minAge).map(p => p.name));
-    award("pension_sniper", withAge.filter(p => p.avgAge === maxAge).map(p => p.name));
-  }
-
-  award("optimist", players.filter(p => p.approvedCount === 20 && p.hits === 0).map(p => p.name));
-  award("glass_cannon", players.filter(p => p.minusPoints >= 2).map(p => p.name));
-  award("blood_thief", players.filter(p => p.firstBlood && p.rank > 1).map(p => p.name));
-
-  return out;
-}
-
-/* =====================================================
-   RENDER (PLACEHOLDERS FIRST)
-===================================================== */
-
-function renderBadges(players, peopleMap) {
+function renderBadges(players) {
   const host = document.getElementById("badges-stats");
   if (!host) return;
 
-  const scores = buildScoreTable(players, "2026");
+  const scoreTable = buildScoreTable(players, "2026");
 
-  const byTotalDesc = [...scores].sort((a, b) => b.total - a.total);
-  const byHitsDesc = [...scores].sort((a, b) => b.hits - a.hits);
+  const unlockedBadges = evaluateBadges(
+    scoreTable.map(p => ({
+      name: p.name,
+      hits: p.hits,
+      totalScore: p.total
+    }))
+  );
 
-  // ----- Badge winners -----
-  // Grim’s Favorite (highest total score)
-  const maxScore = byTotalDesc.length ? byTotalDesc[0].total : 0;
-  const grimFav = maxScore > 0 ? scores.filter(s => s.total === maxScore).map(s => s.name) : [];
-
-  // The Undertaker (most confirmed deaths / hits)
-  const maxHits = byHitsDesc.length ? byHitsDesc[0].hits : 0;
-  const undertaker = maxHits > 0 ? scores.filter(s => s.hits === maxHits).map(s => s.name) : [];
-
-  // The Vulture / Pension Sniper (lowest/highest avg pick age)
-  const avgAges = scores.map(s => {
-    const ages = s.picks
-      .filter(p => p.birthDate)
-      .map(p => new Date().getFullYear() - new Date(p.birthDate).getFullYear());
-    if (!ages.length) return null;
-    return { player: s.name, avg: ages.reduce((a, b) => a + b, 0) / ages.length };
-  }).filter(Boolean);
-
-  let vulture = [];
-  let pensionSniper = [];
-  if (avgAges.length) {
-    const minAvg = Math.min(...avgAges.map(a => a.avg));
-    const maxAvg2 = Math.max(...avgAges.map(a => a.avg));
-    vulture = avgAges.filter(a => a.avg === minAvg).map(a => a.player);
-    pensionSniper = avgAges.filter(a => a.avg === maxAvg2).map(a => a.player);
+  if (!unlockedBadges.length) {
+    host.innerHTML = `<p class="muted">No badges have been unlocked yet.</p>`;
+    return;
   }
 
-  // Optimist (20 approved picks, no deaths)
-  const optimist = scores
-    .filter(s => {
-      const approved = (s.picks || []).filter(p => p.status === "approved").length;
-      return approved === 20 && s.hits === 0;
-    })
-    .map(s => s.name);
-
-  // Glass Cannon (at least 2 minus points) — your original definition
-  const glassCannon = scores
-    .filter(s => {
-      const minus = (s.picks || []).filter(p => p.status === "approved" && p.birthDate && p.deathDate)
-        .map(p => calculateHitPoints(p.birthDate, p.deathDate))
-        .filter(pts => pts < 0).length;
-      return minus >= 2;
-    })
-    .map(s => s.name);
-
-  // Blood Thief — for now: First Blood winner(s)
-  let firstBlood = null;
-  scores.forEach(s => {
-    (s.picks || []).forEach(p => {
-      if (!p.deathDate || p.status !== "approved") return;
-      const d = new Date(p.deathDate);
-      if (!firstBlood || d < firstBlood.date) firstBlood = { date: d, players: [s.name] };
-      else if (+d === +firstBlood.date && !firstBlood.players.includes(s.name)) firstBlood.players.push(s.name);
-    });
-  });
-  const bloodThief = firstBlood ? firstBlood.players : [];
-
-  const winnersById = {
-    grim_favorite: grimFav,
-    undertaker: undertaker,
-    vulture: vulture,
-    pension_sniper: pensionSniper,
-    optimist: optimist,
-    glass_cannon: glassCannon,
-    blood_thief: bloodThief
+  const tierSuffix = {
+    bronze: "r1_c1",
+    silver: "r1_c2",
+    gold: "r2_c1",
+    prestige: "r2_c2"
   };
 
-  // ----- Render -----
-  host.innerHTML = BADGES.map(b => {
-    const winners = winnersById[b.id] || [];
-    const winnerHtml = winners.length
-      ? `<strong>${winners.join(", ")}</strong>`
-      : "Not yet claimed";
+  host.innerHTML = `
+    <p class="muted">
+      Grim Reaper’s Ledger — unlocked achievements earned through play.
+    </p>
 
-    return `
-      <div class="badge">
-        <div class="badge-title">${b.icon} ${b.name}</div>
-        <div class="badge-description"><em>${b.description}</em></div>
-        <div class="badge-winner">${winnerHtml}</div>
-      </div>
-    `;
-  }).join("");
+    ${unlockedBadges.map(badge => {
+      const imgSrc =
+        `/assets/badges/${badge.id}_${tierSuffix[badge.tier]}_processed_by_imagy.png`;
+
+      const winnersHtml = badge.winners
+        .map(w => `<span>${w.name} (${w.value})</span>`)
+        .join("<br>");
+
+      return `
+        <div class="badge">
+          <div class="badge-image">
+            <img src="${imgSrc}" alt="${badge.name} ${badge.tier}">
+          </div>
+          <div class="badge-content">
+            <div class="badge-title">${badge.name}</div>
+            <div class="badge-description"><em>${badge.description}</em></div>
+            <div class="badge-tier">${badge.tier.charAt(0).toUpperCase() + badge.tier.slice(1)}</div>
+            <div class="badge-winners">${winnersHtml}</div>
+          </div>
+        </div>
+      `;
+    }).join("")}
+  `;
 }
 
 /* =====================================================
