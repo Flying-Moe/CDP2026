@@ -315,13 +315,14 @@ players.forEach(player => {
 const badgeContext = {
   players: players.map(p => {
     const score = buildScoreTable([p], "2026")[0] || {};
-    return {
-      ...p,
-      totalScore: score.total || 0,
-      penalty: score.penalty || 0,
-      approvedPicks: score.picks?.filter(x => x.status === "approved").length || 0,
-      avgPickAge: score.avgPickAge || null
-    };
+return {
+  ...p,
+  hits: score.hits || 0,
+  totalScore: score.total || 0,
+  penalty: score.penalty || 0,
+  approvedPicks: score.picks?.filter(x => x.status === "approved").length || 0,
+  avgPickAge: score.avgPickAge || null
+};
   }),
   deaths: deathsByPlayer
 };
