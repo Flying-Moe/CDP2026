@@ -1,6 +1,7 @@
 console.log("stats.js loaded");
 
 import { db } from "./firebase.js";
+
 import {
   collection,
   getDocs,
@@ -8,24 +9,18 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import {
+  calculateAgeAtDeath,
+  calculateHitPoints,
+  calculatePlayerTotals
+} from "./admin.core.js";
+
 /* =====================================================
    HELPERS
 ===================================================== */
 
 function avg(arr) {
   return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-}
-
-function calculateAge(birthISO, refISO = new Date().toISOString()) {
-  if (!birthISO) return null;
-  const b = new Date(birthISO);
-  const r = new Date(refISO);
-  let age = r.getFullYear() - b.getFullYear();
-  if (
-    r.getMonth() < b.getMonth() ||
-    (r.getMonth() === b.getMonth() && r.getDate() < b.getDate())
-  ) age--;
-  return age;
 }
 
 /* =====================================================
@@ -157,7 +152,7 @@ function renderBadges(players, peopleMap) {
   const glassCannon = scores
     .filter(s => {
       const minus = (s.picks || []).filter(p => p.status === "approved" && p.birthDate && p.deathDate)
-        .map(p => calculatePoints(p.birthDate, p.deathDate))
+        .map(p => calculateHitPoints(p.birthDate, p.deathDate))
         .filter(pts => pts < 0).length;
       return minus >= 2;
     })
@@ -254,7 +249,7 @@ deathMap.set(key, {
 
   const deathsWithAge = deaths
     .map(d => {
-      const age = calculateAge(d.birthDate, d.deathDate);
+      const age = calculateAgeAtDeath(d.birthDate, d.deathDate);
       return age != null ? { ...d, age } : null;
     })
     .filter(Boolean);
@@ -434,7 +429,7 @@ function renderFunStats(players, peopleMap) {
   scores.forEach(s => {
     s.picks.forEach(pick => {
       if (!pick.birthDate || !pick.deathDate || pick.status !== "approved") return;
-      const pts = calculatePoints(pick.birthDate, pick.deathDate);
+      const pts = calculateHitPoints(pick.birthDate, pick.deathDate);
       if (!highest || pts > highest.points) {
         highest = {
           player: s.name,
