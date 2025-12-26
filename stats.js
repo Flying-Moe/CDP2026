@@ -39,7 +39,7 @@ const BADGES = [
   { id: "pension_sniper", icon: "🐢", name: "The Pension Sniper", description: "Highest average pick age" },
   { id: "optimist", icon: "🪦", name: "The Optimist", description: "20 approved picks, no deaths" },
   { id: "glass_cannon", icon: "🧨", name: "Glass Cannon", description: "At least 2 minus points" },
-  { id: "blood_thief", icon: "🩸", name: "Blood Thief", description: "First Blood without leading" }
+  { id: "blood_thief", icon: "🩸", name: "Blood Thief", description: "First player to score First Blood" }
 ];
 
 /* =====================================================
