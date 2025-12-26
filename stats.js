@@ -312,9 +312,7 @@ players.forEach(player => {
   });
 });
 
-    renderDeathStatsFromPlayers(players, peopleMap);
-    renderFunStats(players, peopleMap);
-    renderBadges({
+const badgeContext = {
   players: players.map(p => {
     const score = buildScoreTable([p], "2026")[0] || {};
     return {
@@ -326,9 +324,17 @@ players.forEach(player => {
     };
   }),
   deaths: deathsByPlayer
+};
+
+const storedPlayer =
+  localStorage.getItem(BADGE_PLAYER_STORAGE_KEY) || "all";
+
+setupBadgePlayerDropdown(badgeContext.players, (playerId) => {
+  renderBadges(badgeContext, playerId);
 });
 
-  renderHall();
+renderBadges(badgeContext, storedPlayer);
+
 });
 
 /* =====================================================
