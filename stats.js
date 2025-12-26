@@ -74,12 +74,6 @@ function initTabs() {
 }
 
 /* =====================================================
-   LOAD DATA
-===================================================== */
-
-renderOverallStats();
-
-/* =====================================================
    COMPUTE BADGES (TIES SUPPORTED)
 ===================================================== */
 
@@ -259,13 +253,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = {};
 
-  peopleSnap.forEach(doc => {
-  peopleMap[doc.id] = doc.data();
+    peopleSnap.forEach(doc => {
+      peopleMap[doc.id] = doc.data();
+    });
 
-      renderDeathStatsFromPlayers(players, peopleMap);
+    renderDeathStatsFromPlayers(players, peopleMap);
     renderFunStats(players, peopleMap);
 
-});
 
   
   // Render Deaths
