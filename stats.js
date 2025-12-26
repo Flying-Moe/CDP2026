@@ -109,29 +109,111 @@ function computeBadges(players) {
    RENDER (PLACEHOLDERS FIRST)
 ===================================================== */
 
-function renderBadges(badgeWinners) {
-  const container = document.getElementById("badges-stats");
+function renderBadges(players, peopleMap) {
+  const container = document.getElementById("stats-badges");
   if (!container) return;
 
-  container.innerHTML = BADGES.map(b => {
-    const winners = badgeWinners[b.id] || [];
+  const scores = buildScoreTable(players, "2026");
 
-    return `
-      <div class="badge">
-        <div class="badge-title">${b.icon} ${b.name}</div>
+  const setBadge = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = text;
+  };
 
-        ${
-          winners.length
-            ? `
-              <div class="badge-description"><em>${b.description}</em></div>
-              <div class="badge-winner"><strong>${winners.join(", ")}</strong></div>
-            `
-            : `<div class="muted">Not yet claimed</div>`
-        }
-      </div>
-    `;
-  }).join("");
+  // ---------- Grim’s Favorite (highest total score) ----------
+  const topScore = Math.max(...scores.map(s => s.total));
+  const grimFav = scores.filter(s => s.total === topScore && topScore > 0);
+
+  setBadge(
+    "badge-grim-favorite",
+    grimFav.length
+      ? `<strong>${grimFav.map(p => p.name).join(", ")}</strong>`
+      : "Not yet claimed"
+  );
+
+  // ---------- The Undertaker (most hits) ----------
+  const maxHits = Math.max(...scores.map(s => s.hits));
+  const undertaker = scores.filter(s => s.hits === maxHits && maxHits > 0);
+
+  setBadge(
+    "badge-undertaker",
+    undertaker.length
+      ? `<strong>${undertaker.map(p => p.name).join(", ")}</strong>`
+      : "Not yet claimed"
+  );
+
+  // ---------- Glass Cannon (highest single hit) ----------
+  let highestHit = null;
+
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
+      if (!pick.birthDate || !pick.deathDate || pick.status !== "approved") return;
+      const pts = calculatePoints(pick.birthDate, pick.deathDate);
+      if (!highestHit || pts > highestHit.points) {
+        highestHit = {
+          player: s.name,
+          points: pts
+        };
+      }
+    });
+  });
+
+  setBadge(
+    "badge-glass-cannon",
+    highestHit
+      ? `<strong>${highestHit.player}</strong>`
+      : "Not yet claimed"
+  );
+
+  // ---------- Blood Thief (first blood) ----------
+  let firstBlood = null;
+
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
+      if (!pick.deathDate || pick.status !== "approved") return;
+      const d = new Date(pick.deathDate);
+      if (!firstBlood || d < firstBlood.date) {
+        firstBlood = { player: s.name, date: d };
+      }
+    });
+  });
+
+  setBadge(
+    "badge-blood-thief",
+    firstBlood
+      ? `<strong>${firstBlood.player}</strong>`
+      : "Not yet claimed"
+  );
+
+  // ---------- The Vulture (lowest average pick age) ----------
+  const avgAges = scores.map(s => {
+    const ages = s.picks
+      .filter(p => p.birthDate)
+      .map(p => new Date().getFullYear() - new Date(p.birthDate).getFullYear());
+    if (!ages.length) return null;
+    return {
+      player: s.name,
+      avg: ages.reduce((a, b) => a + b, 0) / ages.length
+    };
+  }).filter(Boolean);
+
+  const lowestAvg = avgAges.length
+    ? Math.min(...avgAges.map(a => a.avg))
+    : null;
+
+  const vulture = avgAges.filter(a => a.avg === lowestAvg);
+
+  setBadge(
+    "badge-vulture",
+    vulture.length
+      ? `<strong>${vulture.map(v => v.player).join(", ")}</strong>`
+      : "Not yet claimed"
+  );
 }
+
+/* =====================================================
+   RENDER DEATH STATS
+===================================================== */
 
 function renderDeathStatsFromPlayers(players, peopleMap) {
   const set = (id, value) => {
@@ -210,6 +292,10 @@ deathMap.set(key, {
     `${first.name} – ${first.deathDate} (${[...first.players].join(", ")})`
   );
 }
+
+/* =====================================================
+   RENDER HALL OF FAME
+===================================================== */
 
 function renderHall() {
   const el = document.getElementById("stats-hall");
