@@ -69,25 +69,13 @@ function initTabs() {
    RENDER BADGES
 ===================================================== */
 
-function renderBadges(players) {
+function renderBadges(context) {
   const host = document.getElementById("badges-stats");
   if (!host) return;
 
-  const scoreTable = buildScoreTable(players, "2026");
+  const badges = evaluateBadges(context);
 
-  const unlockedBadges = evaluateBadges(
-    scoreTable.map(p => ({
-      name: p.name,
-      hits: p.hits,
-      totalScore: p.total
-    }))
-  );
-
-  if (!unlockedBadges.length) {
-    host.innerHTML = `<p class="muted">No badges have been unlocked yet.</p>`;
-    return;
-  }
-
+  const tierOrder = ["bronze", "silver", "gold", "prestige"];
   const tierSuffix = {
     bronze: "r1_c1",
     silver: "r1_c2",
@@ -95,34 +83,50 @@ function renderBadges(players) {
     prestige: "r2_c2"
   };
 
-  host.innerHTML = `
-    <p class="muted">
-      Grim Reaper’s Ledger — unlocked achievements earned through play.
-    </p>
+  host.innerHTML = badges.map(badge => {
+    const hasUnlockedAnything = badge.globalUnlocked;
 
-    ${unlockedBadges.map(badge => {
-      const imgSrc =
-        `/assets/badges/${badge.id}_${tierSuffix[badge.tier]}_processed_by_imagy.png`;
+    const descriptionHtml = hasUnlockedAnything
+      ? `<div class="badge-description">${badge.description}</div>`
+      : `<div class="badge-placeholder">Not yet claimed</div>`;
 
-      const winnersHtml = badge.winners
-        .map(w => `<span>${w.name} (${w.value})</span>`)
-        .join("<br>");
+    const tiersHtml = tierOrder.map(tierId => {
+      const tier = badge.tiers[tierId];
+      const unlocked = tier.unlocked;
+
+      const imgSrc = `/assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
+
+      const playersHtml = tier.players.length
+        ? tier.players.map(p => `
+            <div class="badge-player">
+              ${p.name} (${p.value})
+            </div>
+          `).join("")
+        : "";
 
       return `
-        <div class="badge">
-          <div class="badge-image">
-            <img src="${imgSrc}" alt="${badge.name} ${badge.tier}">
-          </div>
-          <div class="badge-content">
-            <div class="badge-title">${badge.name}</div>
-            <div class="badge-description"><em>${badge.description}</em></div>
-            <div class="badge-tier">${badge.tier.charAt(0).toUpperCase() + badge.tier.slice(1)}</div>
-            <div class="badge-winners">${winnersHtml}</div>
+        <div class="badge-tier ${unlocked ? "unlocked" : "locked"}">
+          <img src="${imgSrc}" alt="${badge.name} ${tierId}">
+          <div class="badge-tier-players">
+            ${playersHtml}
           </div>
         </div>
       `;
-    }).join("")}
-  `;
+    }).join("");
+
+    return `
+      <div class="badge-block">
+        <div class="badge-header">
+          <div class="badge-title">${badge.name}</div>
+          ${descriptionHtml}
+        </div>
+
+        <div class="badge-tiers">
+          ${tiersHtml}
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 /* =====================================================
