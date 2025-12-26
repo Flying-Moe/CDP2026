@@ -12,6 +12,8 @@ import {
   buildScoreTable
 } from "./admin.core.js";
 
+import { evaluateBadges } from "./badges.engine.js";
+
 import { db } from "./firebase.js";
 
 /* =========================
@@ -206,6 +208,28 @@ function renderBadges(players, peopleMap) {
     `;
   }).join("");
 }
+
+/* =========================
+   BADGES — DEBUG (TEMP)
+========================= */
+
+const unlockedBadges = evaluateBadges(
+  scoreTable.map(p => ({
+    name: p.name,
+    hits: p.hits,
+    totalScore: p.total
+  }))
+);
+
+/* Let læsbart console-output */
+console.group("🏅 Unlocked Badges");
+unlockedBadges.forEach(b => {
+  console.log(
+    `${b.name} [${b.tier.toUpperCase()}]`,
+    b.winners.map(w => `${w.name} (${w.value})`).join(", ")
+  );
+});
+console.groupEnd();
 
 /* =====================================================
    RENDER DEATH STATS
