@@ -139,7 +139,7 @@ function renderBadges(badgeWinners) {
   }).join("");
 }
 
-function renderDeathStatsFromPlayers(players) {
+function renderDeathStatsFromPlayers(players, peopleMap) {
   const set = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -158,12 +158,16 @@ function renderDeathStatsFromPlayers(players) {
       if (!key) return;
 
       if (!deathMap.has(key)) {
-        deathMap.set(key, {
-          name: pick.personName || pick.displayName || "Unknown",
-          birthDate: pick.birthDate,
-          deathDate: pick.deathDate,
-          players: new Set()
-        });
+deathMap.set(key, {
+  name:
+    (pick.personId && peopleMap[pick.personId]?.name) ||
+    pick.normalizedName ||
+    "Unknown",
+  birthDate: pick.birthDate,
+  deathDate: pick.deathDate,
+  players: new Set()
+});
+
       }
 
       deathMap.get(key).players.add(player.name);
@@ -250,7 +254,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  renderDeathStatsFromPlayers(players);
+
+
+    const peopleSnap = await getDocs(collection(db, "people"));
+  const peopleMap = {};
+
+  peopleSnap.forEach(doc => {
+  peopleMap[doc.id] = doc.data();
+
+      renderDeathStatsFromPlayers(players, peopleMap);
+});
+
   
   // Render Deaths
 
