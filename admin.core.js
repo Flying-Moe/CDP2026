@@ -394,6 +394,7 @@ export function setupTabs() {
 document.addEventListener("DOMContentLoaded", () => {
   const loginSection  = document.getElementById("login-section");
   const adminSection  = document.getElementById("admin-section");
+  const isAdminPage = !!loginSection && !!adminSection;
   const loginBtn      = document.getElementById("loginBtn");
   const logoutBtn     = document.getElementById("logoutBtn");
   const errorEl       = document.getElementById("login-error");
@@ -416,6 +417,8 @@ document.addEventListener("DOMContentLoaded", () => {
   logoutBtn?.addEventListener("click", () => signOut(auth));
 
 onAuthStateChanged(auth, async user => {
+  if (!isAdminPage) return;
+
   if (!user) {
     loginSection.style.display = "block";
     adminSection.style.display = "none";
