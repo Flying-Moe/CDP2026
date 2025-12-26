@@ -1,57 +1,83 @@
 /*
-  BADGE ENGINE
+  BADGE ENGINE v2
   - Read-only
   - No DOM
   - No Firestore
+  - Tier-aware
 */
 
-export const BADGE_DEFINITIONS = [
+export const BADGES = [
   {
     id: "undertaker",
-    icon: "☠️",
     name: "The Undertaker",
     description: "Most confirmed deaths",
+    order: 1,
+    tiers: [
+      { tier: "bronze", min: 1 },
+      { tier: "silver", min: 3 },
+      { tier: "gold", min: 5 },
+      { tier: "prestige", min: 8 }
+    ],
     evaluate(players) {
       const max = Math.max(...players.map(p => p.hits));
       if (max <= 0) return null;
 
-      return players
-        .filter(p => p.hits === max)
-        .map(p => p.name);
+      const tier = [...this.tiers]
+        .reverse()
+        .find(t => max >= t.min)?.tier;
+
+      return {
+        tier,
+        winners: players
+          .filter(p => p.hits === max)
+          .map(p => ({ name: p.name, value: p.hits }))
+      };
     }
   },
 
   {
     id: "grim_favorite",
-    icon: "🥇",
     name: "Grim’s Favorite",
     description: "Highest total score",
+    order: 2,
+    tiers: [
+      { tier: "bronze", min: 1 },
+      { tier: "silver", min: 50 },
+      { tier: "gold", min: 100 },
+      { tier: "prestige", min: 150 }
+    ],
     evaluate(players) {
       const max = Math.max(...players.map(p => p.totalScore));
       if (max <= 0) return null;
 
-      return players
-        .filter(p => p.totalScore === max)
-        .map(p => p.name);
+      const tier = [...this.tiers]
+        .reverse()
+        .find(t => max >= t.min)?.tier;
+
+      return {
+        tier,
+        winners: players
+          .filter(p => p.totalScore === max)
+          .map(p => ({ name: p.name, value: p.totalScore }))
+      };
     }
   }
 ];
 
 export function evaluateBadges(players) {
-  const unlocked = [];
+  return BADGES
+    .sort((a, b) => a.order - b.order)
+    .map(badge => {
+      const result = badge.evaluate(players);
+      if (!result) return null;
 
-  BADGE_DEFINITIONS.forEach(def => {
-    const winners = def.evaluate(players);
-    if (!winners || winners.length === 0) return;
-
-    unlocked.push({
-      id: def.id,
-      icon: def.icon,
-      name: def.name,
-      description: def.description,
-      winners
-    });
-  });
-
-  return unlocked;
+      return {
+        id: badge.id,
+        name: badge.name,
+        description: badge.description,
+        tier: result.tier,
+        winners: result.winners
+      };
+    })
+    .filter(Boolean);
 }
