@@ -96,46 +96,41 @@ export const BADGES = [
      Accumulated minus points
   ========================= */
 
-  {
-    id: "glass_cannon",
-    name: "Glass Cannon",
-    description: "Accumulated minus points",
-    order: 2,
+{
+  id: "glass_cannon",
+  name: "Glass Cannon",
+  description: "Accumulated minus points",
+  order: 2,
 
-    evaluate({ players }) {
-      const tiers = buildEmptyTiers();
-      let globalUnlocked = false;
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+    let globalUnlocked = false;
 
-      players.forEach(player => {
-        const penalties = Math.abs(player.penalty || 0);
-        if (penalties <= 0) return;
+players.forEach(player => {
+  const penalties = Math.abs(player.penalty || 0);
+  if (penalties <= 0) return;
 
-        const achievedAt = "9999-12-31";
+  const achievedAt = "9999-12-31";
 
-        TIERS.forEach(t => {
-          if (penalties >= t.min) {
-            tiers[t.id].players.push({
-              id: player.id,
-              name: player.name,
-              value: penalties,
-              achievedAt,
-              leaderboardScore: player.totalScore
-            });
-          }
-        });
+  const THRESHOLDS = {
+    bronze: 3,
+    silver: 6,
+    gold: 9,
+    prestige: 12
+  };
+
+  Object.entries(THRESHOLDS).forEach(([tierId, minPenalty]) => {
+    if (penalties >= minPenalty) {
+      tiers[tierId].players.push({
+        id: player.id,
+        name: player.name,
+        value: penalties,
+        achievedAt,
+        leaderboardScore: player.totalScore
       });
-
-      Object.values(tiers).forEach(tier => {
-        if (tier.players.length) {
-          tier.unlocked = true;
-          globalUnlocked = true;
-          tier.players.sort(sortPlayers);
-        }
-      });
-
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
     }
-  },
+  });
+});
 
   /* =========================
      THE VULTURE
