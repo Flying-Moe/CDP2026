@@ -110,22 +110,24 @@ function computeBadges(players) {
 ===================================================== */
 
 function renderBadges(players, peopleMap) {
-  const container = document.getElementById("stats-badges");
-  if (!container) return;
-
-  const badges = Array.from(container.querySelectorAll(".badge"));
-  if (!badges.length) return;
+  const host = document.getElementById("badges-stats");
+  if (!host) return;
 
   const scores = buildScoreTable(players, "2026");
 
-  const setOwner = (index, text) => {
-    const badge = badges[index];
-    if (!badge) return;
-    const owner = badge.querySelector(".badge-owner");
-    if (owner) owner.innerHTML = text;
-  };
+  const byTotalDesc = [...scores].sort((a, b) => b.total - a.total);
+  const byHitsDesc = [...scores].sort((a, b) => b.hits - a.hits);
 
-  // 0 — The Vulture (lowest average pick age)
+  // ----- Badge winners -----
+  // Grim’s Favorite (highest total score)
+  const maxScore = byTotalDesc.length ? byTotalDesc[0].total : 0;
+  const grimFav = maxScore > 0 ? scores.filter(s => s.total === maxScore).map(s => s.name) : [];
+
+  // The Undertaker (most confirmed deaths / hits)
+  const maxHits = byHitsDesc.length ? byHitsDesc[0].hits : 0;
+  const undertaker = maxHits > 0 ? scores.filter(s => s.hits === maxHits).map(s => s.name) : [];
+
+  // The Vulture / Pension Sniper (lowest/highest avg pick age)
   const avgAges = scores.map(s => {
     const ages = s.picks
       .filter(p => p.birthDate)
@@ -134,57 +136,70 @@ function renderBadges(players, peopleMap) {
     return { player: s.name, avg: ages.reduce((a, b) => a + b, 0) / ages.length };
   }).filter(Boolean);
 
+  let vulture = [];
+  let pensionSniper = [];
   if (avgAges.length) {
-    const lowest = Math.min(...avgAges.map(a => a.avg));
-    const vulture = avgAges.filter(a => a.avg === lowest);
-    setOwner(0, `<strong>${vulture.map(v => v.player).join(", ")}</strong>`);
+    const minAvg = Math.min(...avgAges.map(a => a.avg));
+    const maxAvg2 = Math.max(...avgAges.map(a => a.avg));
+    vulture = avgAges.filter(a => a.avg === minAvg).map(a => a.player);
+    pensionSniper = avgAges.filter(a => a.avg === maxAvg2).map(a => a.player);
   }
 
-  // 1 — Blood Thief (first blood)
+  // Optimist (20 approved picks, no deaths)
+  const optimist = scores
+    .filter(s => {
+      const approved = (s.picks || []).filter(p => p.status === "approved").length;
+      return approved === 20 && s.hits === 0;
+    })
+    .map(s => s.name);
+
+  // Glass Cannon (at least 2 minus points) — your original definition
+  const glassCannon = scores
+    .filter(s => {
+      const minus = (s.picks || []).filter(p => p.status === "approved" && p.birthDate && p.deathDate)
+        .map(p => calculatePoints(p.birthDate, p.deathDate))
+        .filter(pts => pts < 0).length;
+      return minus >= 2;
+    })
+    .map(s => s.name);
+
+  // Blood Thief — for now: First Blood winner(s)
   let firstBlood = null;
   scores.forEach(s => {
-    s.picks.forEach(p => {
+    (s.picks || []).forEach(p => {
       if (!p.deathDate || p.status !== "approved") return;
       const d = new Date(p.deathDate);
-      if (!firstBlood || d < firstBlood.date) {
-        firstBlood = { player: s.name, date: d };
-      }
+      if (!firstBlood || d < firstBlood.date) firstBlood = { date: d, players: [s.name] };
+      else if (+d === +firstBlood.date && !firstBlood.players.includes(s.name)) firstBlood.players.push(s.name);
     });
   });
+  const bloodThief = firstBlood ? firstBlood.players : [];
 
-  if (firstBlood) {
-    setOwner(1, `<strong>${firstBlood.player}</strong>`);
-  }
+  const winnersById = {
+    grim_favorite: grimFav,
+    undertaker: undertaker,
+    vulture: vulture,
+    pension_sniper: pensionSniper,
+    optimist: optimist,
+    glass_cannon: glassCannon,
+    blood_thief: bloodThief
+  };
 
-  // 2 — Grim’s Favorite (highest total score)
-  const maxScore = Math.max(...scores.map(s => s.total));
-  if (maxScore > 0) {
-    const favs = scores.filter(s => s.total === maxScore);
-    setOwner(2, `<strong>${favs.map(f => f.name).join(", ")}</strong>`);
-  }
+  // ----- Render -----
+  host.innerHTML = BADGES.map(b => {
+    const winners = winnersById[b.id] || [];
+    const winnerHtml = winners.length
+      ? `<strong>${winners.join(", ")}</strong>`
+      : "Not yet claimed";
 
-  // 3 — The Undertaker (most hits)
-  const maxHits = Math.max(...scores.map(s => s.hits));
-  if (maxHits > 0) {
-    const undertakers = scores.filter(s => s.hits === maxHits);
-    setOwner(3, `<strong>${undertakers.map(u => u.name).join(", ")}</strong>`);
-  }
-
-  // 4 — Glass Cannon (highest single hit)
-  let highestHit = null;
-  scores.forEach(s => {
-    s.picks.forEach(p => {
-      if (!p.birthDate || !p.deathDate || p.status !== "approved") return;
-      const pts = calculatePoints(p.birthDate, p.deathDate);
-      if (!highestHit || pts > highestHit.points) {
-        highestHit = { player: s.name, points: pts };
-      }
-    });
-  });
-
-  if (highestHit) {
-    setOwner(4, `<strong>${highestHit.player}</strong>`);
-  }
+    return `
+      <div class="badge">
+        <div class="badge-title">${b.icon} ${b.name}</div>
+        <div class="badge-description"><em>${b.description}</em></div>
+        <div class="badge-winner">${winnerHtml}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 /* =====================================================
@@ -274,7 +289,7 @@ deathMap.set(key, {
 ===================================================== */
 
 function renderHall() {
-  const el = document.getElementById("stats-hall");
+  const el = document.getElementById("stats-hof");
   if (!el) return;
 
   el.innerHTML = `
@@ -321,10 +336,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderFunStats(players, peopleMap);
     renderBadges(players, peopleMap);
 
-
-  // Badges + Hall
-  const badgeWinners = computeBadges(players);
-  renderBadges(badgeWinners);
   renderHall();
 });
 
