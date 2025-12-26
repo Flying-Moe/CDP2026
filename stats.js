@@ -101,6 +101,23 @@ function setupBadgePlayerDropdown(players, onChange) {
    RENDER BADGES
 ===================================================== */
 
+function getHighestTierIndex(tiers, playerId) {
+  const order = ["bronze", "silver", "gold", "prestige"];
+
+  let highest = -1;
+
+  order.forEach((tierId, index) => {
+    const tier = tiers[tierId];
+    if (!tier) return;
+
+    if (tier.players.some(p => p.id === playerId)) {
+      highest = index;
+    }
+  });
+
+  return highest;
+}
+
 function renderBadges(context, selectedPlayerId = "all") {
   const host = document.getElementById("badges-stats");
   if (!host) return;
@@ -128,13 +145,30 @@ function renderBadges(context, selectedPlayerId = "all") {
 
       const imgSrc = `/assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
 
-const visiblePlayers = tier.players.filter(p =>
-  selectedPlayerId === "all" || p.id === selectedPlayerId
-);
+const tierOrder = ["bronze", "silver", "gold", "prestige"];
+const tierIndex = tierOrder.indexOf(tierId);
+
+const visiblePlayers = tier.players
+  .filter(p =>
+    selectedPlayerId === "all" || p.id === selectedPlayerId
+  )
+  .map(p => {
+    const highestTier = getHighestTierIndex(badge.tiers, p.id);
+    return {
+      ...p,
+      isDemoted: highestTier > tierIndex
+    };
+  })
+  .sort((a, b) => {
+    if (a.isDemoted !== b.isDemoted) {
+      return a.isDemoted ? 1 : -1;
+    }
+    return 0;
+  });
 
 const playersHtml = visiblePlayers.length
   ? visiblePlayers.map(p => `
-      <div class="badge-player">
+      <div class="badge-player ${p.isDemoted ? "demoted" : ""}">
         ${p.name} (${p.value})
       </div>
     `).join("")
