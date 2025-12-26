@@ -1,6 +1,20 @@
 console.log("stats.js loaded");
 
+/* =========================
+   LOCAL / CORE IMPORTS
+========================= */
+
+import {
+  calculateAgeAtDeath,
+  calculateHitPoints,
+  calculatePlayerTotals
+} from "./admin.core.js";
+
 import { db } from "./firebase.js";
+
+/* =========================
+   EXTERNAL LIBRARIES FIREBASE
+========================= */
 
 import {
   collection,
@@ -8,12 +22,6 @@ import {
   query,
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-import {
-  calculateAgeAtDeath,
-  calculateHitPoints,
-  calculatePlayerTotals
-} from "./admin.core.js";
 
 /* =====================================================
    HELPERS
