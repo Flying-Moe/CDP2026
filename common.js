@@ -13,6 +13,47 @@ console.log("Common loaded");
   });
 })();
 
+function buildScoreTable(players, year = "2026") {
+  const result = [];
+
+  players.forEach(player => {
+    const entry = player.entries?.[year];
+    if (!entry || entry.active === false) return;
+
+    let total = 0;
+    let hits = 0;
+    let penalty = entry.penalty || 0;
+
+    (entry.picks || []).forEach(pick => {
+      if (
+        pick.status === "approved" &&
+        pick.birthDate &&
+        pick.deathDate
+      ) {
+        const points = calculatePoints(
+          pick.birthDate,
+          pick.deathDate
+        );
+        total += points;
+        hits++;
+      }
+    });
+
+    total += penalty;
+
+    result.push({
+      id: player.id,
+      name: player.name,
+      total,
+      hits,
+      penalty,
+      picks: entry.picks || []
+    });
+  });
+
+  return result;
+}
+
 /* === Build timestamp with timezone === */
 (function renderBuildInfo() {
   const el = document.getElementById("build-info");
