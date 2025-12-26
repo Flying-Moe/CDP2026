@@ -8,7 +8,9 @@ import {
   collection,
   getDocs,
   query,
-  where
+  where,
+  calculateAgeAtDeath,
+  calculateHitPoints
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
@@ -85,35 +87,6 @@ function computeBadges(players) {
   });
 
   return out;
-}
-
-/* =====================================================
-   HELPERS
-===================================================== */
-
-function calculateAgeForList(birthISO, deathISO) {
-  if (!birthISO) return null;
-
-  const birth = new Date(birthISO);
-  const end = deathISO ? new Date(deathISO) : new Date();
-
-  let age = end.getFullYear() - birth.getFullYear();
-
-  const hadBirthday =
-    end.getMonth() > birth.getMonth() ||
-    (end.getMonth() === birth.getMonth() &&
-     end.getDate() >= birth.getDate());
-
-  if (!hadBirthday) age--;
-
-  return age;
-}
-
-function calculatePotentialPointsForList(birthISO, deathISO) {
-  const age = calculateAgeForList(birthISO, deathISO);
-  if (age === null) return null;
-  if (age >= 99) return 1;
-  return Math.max(1, 100 - age);
 }
 
 /* =====================================================
@@ -224,15 +197,15 @@ let rowData = [];
 let totalPotential = 0;
 
 player.approved.forEach(pick => {
-  const age = calculateAgeForList(
-    pick.birthDate,
-    pick.deathDate
-  );
+const age = calculateAgeAtDeath(
+  pick.birthDate,
+  pick.deathDate
+);
 
-  const points = calculatePotentialPointsForList(
-    pick.birthDate,
-    pick.deathDate
-  );
+const points =
+  pick.birthDate
+    ? calculateHitPoints(pick.birthDate, pick.deathDate)
+    : null;
 
   totalPotential += points ?? 0;
 
