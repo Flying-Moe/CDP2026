@@ -325,45 +325,14 @@ async function renderOverallStats() {
 ===================================================== */
 
 function renderFunStats(players, peopleMap) {
-  const container = document.getElementById("stats-fun");
-  if (!container) return;
-
   const scores = buildScoreTable(players, "2026");
 
-  // Most minus points
-  const worstPenalty = Math.min(...scores.map(s => s.penalty));
-  const mostMinus = scores.filter(s => s.penalty === worstPenalty && worstPenalty < 0);
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
 
-  // Highest single hit
-  let highestHit = null;
-
-  scores.forEach(s => {
-    s.picks.forEach(pick => {
-      if (
-        pick.status === "approved" &&
-        pick.birthDate &&
-        pick.deathDate
-      ) {
-        const points = calculatePoints(
-          pick.birthDate,
-          pick.deathDate
-        );
-
-        if (!highestHit || points > highestHit.points) {
-          highestHit = {
-            player: s.name,
-            person:
-              (pick.personId && peopleMap[pick.personId]?.name) ||
-              pick.normalizedName ||
-              "Unknown",
-            points
-          };
-        }
-      }
-    });
-  });
-
-  // Most picked celebrity
+  /* Most picked celebrity */
   const pickCount = {};
   scores.forEach(s => {
     s.picks.forEach(pick => {
@@ -377,52 +346,52 @@ function renderFunStats(players, peopleMap) {
     (a, b) => pickCount[b] - pickCount[a]
   )[0];
 
-  // Chaos level (derived)
-  const chaosLevel =
-    scores.filter(s => s.hits > 0).length +
-    mostMinus.length;
+  set(
+    "stat-fun-most-picked",
+    mostPickedKey
+      ? `${peopleMap[mostPickedKey]?.name || mostPickedKey} (${pickCount[mostPickedKey]})`
+      : "—"
+  );
 
-  container.innerHTML = `
-    <h2>Fun stats</h2>
-    <p class="stats-note">
-      Light-hearted stats derived directly from the live leaderboard.
-    </p>
+  /* Highest single score */
+  let highest = null;
 
-    <ul class="stats-list">
-      <li>
-        <strong>Most minus points:</strong>
-        ${
-          mostMinus.length
-            ? mostMinus.map(p => `${p.name} (${p.penalty})`).join(", ")
-            : "—"
-        }
-      </li>
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
+      if (!pick.birthDate || !pick.deathDate || pick.status !== "approved") return;
+      const pts = calculatePoints(pick.birthDate, pick.deathDate);
+      if (!highest || pts > highest.points) {
+        highest = {
+          player: s.name,
+          person:
+            (pick.personId && peopleMap[pick.personId]?.name) ||
+            pick.normalizedName ||
+            "Unknown",
+          points: pts
+        };
+      }
+    });
+  });
 
-      <li>
-        <strong>Highest single hit:</strong>
-        ${
-          highestHit
-            ? `${highestHit.player} – ${highestHit.person} (${highestHit.points})`
-            : "—"
-        }
-      </li>
+  set(
+    "stat-fun-highest-score",
+    highest
+      ? `${highest.player} – ${highest.person} (${highest.points})`
+      : "—"
+  );
 
-      <li>
-        <strong>Most picked celebrity:</strong>
-        ${
-          mostPickedKey
-            ? `${
-                peopleMap[mostPickedKey]?.name ||
-                mostPickedKey
-              } (${pickCount[mostPickedKey]})`
-            : "—"
-        }
-      </li>
+  /* Most penalties */
+  const worstPenalty = Math.min(...scores.map(s => s.penalty));
+  const penaltyPlayers = scores.filter(s => s.penalty === worstPenalty && worstPenalty < 0);
 
-      <li>
-        <strong>Chaos level:</strong>
-        ${"☠️".repeat(Math.min(chaosLevel, 5))}
-      </li>
-    </ul>
-  `;
+  set(
+    "stat-fun-most-penalties",
+    penaltyPlayers.length
+      ? penaltyPlayers.map(p => `${p.name} (${p.penalty})`).join(", ")
+      : "—"
+  );
+
+  /* Placeholder stats (not implemented yet) */
+  set("stat-fun-controversial", "—");
+  set("stat-fun-unlucky", "—");
 }
