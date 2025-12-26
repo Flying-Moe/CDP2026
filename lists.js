@@ -4,13 +4,17 @@ let listsSortKey = "pp";   // name | age | pp | pb
 let listsSortDir = "desc"; // asc | desc
 
 import { db } from "./firebase.js";
+
+import {
+  calculateAgeAtDeath,
+  calculateHitPoints
+} from "./admin.core.js";
+
 import {
   collection,
   getDocs,
   query,
-  where,
-  calculateAgeAtDeath,
-  calculateHitPoints
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
