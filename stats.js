@@ -113,102 +113,79 @@ function renderBadges(players, peopleMap) {
   const container = document.getElementById("stats-badges");
   if (!container) return;
 
+  const badges = Array.from(container.querySelectorAll(".badge"));
+  if (!badges.length) return;
+
   const scores = buildScoreTable(players, "2026");
 
-  const setBadge = (id, text) => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = text;
+  const setOwner = (index, text) => {
+    const badge = badges[index];
+    if (!badge) return;
+    const owner = badge.querySelector(".badge-owner");
+    if (owner) owner.innerHTML = text;
   };
 
-  // ---------- Grim’s Favorite (highest total score) ----------
-  const topScore = Math.max(...scores.map(s => s.total));
-  const grimFav = scores.filter(s => s.total === topScore && topScore > 0);
+  // 0 — The Vulture (lowest average pick age)
+  const avgAges = scores.map(s => {
+    const ages = s.picks
+      .filter(p => p.birthDate)
+      .map(p => new Date().getFullYear() - new Date(p.birthDate).getFullYear());
+    if (!ages.length) return null;
+    return { player: s.name, avg: ages.reduce((a, b) => a + b, 0) / ages.length };
+  }).filter(Boolean);
 
-  setBadge(
-    "badge-grim-favorite",
-    grimFav.length
-      ? `<strong>${grimFav.map(p => p.name).join(", ")}</strong>`
-      : "Not yet claimed"
-  );
+  if (avgAges.length) {
+    const lowest = Math.min(...avgAges.map(a => a.avg));
+    const vulture = avgAges.filter(a => a.avg === lowest);
+    setOwner(0, `<strong>${vulture.map(v => v.player).join(", ")}</strong>`);
+  }
 
-  // ---------- The Undertaker (most hits) ----------
-  const maxHits = Math.max(...scores.map(s => s.hits));
-  const undertaker = scores.filter(s => s.hits === maxHits && maxHits > 0);
-
-  setBadge(
-    "badge-undertaker",
-    undertaker.length
-      ? `<strong>${undertaker.map(p => p.name).join(", ")}</strong>`
-      : "Not yet claimed"
-  );
-
-  // ---------- Glass Cannon (highest single hit) ----------
-  let highestHit = null;
-
-  scores.forEach(s => {
-    s.picks.forEach(pick => {
-      if (!pick.birthDate || !pick.deathDate || pick.status !== "approved") return;
-      const pts = calculatePoints(pick.birthDate, pick.deathDate);
-      if (!highestHit || pts > highestHit.points) {
-        highestHit = {
-          player: s.name,
-          points: pts
-        };
-      }
-    });
-  });
-
-  setBadge(
-    "badge-glass-cannon",
-    highestHit
-      ? `<strong>${highestHit.player}</strong>`
-      : "Not yet claimed"
-  );
-
-  // ---------- Blood Thief (first blood) ----------
+  // 1 — Blood Thief (first blood)
   let firstBlood = null;
-
   scores.forEach(s => {
-    s.picks.forEach(pick => {
-      if (!pick.deathDate || pick.status !== "approved") return;
-      const d = new Date(pick.deathDate);
+    s.picks.forEach(p => {
+      if (!p.deathDate || p.status !== "approved") return;
+      const d = new Date(p.deathDate);
       if (!firstBlood || d < firstBlood.date) {
         firstBlood = { player: s.name, date: d };
       }
     });
   });
 
-  setBadge(
-    "badge-blood-thief",
-    firstBlood
-      ? `<strong>${firstBlood.player}</strong>`
-      : "Not yet claimed"
-  );
+  if (firstBlood) {
+    setOwner(1, `<strong>${firstBlood.player}</strong>`);
+  }
 
-  // ---------- The Vulture (lowest average pick age) ----------
-  const avgAges = scores.map(s => {
-    const ages = s.picks
-      .filter(p => p.birthDate)
-      .map(p => new Date().getFullYear() - new Date(p.birthDate).getFullYear());
-    if (!ages.length) return null;
-    return {
-      player: s.name,
-      avg: ages.reduce((a, b) => a + b, 0) / ages.length
-    };
-  }).filter(Boolean);
+  // 2 — Grim’s Favorite (highest total score)
+  const maxScore = Math.max(...scores.map(s => s.total));
+  if (maxScore > 0) {
+    const favs = scores.filter(s => s.total === maxScore);
+    setOwner(2, `<strong>${favs.map(f => f.name).join(", ")}</strong>`);
+  }
 
-  const lowestAvg = avgAges.length
-    ? Math.min(...avgAges.map(a => a.avg))
-    : null;
+  // 3 — The Undertaker (most hits)
+  const maxHits = Math.max(...scores.map(s => s.hits));
+  if (maxHits > 0) {
+    const undertakers = scores.filter(s => s.hits === maxHits);
+    setOwner(3, `<strong>${undertakers.map(u => u.name).join(", ")}</strong>`);
+  }
 
-  const vulture = avgAges.filter(a => a.avg === lowestAvg);
+  // 4 — Glass Cannon (highest single hit)
+  let highestHit = null;
+  scores.forEach(s => {
+    s.picks.forEach(p => {
+      if (!p.birthDate || !p.deathDate || p.status !== "approved") return;
+      const pts = calculatePoints(p.birthDate, p.deathDate);
+      if (!highestHit || pts > highestHit.points) {
+        highestHit = { player: s.name, points: pts };
+      }
+    });
+  });
 
-  setBadge(
-    "badge-vulture",
-    vulture.length
-      ? `<strong>${vulture.map(v => v.player).join(", ")}</strong>`
-      : "Not yet claimed"
-  );
+  if (highestHit) {
+    setOwner(4, `<strong>${highestHit.player}</strong>`);
+  }
+}
 }
 
 /* =====================================================
