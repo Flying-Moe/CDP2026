@@ -1,5 +1,4 @@
 console.log("stats.js loaded");
-console.log(evaluateBadges(players));
 
 /* =========================
    LOCAL / CORE IMPORTS
