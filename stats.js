@@ -247,9 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       entries: p.entries || {}
     });
   });
-
-
-
+  
     const peopleSnap = await getDocs(collection(db, "people"));
   const peopleMap = {};
 
@@ -259,10 +257,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     renderDeathStatsFromPlayers(players, peopleMap);
     renderFunStats(players, peopleMap);
-
-
-  
-  // Render Deaths
 
   // Badges + Hall
   const badgeWinners = computeBadges(players);
@@ -334,36 +328,30 @@ function renderFunStats(players, peopleMap) {
   const container = document.getElementById("tab-fun");
   if (!container) return;
 
-  // ---------- Most minus points ----------
-  const withPenalty = players.filter(p => p.penalty < 0);
-  const worstPenalty = withPenalty.length
-    ? Math.min(...withPenalty.map(p => p.penalty))
-    : null;
+  const scores = buildScoreTable(players, "2026");
 
-  const mostMinus =
-    worstPenalty !== null
-      ? withPenalty.filter(p => p.penalty === worstPenalty)
-      : [];
+  // Most minus points
+  const worstPenalty = Math.min(...scores.map(s => s.penalty));
+  const mostMinus = scores.filter(s => s.penalty === worstPenalty && worstPenalty < 0);
 
-  // ---------- Highest single hit ----------
+  // Highest single hit
   let highestHit = null;
 
-  players.forEach(p => {
-    const picks = p.entries?.["2026"]?.picks || [];
-    picks.forEach(pick => {
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
       if (
         pick.status === "approved" &&
         pick.birthDate &&
         pick.deathDate
       ) {
-        const points =
-          100 -
-          (new Date(pick.deathDate).getFullYear() -
-            new Date(pick.birthDate).getFullYear());
+        const points = calculatePoints(
+          pick.birthDate,
+          pick.deathDate
+        );
 
         if (!highestHit || points > highestHit.points) {
           highestHit = {
-            player: p.name,
+            player: s.name,
             person:
               (pick.personId && peopleMap[pick.personId]?.name) ||
               pick.normalizedName ||
@@ -375,39 +363,29 @@ function renderFunStats(players, peopleMap) {
     });
   });
 
-  // ---------- Most picked celebrity ----------
-  const pickCount = new Map();
-
-  players.forEach(p => {
-    const picks = p.entries?.["2026"]?.picks || [];
-    picks.forEach(pick => {
+  // Most picked celebrity
+  const pickCount = {};
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
       if (pick.status !== "approved") return;
-      const key =
-        pick.personId ||
-        pick.normalizedName ||
-        pick.raw;
-      pickCount.set(key, (pickCount.get(key) || 0) + 1);
+      const key = pick.personId || pick.normalizedName;
+      pickCount[key] = (pickCount[key] || 0) + 1;
     });
   });
 
-  let mostPicked = null;
-  pickCount.forEach((count, key) => {
-    if (!mostPicked || count > mostPicked.count) {
-      mostPicked = { key, count };
-    }
-  });
+  const mostPickedKey = Object.keys(pickCount).sort(
+    (a, b) => pickCount[b] - pickCount[a]
+  )[0];
 
-  // ---------- Chaos level ----------
+  // Chaos level (derived)
   const chaosLevel =
-    mostMinus.length +
-    (highestHit ? 1 : 0) +
-    (mostPicked ? 1 : 0);
+    scores.filter(s => s.hits > 0).length +
+    mostMinus.length;
 
-  // ---------- Render ----------
   container.innerHTML = `
     <h2>Fun stats</h2>
     <p class="stats-note">
-      Light-hearted statistics based on the current state of the game.
+      Light-hearted stats derived directly from the live leaderboard.
     </p>
 
     <ul class="stats-list">
@@ -415,9 +393,7 @@ function renderFunStats(players, peopleMap) {
         <strong>Most minus points:</strong>
         ${
           mostMinus.length
-            ? mostMinus
-                .map(p => `${p.name} (${p.penalty})`)
-                .join(", ")
+            ? mostMinus.map(p => `${p.name} (${p.penalty})`).join(", ")
             : "—"
         }
       </li>
@@ -434,11 +410,11 @@ function renderFunStats(players, peopleMap) {
       <li>
         <strong>Most picked celebrity:</strong>
         ${
-          mostPicked
+          mostPickedKey
             ? `${
-                peopleMap[mostPicked.key]?.name ||
-                mostPicked.key
-              } (${mostPicked.count})`
+                peopleMap[mostPickedKey]?.name ||
+                mostPickedKey
+              } (${pickCount[mostPickedKey]})`
             : "—"
         }
       </li>
