@@ -280,12 +280,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (p.active === false) return;
     if (p.entries?.["2026"]?.active === false) return;
 
-    players.push({
-      id: pDoc.id,
-      name: p.name,
-      hits: p.hits || 0,
-      entries: p.entries || {}
-    });
+players.push({
+  id: pDoc.id,
+  name: p.name,
+  hits: p.hits || 0,
+  entries: p.entries || {},
+  scoreHistory: p.scoreHistory || []
+});
+
   });
   
     const peopleSnap = await getDocs(collection(db, "people"));
