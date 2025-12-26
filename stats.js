@@ -214,9 +214,14 @@ function renderDeathStatsFromPlayers(players) {
 }
 
 function renderHall() {
-  document.getElementById("stats-hall").innerHTML =
-    `<p class="muted">Hall of Fame will unlock after the 2026 season.</p>`;
+  const el = document.getElementById("stats-hall");
+  if (!el) return;
+
+  el.innerHTML = `
+    <p class="muted">Hall of Fame will be unlocked once the season is finalized.</p>
+  `;
 }
+
 
 /* =====================================================
    INIT
