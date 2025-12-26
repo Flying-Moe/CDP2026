@@ -557,6 +557,117 @@ footer {
   opacity: 0.45;
 }
 
+/* =====================================================
+   BADGES – VISUAL POLISH
+===================================================== */
+
+/* Samlet badge-blok */
+.badge-block {
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Header: titel + beskrivelse */
+.badge-header {
+  margin-bottom: 12px;
+}
+
+.badge-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.badge-description,
+.badge-placeholder {
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* Placeholder lidt mere afdæmpet */
+.badge-placeholder {
+  opacity: 0.55;
+}
+
+/* Tiers-container */
+.badge-tiers {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* En tier (badge + playerliste) */
+.badge-tier {
+  min-width: 90px;
+  text-align: center;
+}
+
+/* Locked tiers lidt mere tydeligt */
+.badge-tier.locked img {
+  opacity: 0.35;
+}
+
+/* Badge PNG */
+.badge-tier img {
+  width: 64px;
+  height: auto;
+  margin-bottom: 6px;
+}
+
+/* Player-liste under tier */
+.badge-tier-players {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Player-navn */
+.badge-player {
+  white-space: nowrap;
+}
+
+/* Demoted players */
+.badge-player.demoted {
+  opacity: 0.45;
+}
+
+/* =====================================================
+   BADGE FILTER (dropdown)
+===================================================== */
+
+.badge-filter {
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.badge-filter label {
+  font-weight: 600;
+}
+
+/* =====================================================
+   MOBIL JUSTERINGER
+===================================================== */
+
+@media (max-width: 600px) {
+  .badge-tiers {
+    gap: 12px;
+  }
+
+  .badge-tier {
+    min-width: 72px;
+  }
+
+  .badge-tier img {
+    width: 56px;
+  }
+
+  .badge-title {
+    font-size: 1rem;
+  }
+}
+
 /* =========================
    PEOPLE TAB – PICKED BY
 ========================= */
