@@ -30,6 +30,8 @@ import {
    HELPERS
 ===================================================== */
 
+const BADGE_PLAYER_STORAGE_KEY = "badgeSelectedPlayer";
+
 function avg(arr) {
   return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 }
