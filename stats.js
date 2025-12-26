@@ -68,10 +68,40 @@ function initTabs() {
 }
 
 /* =====================================================
+   RENDER BADGES - DROP DOWN MENU)
+===================================================== */
+
+function setupBadgePlayerDropdown(players, onChange) {
+  const select = document.getElementById("badgePlayerSelect");
+  if (!select) return;
+
+  const stored = localStorage.getItem(BADGE_PLAYER_STORAGE_KEY) || "all";
+
+  // sort players alfabetisk
+  const sortedPlayers = [...players].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  select.innerHTML = `
+    <option value="all">All players</option>
+    ${sortedPlayers.map(p =>
+      `<option value="${p.id}">${p.name}</option>`
+    ).join("")}
+  `;
+
+  select.value = stored;
+
+  select.addEventListener("change", () => {
+    localStorage.setItem(BADGE_PLAYER_STORAGE_KEY, select.value);
+    onChange(select.value);
+  });
+}
+
+/* =====================================================
    RENDER BADGES
 ===================================================== */
 
-function renderBadges(context) {
+function renderBadges(context, selectedPlayerId = "all") {
   const host = document.getElementById("badges-stats");
   if (!host) return;
 
@@ -98,13 +128,17 @@ function renderBadges(context) {
 
       const imgSrc = `/assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
 
-      const playersHtml = tier.players.length
-        ? tier.players.map(p => `
-            <div class="badge-player">
-              ${p.name} (${p.value})
-            </div>
-          `).join("")
-        : "";
+const visiblePlayers = tier.players.filter(p =>
+  selectedPlayerId === "all" || p.id === selectedPlayerId
+);
+
+const playersHtml = visiblePlayers.length
+  ? visiblePlayers.map(p => `
+      <div class="badge-player">
+        ${p.name} (${p.value})
+      </div>
+    `).join("")
+  : "";
 
       return `
         <div class="badge-tier ${unlocked ? "unlocked" : "locked"}">
