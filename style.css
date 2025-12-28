@@ -71,7 +71,7 @@ table {
 
 th, td {
   border: 1px solid #ccc;
-  padding: 0.4rem 0.6rem;
+  padding: 0.4rem 0.5rem;
 }
 
 th {
@@ -878,14 +878,15 @@ table.hof-leaderboard th:nth-child(3) {
 
 @media (max-width: 720px) {
 
-  /* Mindre tekst i Celebrities-tabellen */
   #people-table {
     font-size: 0.7em;
+    table-layout: auto;
   }
 
   /* Birth / Death dates må aldrig brydes */
   #people-table td.birth-date,
   #people-table td.death-date {
     white-space: nowrap;
+    min-width: 6.5em;
   }
 }
