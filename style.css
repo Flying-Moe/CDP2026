@@ -810,3 +810,34 @@ td[title] {
 .hof-first-blood {
   margin-top: 0.8em; /* “en usynlig linje” */
 }
+
+/* ===============================
+   HALL OF FAME – LEADERBOARD
+   =============================== */
+
+table.hof-leaderboard {
+  margin-top: 1.4em;
+  border-collapse: collapse;
+  min-width: 320px;
+}
+
+table.hof-leaderboard th,
+table.hof-leaderboard td {
+  border: 1px solid #ccc;
+  padding: 0.4rem 0.6rem;
+}
+
+table.hof-leaderboard th {
+  background: #f2f2f2;
+  text-align: left;
+}
+
+table.hof-leaderboard td:nth-child(1),
+table.hof-leaderboard td:nth-child(3) {
+  text-align: center;
+}
+
+table.hof-leaderboard tr:nth-child(1) {
+  background-color: #fff3cd; /* subtil vinder-markering */
+  font-weight: bold;
+}
