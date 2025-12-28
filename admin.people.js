@@ -213,7 +213,7 @@ tbody.innerHTML += `
   class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}"
   data-player-ids="${[...g.playerIds].join(",")}"
 >
-      <td style="text-align:right;">
+      <td class="people-name">
         ${g.displayName}
         ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
         ${
