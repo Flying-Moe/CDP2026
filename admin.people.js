@@ -30,6 +30,7 @@ let currentEditPersonKey = null;
 let peopleSortKey = "name";   // default
 let peopleSortDir = "asc";   // asc | desc
 let allPeopleRows = [];
+let currentPeoplePlayerFilter = "all";
 
 /* =====================================================
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
@@ -304,18 +305,33 @@ window.__peopleGroups = groups;
 allPeopleRows = Array.from(
   document.querySelectorAll("#people-table tbody tr")
 );
+   
+      // Restore selected player filter
+const playerFilter = document.getElementById("people-player-filter");
+if (playerFilter) {
+  playerFilter.value = currentPeoplePlayerFilter;
+  applyPeoplePlayerFilter(currentPeoplePlayerFilter);
+}
+
 
 // Build player filter dropdown
 const playerFilter = document.getElementById("people-player-filter");
 if (playerFilter) {
   playerFilter.innerHTML = `<option value="all">All players</option>`;
 
-  playersSnap.forEach(ps => {
-    const opt = document.createElement("option");
-    opt.value = ps.id;
-    opt.textContent = ps.data().name || ps.id;
-    playerFilter.appendChild(opt);
-  });
+const players = playersSnap
+  .map(ps => ({
+    id: ps.id,
+    name: ps.data().name || ps.id
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+players.forEach(player => {
+  const opt = document.createElement("option");
+  opt.value = player.id;
+  opt.textContent = player.name;
+  playerFilter.appendChild(opt);
+});
 }
 
 // 🔗 bind alle knapper (edit / merge / delete / wiki)
@@ -831,6 +847,6 @@ function applyPeoplePlayerFilter(playerId) {
 
 document.addEventListener("change", e => {
   if (e.target.id !== "people-player-filter") return;
-  applyPeoplePlayerFilter(e.target.value);
+  currentPeoplePlayerFilter = e.target.value;
+  applyPeoplePlayerFilter(currentPeoplePlayerFilter);
 });
-
