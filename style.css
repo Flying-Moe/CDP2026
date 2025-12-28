@@ -808,7 +808,7 @@ td[title] {
 
 /* Small vertical offset for First Blood card */
 .hof-first-blood {
-  margin-top: 0.8em; /* “en usynlig linje” */
+  margin-top: 1.2em; /* “en usynlig linje” */
 }
 
 /* ===============================
@@ -841,3 +841,10 @@ table.hof-leaderboard tr:nth-child(1) {
   background-color: #fff3cd; /* subtil vinder-markering */
   font-weight: bold;
 }
+
+/* Center header text for # and Points */
+table.hof-leaderboard th:nth-child(1),
+table.hof-leaderboard th:nth-child(3) {
+  text-align: center;
+}
+
