@@ -136,6 +136,16 @@ table.list-table td:not(:first-child) {
   font-weight: bold;
 }
 
+/* ===============================
+   PEOPLE TABLE – DATE COLUMNS COMPACT
+   =============================== */
+
+#people-table td.birth-date,
+#people-table td.death-date {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 /* =========================
    PLAYER LISTS (lists.html)
 ========================= */
@@ -909,10 +919,13 @@ table.hof-leaderboard th:nth-child(3) {
     table-layout: auto;
   }
 
-  /* Birth / Death dates må aldrig brydes */
+  /* Birth / Death dates: kompakt + ingen linjeskift */
   #people-table td.birth-date,
   #people-table td.death-date {
     white-space: nowrap;
     min-width: 6.5em;
+    padding-left: 0.15rem;
+    padding-right: 0.15rem;
   }
 }
+
