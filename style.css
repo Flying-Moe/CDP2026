@@ -290,6 +290,7 @@ footer {
    MOBILE TWEAKS (GENERAL)
 ========================= */
 
+@media (max-width: 720px) {
   table.list-table {
     width: 100%;
     table-layout: auto;
@@ -455,6 +456,7 @@ footer {
    MOBILE
 ========================= */
 
+@media (max-width: 720px) {
   #validate-picks-modal table {
     min-width: 640px;      /* scroll, men kompakt */
   }
