@@ -591,20 +591,26 @@ footer {
   opacity: 0.55;
 }
 
-/* Tiers-container */
+/* Badge tiers i FAST 2x2 grid */
 .badge-tiers {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(340px, 1fr));
+  gap: 24px 32px;
 }
 
 /* En tier: badge til venstre, player-liste til højre */
 .badge-tier {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  min-width: 320px;
+  gap: 16px;
   text-align: left;
+}
+
+/* Badge-ikon – STØRRE */
+.badge-tier img {
+  width: 160px;     /* større for læsbarhed */
+  height: auto;
+  flex-shrink: 0;
 }
 
 /* Locked tiers */
