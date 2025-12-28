@@ -306,32 +306,28 @@ allPeopleRows = Array.from(
   document.querySelectorAll("#people-table tbody tr")
 );
    
-      // Restore selected player filter
-const playerFilter = document.getElementById("people-player-filter");
-if (playerFilter) {
-  playerFilter.value = currentPeoplePlayerFilter;
-  applyPeoplePlayerFilter(currentPeoplePlayerFilter);
-}
-
-
-// Build player filter dropdown
+// Build + restore player filter dropdown
 const playerFilter = document.getElementById("people-player-filter");
 if (playerFilter) {
   playerFilter.innerHTML = `<option value="all">All players</option>`;
 
-const players = playersSnap
-  .map(ps => ({
-    id: ps.id,
-    name: ps.data().name || ps.id
-  }))
-  .sort((a, b) => a.name.localeCompare(b.name));
+  const players = playersSnap
+    .map(ps => ({
+      id: ps.id,
+      name: ps.data().name || ps.id
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
-players.forEach(player => {
-  const opt = document.createElement("option");
-  opt.value = player.id;
-  opt.textContent = player.name;
-  playerFilter.appendChild(opt);
-});
+  players.forEach(player => {
+    const opt = document.createElement("option");
+    opt.value = player.id;
+    opt.textContent = player.name;
+    playerFilter.appendChild(opt);
+  });
+
+  // Restore previously selected filter
+  playerFilter.value = currentPeoplePlayerFilter;
+  applyPeoplePlayerFilter(currentPeoplePlayerFilter);
 }
 
 // 🔗 bind alle knapper (edit / merge / delete / wiki)
