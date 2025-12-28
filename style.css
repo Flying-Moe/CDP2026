@@ -323,6 +323,9 @@ footer {
   align-items: center;
   justify-content: center;
   z-index: 10000;
+
+  /* 🔑 VIGTIGT */
+  pointer-events: none;
 }
 
 .modal-content {
@@ -334,6 +337,9 @@ footer {
   max-height: 90vh;
   overflow: auto;
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35);
+
+  /* 🔑 MODALEN MÅ KLIKES */
+  pointer-events: auto;
 }
 
 /* =========================
