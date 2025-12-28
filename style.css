@@ -290,8 +290,6 @@ footer {
    MOBILE TWEAKS (GENERAL)
 ========================= */
 
-@media (max-width: 600px) {
-
   table.list-table {
     width: 100%;
     table-layout: auto;
@@ -450,8 +448,6 @@ footer {
 /* =========================
    MOBILE
 ========================= */
-
-@media (max-width: 600px) {
 
   #validate-picks-modal table {
     min-width: 640px;      /* scroll, men kompakt */
@@ -662,8 +658,14 @@ footer {
 
 @media (max-width: 600px) {
   .badge-tiers {
-    gap: 14px;
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
+
+  .badge-tier img {
+    width: 120px;
+  }
+}
 
   .badge-tier {
     flex-direction: row;
