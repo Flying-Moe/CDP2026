@@ -80,6 +80,32 @@ th {
 }
 
 /* =========================
+   PEOPLE TABLE – WIKI CELL COMPACT
+========================= */
+
+#people-table td.wiki-cell,
+#people-table th.wiki-cell {
+  white-space: nowrap;
+  width: 1%;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+#people-table .wiki-check-btn {
+  padding: 0.15rem 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+#people-table .wiki-result {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* =========================
    LISTS TABLE (DESKTOP-FIRST)
 ========================= */
 
