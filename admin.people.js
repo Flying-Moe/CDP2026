@@ -311,12 +311,12 @@ const playerFilter = document.getElementById("people-player-filter");
 if (playerFilter) {
   playerFilter.innerHTML = `<option value="all">All players</option>`;
 
-  const players = playersSnap
-    .map(ps => ({
-      id: ps.id,
-      name: ps.data().name || ps.id
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+const players = playersSnap.docs
+  .map(ps => ({
+    id: ps.id,
+    name: ps.data().name || ps.id
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
   players.forEach(player => {
     const opt = document.createElement("option");
