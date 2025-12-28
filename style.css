@@ -794,7 +794,7 @@ td[title] {
 
 /* Badge image */
 .hof-badge {
-  max-width: 192px;
+  max-width: 256px;
   height: auto;
   margin-bottom: 0.6em;
 }
