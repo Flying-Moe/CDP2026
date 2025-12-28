@@ -256,17 +256,14 @@ tbody.innerHTML += `
   </span>
 </td>
 
-      <td>
+      <td class="wiki-cell">
         <button
           class="wiki-check-btn"
           data-name="${g.displayName}"
-          data-key="${normalizeName(g.displayName)}">
-          Check Wiki
-        </button>
+          data-key="${normalizeName(g.displayName)}">Wiki</button>
         <span
           class="wiki-result"
-          data-key="${normalizeName(g.displayName)}"
-          style="margin-left:8px;font-size:0.9em;">
+          data-key="${normalizeName(g.displayName)}">
         </span>
       </td>
 
