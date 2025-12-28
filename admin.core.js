@@ -391,29 +391,34 @@ export function setupTabs() {
   const buttons = document.querySelectorAll("#admin-tabs button");
   const contents = document.querySelectorAll(".tab-content");
 
-  async function activateTab(tabId) {
-    buttons.forEach(b => b.classList.remove("active"));
-    contents.forEach(c => (c.style.display = "none"));
+async function activateTab(tabId) {
+  // 🔒 Luk ALLE åbne modals før tab-skift
+  document.querySelectorAll(".modal:not(.hidden)").forEach(modal => {
+    modal.classList.add("hidden");
+  });
 
-    const btn = document.querySelector(`#admin-tabs button[data-tab="${tabId}"]`);
-    const content = document.getElementById(`tab-${tabId}`);
+  buttons.forEach(b => b.classList.remove("active"));
+  contents.forEach(c => (c.style.display = "none"));
 
-    if (!btn || !content) return;
+  const btn = document.querySelector(`#admin-tabs button[data-tab="${tabId}"]`);
+  const content = document.getElementById(`tab-${tabId}`);
 
-    btn.classList.add("active");
-    content.style.display = "block";
+  if (!btn || !content) return;
 
-    localStorage.setItem(STORAGE_KEY, tabId);
+  btn.classList.add("active");
+  content.style.display = "block";
 
-    // 🔄 Always refresh data when switching tabs
-    if (tabId === "players") {
-      await loadPlayers();
-    }
+  localStorage.setItem(STORAGE_KEY, tabId);
 
-    if (tabId === "people") {
-      await loadPeople();
-    }
+  // 🔄 Refresh relevant data
+  if (tabId === "players") {
+    await loadPlayers();
   }
+
+  if (tabId === "people") {
+    await loadPeople();
+  }
+}
 
   buttons.forEach(btn => {
     btn.onclick = () => activateTab(btn.dataset.tab);
