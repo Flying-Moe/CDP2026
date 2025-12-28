@@ -770,7 +770,7 @@ td[title] {
    =============================== */
 
 #hof-tabs {
-  margin: 1.2em 0 1.6em 0;
+  margin: 1.0em 0 1.6em 0;
 }
 
 #hof-tabs button {
@@ -780,15 +780,15 @@ td[title] {
 .hof-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.6em;
-  margin-top: 1.2em;
+  gap: 1.0em;
+  margin-top: 1.0em;
 
-  max-width: 700px;     /* ⬅ smallere end før */
+  max-width: 100px;     /* ⬅ smallere end før */
 }
 
 .hof-card {
   border: 1px solid #ccc;
-  padding: 1.2em;
+  padding: 1.0em;
   text-align: center;
 
   display: flex;
@@ -808,7 +808,8 @@ td[title] {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 0.6em;
+  margin-top: auto;
+  margin-bottom: 1.0em;
 }
 
 /* Mobile fallback */
@@ -819,8 +820,9 @@ td[title] {
 }
 
 .hof-card h2 {
-  margin-top: 0.6em;
+  margin-top: 1.0em;
 }
+
 
 /* ===============================
    HALL OF FAME – LEADERBOARD
