@@ -800,6 +800,10 @@ td[title] {
 .hof-badge {
   max-width: 256px;
   height: auto;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 0.6em;
 }
 
