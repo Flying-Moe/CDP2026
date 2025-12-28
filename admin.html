@@ -121,10 +121,18 @@
 
   <div id="tab-people" class="tab-content" style="display:none;">
 
-    <h2>Celebrities</h2>
-    <p>Manage celebrity information.</p>
+<h2>Celebrities</h2>
+<p>Manage celebrity information.</p>
 
-    <table id="people-table">
+<div class="people-filter">
+  <label for="people-player-filter">Filter by player:</label>
+  <select id="people-player-filter">
+    <option value="all">All players</option>
+  </select>
+</div>
+
+<table id="people-table">
+
 <thead>
   <tr>
       <th data-sort="name">Name</th>
