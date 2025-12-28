@@ -806,11 +806,6 @@ td[title] {
   }
 }
 
-/* Small vertical offset for First Blood card */
-.hof-first-blood {
-  margin-top: 1.2em; /* “en usynlig linje” */
-}
-
 /* ===============================
    HALL OF FAME – LEADERBOARD
    =============================== */
