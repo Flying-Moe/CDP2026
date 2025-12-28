@@ -146,6 +146,57 @@ table.list-table td:not(:first-child) {
   padding-right: 0.25rem;
 }
 
+/* ===============================
+   ADMIN – CELEBRITIES TABLE LAYOUT
+   =============================== */
+
+#people-table {
+  table-layout: fixed;
+}
+
+#people-table th,
+#people-table td {
+  padding: 0.3rem 0.4rem;
+  vertical-align: middle;
+}
+
+/* Name-kolonne */
+#people-table td.people-name {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Birth / Death kompakt (desktop + mobil) */
+#people-table td.birth-date,
+#people-table td.death-date {
+  white-space: nowrap;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
+
+/* Smalle numeriske kolonner */
+#people-table th:nth-child(4),
+#people-table td:nth-child(4),
+#people-table th:nth-child(5),
+#people-table td:nth-child(5) {
+  text-align: center;
+  width: 4.5em;
+}
+
+/* Wiki-kolonne meget smal */
+#people-table th.wiki-cell,
+#people-table td.wiki-cell {
+  width: 3.5em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Actions må ikke wrap */
+#people-table td:nth-child(7) {
+  white-space: nowrap;
+}
+
+
 /* =========================
    PLAYER LISTS (lists.html)
 ========================= */
