@@ -63,13 +63,27 @@ function initTabs() {
   buttons.forEach(b => b.classList.remove("active"));
   tabs.forEach(t => t.style.display = "none");
 
-  const defaultBtn = document.querySelector('#stats-tabs button[data-tab="overall"]');
-  const defaultTab = document.getElementById("stats-overall");
-  if (defaultBtn && defaultTab) {
-    defaultBtn.classList.add("active");
-    defaultTab.style.display = "block";
+// 🔁 Restore last active tab (fallback: overall)
+const savedTab =
+  localStorage.getItem(STATS_TAB_STORAGE_KEY) || "overall";
+
+const restoreBtn = document.querySelector(
+  `#stats-tabs button[data-tab="${savedTab}"]`
+);
+const restoreTab = document.getElementById(`stats-${savedTab}`);
+
+if (restoreBtn && restoreTab) {
+  restoreBtn.classList.add("active");
+  restoreTab.style.display = "block";
+} else {
+  // Fallback hvis noget er galt i storage
+  const fallbackBtn = document.querySelector('#stats-tabs button[data-tab="overall"]');
+  const fallbackTab = document.getElementById("stats-overall");
+  if (fallbackBtn && fallbackTab) {
+    fallbackBtn.classList.add("active");
+    fallbackTab.style.display = "block";
   }
-}
+}}
 
 /* =====================================================
    RENDER BADGES - DROP DOWN MENU)
