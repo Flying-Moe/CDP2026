@@ -793,7 +793,11 @@ td[title] {
 
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 🔑 */
+  justify-content: space-between;
+
+  max-width: 420px;   /* ⬅ kontrolleret kort-bredde */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Badge image */
