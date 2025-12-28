@@ -294,6 +294,48 @@ function renderHall() {
   `;
 }
 
+/* =====================================================
+   HALL OF FAME YEAR TABS
+===================================================== */
+
+function initHallOfFameTabs() {
+  const hofTab = document.querySelector('#stats-tabs button[data-tab="hof"]');
+  const hofTabs = document.getElementById("hof-tabs");
+  const yearButtons = document.querySelectorAll("#hof-tabs button");
+  const yearSections = document.querySelectorAll(".hof-year");
+
+  if (!hofTab || !hofTabs) return;
+
+  // Show year tabs only when Hall of Fame is active
+  hofTab.addEventListener("click", () => {
+    hofTabs.style.display = "block";
+
+    // Default to 2025
+    yearButtons.forEach(b => b.classList.remove("active"));
+    yearSections.forEach(s => s.style.display = "none");
+
+    const btn2025 = document.querySelector('#hof-tabs button[data-year="2025"]');
+    const sec2025 = document.getElementById("hof-2025");
+
+    if (btn2025 && sec2025) {
+      btn2025.classList.add("active");
+      sec2025.style.display = "block";
+    }
+  });
+
+  // Year switching
+  yearButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      yearButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      yearSections.forEach(sec => sec.style.display = "none");
+      const target = document.getElementById(`hof-${btn.dataset.year}`);
+      if (target) target.style.display = "block";
+    });
+  });
+}
+
 
 /* =====================================================
    INIT
@@ -301,6 +343,7 @@ function renderHall() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
+  initHallOfFameTabs();
 
   // Overall is standalone and read-only
   renderOverallStats();
