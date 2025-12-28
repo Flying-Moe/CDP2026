@@ -744,3 +744,23 @@ td[title] {
   margin-bottom: 0.6em;
 }
 
+/* =========================
+   PEOPLE – PLAYER FILTER
+========================= */
+
+.people-filter {
+  margin: 0.5rem 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.people-filter label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.people-filter select {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
+}
