@@ -805,3 +805,8 @@ td[title] {
     grid-template-columns: 1fr;
   }
 }
+
+/* Small vertical offset for First Blood card */
+.hof-first-blood {
+  margin-top: 0.8em; /* “en usynlig linje” */
+}
