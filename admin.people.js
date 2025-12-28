@@ -228,8 +228,8 @@ tbody.innerHTML += `
       </td>
 
 
-<td>${birthDate}</td>
-<td>${deathDate}</td>
+<td class="birth-date">${birthDate}</td>
+<td class="death-date">${deathDate}</td>
 
 <td style="text-align:center;">
   ${potentialPoints}
