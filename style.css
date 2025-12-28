@@ -298,13 +298,19 @@ footer {
 
   table.list-table th,
   table.list-table td {
-    padding: 0.3rem 0.4rem;
-    font-size: 0.60rem;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;   /* ⬅ markant mere læsbart */
   }
 
   table.list-table th:nth-child(1),
   table.list-table td:nth-child(1) {
     word-break: break-word;
+  }
+
+  /* lidt luft til kanterne */
+  .player-list {
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
   }
 }
 
