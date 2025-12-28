@@ -31,6 +31,7 @@ import {
 ===================================================== */
 
 const BADGE_PLAYER_STORAGE_KEY = "badgeSelectedPlayer";
+const STATS_TAB_STORAGE_KEY = "statsActiveTab";
 
 function avg(arr) {
   return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
@@ -52,6 +53,9 @@ function initTabs() {
       tabs.forEach(t => t.style.display = "none");
       const target = document.getElementById(`stats-${btn.dataset.tab}`);
       if (target) target.style.display = "block";
+
+      // 🔑 GEM AKTIV TAB
+      localStorage.setItem(STATS_TAB_STORAGE_KEY, btn.dataset.tab);   
     });
   });
 
