@@ -871,3 +871,21 @@ table.hof-leaderboard th:nth-child(3) {
   margin: 0.1 em ;
   opacity: 1.0;
 }
+
+/* ===============================
+   ADMIN – CELEBRITIES MOBILE POLISH
+   =============================== */
+
+@media (max-width: 720px) {
+
+  /* Mindre tekst i Celebrities-tabellen */
+  #people-table {
+    font-size: 0.7em;
+  }
+
+  /* Birth / Death dates må aldrig brydes */
+  #people-table td.birth-date,
+  #people-table td.death-date {
+    white-space: nowrap;
+  }
+}
