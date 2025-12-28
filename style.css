@@ -777,19 +777,23 @@ td[title] {
   margin-right: 0.6em;
 }
 
-/* Grid for Winner / First Blood */
 .hof-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.6em;
   margin-top: 1.2em;
+
+  max-width: 1100px;   /* 🔒 låser desktop-bredden */
 }
 
-/* Individual cards */
 .hof-card {
   border: 1px solid #ccc;
   padding: 1.2em;
   text-align: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 🔑 */
 }
 
 /* Badge image */
@@ -804,6 +808,10 @@ td[title] {
   .hof-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.hof-card h2 {
+  margin-top: 0.6em;
 }
 
 /* ===============================
