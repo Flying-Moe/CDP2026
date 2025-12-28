@@ -587,11 +587,12 @@ footer {
   opacity: 0.55;
 }
 
-/* Badge tiers i FAST 2x2 grid */
+/* Badge tiers – fast 2x2 grid med kontrolleret bredde */
 .badge-tiers {
   display: grid;
-  grid-template-columns: repeat(2, minmax(340px, 1fr));
-  gap: 24px 32px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  max-width: 920px;   /* ← matcher dit “lige-før-collapse” punkt */
 }
 
 /* En tier: badge til venstre, player-liste til højre */
@@ -602,9 +603,9 @@ footer {
   text-align: left;
 }
 
-/* Badge-ikon – STØRRE */
+/* Badge-ikon – stor og læsbar */
 .badge-tier img {
-  width: 160px;     /* større for læsbarhed */
+  width: 192px;     /* tydelig læsbarhed fra 512x512 */
   height: auto;
   flex-shrink: 0;
 }
@@ -612,13 +613,6 @@ footer {
 /* Locked tiers */
 .badge-tier.locked img {
   opacity: 0.35;
-}
-
-/* Badge PNG – STØRRE */
-.badge-tier img {
-  width: 128px;       /* 2× større */
-  height: auto;
-  flex-shrink: 0;
 }
 
 /* Player-liste TIL HØJRE */
@@ -656,32 +650,23 @@ footer {
    MOBIL JUSTERINGER
 ===================================================== */
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
   .badge-tiers {
     grid-template-columns: 1fr;
-    gap: 20px;
+    max-width: 100%;
+    gap: 24px;
   }
-
-  .badge-tier img {
-    width: 120px;
-  }
-}
 
   .badge-tier {
     flex-direction: row;
-    min-width: unset;
   }
 
   .badge-tier img {
-    width: 96px;
+    width: 160px;
   }
 
   .badge-tier-players {
-    font-size: 0.85rem;
-  }
-
-  .badge-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
 
