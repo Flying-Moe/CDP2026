@@ -126,11 +126,68 @@
     A permanent record of the most glorious (and grim) seasons.
   </p>
 
-  <p class="muted">
-    The Hall of Fame will be sealed by the Grim Reaper when the 2026 season ends.
-  </p>
+  <!-- ===== HOF YEAR TABS (hidden until Hall of Fame is active) ===== -->
+  <div id="hof-tabs" style="display:none;">
+    <button data-year="2025" class="active">2025</button>
+    <button data-year="2026">2026</button>
+    <button data-year="2027">2027</button>
+  </div>
+
+  <!-- ===== HOF CONTENT ===== -->
+
+  <!-- === 2025 === -->
+  <div id="hof-2025" class="hof-year">
+
+    <div class="hof-grid">
+
+      <!-- WINNER CARD -->
+      <div class="hof-card">
+        <img src="assets/badges/winner.png" alt="Winner badge" class="hof-badge">
+        <h3>Winner</h3>
+        <p>
+          <strong>[PLAYER NAME]</strong><br>
+          [POINTS] points · [HITS] hits
+        </p>
+      </div>
+
+      <!-- FIRST BLOOD CARD -->
+      <div class="hof-card">
+        <img src="assets/badges/first_blood.png" alt="First Blood badge" class="hof-badge">
+        <h3>First Blood</h3>
+        <p>
+          <strong>[CELEBRITY NAME]</strong><br>
+          [DATE]<br>
+          Picked by [PLAYER]
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Optional free text below cards -->
+    <p class="muted">
+      <!-- You can add additional notes about the 2025 season here -->
+    </p>
+
+  </div>
+
+  <!-- === 2026 === -->
+  <div id="hof-2026" class="hof-year" style="display:none;">
+    <p class="muted">
+      Season not finalized yet.<br>
+      This section will be sealed by the Grim Reaper at the end of the year.
+    </p>
+  </div>
+
+  <!-- === 2027 === -->
+  <div id="hof-2027" class="hof-year" style="display:none;">
+    <p class="muted">
+      Season not finalized yet.<br>
+      This section will be sealed by the Grim Reaper at the end of the year.
+    </p>
+  </div>
 
 </div>
+
 
 <footer>
   <hr />
