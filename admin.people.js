@@ -29,6 +29,7 @@ let currentEditPersonKey = null;
 
 let peopleSortKey = "name";   // default
 let peopleSortDir = "asc";   // asc | desc
+let allPeopleRows = [];
 
 /* =====================================================
    PEOPLE TAB – DERIVED FROM APPROVED PICKS
@@ -207,7 +208,10 @@ if (g.birthDates?.size === 1) {
 }
    
 tbody.innerHTML += `
-  <tr class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}">
+  <tr
+  class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}"
+  data-player-ids="${[...g.playerIds].join(",")}"
+>
       <td style="text-align:right;">
         ${g.displayName}
         ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
@@ -295,6 +299,24 @@ tbody.innerHTML += `
 
 // 🔑 gem grupper globalt til Apply Wikidata
 window.__peopleGroups = groups;
+   
+   // Cache all rows for filtering
+allPeopleRows = Array.from(
+  document.querySelectorAll("#people-table tbody tr")
+);
+
+// Build player filter dropdown
+const playerFilter = document.getElementById("people-player-filter");
+if (playerFilter) {
+  playerFilter.innerHTML = `<option value="all">All players</option>`;
+
+  playersSnap.forEach(ps => {
+    const opt = document.createElement("option");
+    opt.value = ps.id;
+    opt.textContent = ps.data().name || ps.id;
+    playerFilter.appendChild(opt);
+  });
+}
 
 // 🔗 bind alle knapper (edit / merge / delete / wiki)
 bindPeopleActions(groups, playersSnap);
@@ -794,3 +816,21 @@ document.addEventListener("click", async e => {
   document.getElementById("edit-person-modal")?.classList.add("hidden");
   await refreshAdminViews();
 });
+
+function applyPeoplePlayerFilter(playerId) {
+  allPeopleRows.forEach(row => {
+    const ids = (row.dataset.playerIds || "").split(",").filter(Boolean);
+
+    if (playerId === "all" || ids.includes(playerId)) {
+      row.style.display = "";
+    } else {
+      row.style.display = "none";
+    }
+  });
+}
+
+document.addEventListener("change", e => {
+  if (e.target.id !== "people-player-filter") return;
+  applyPeoplePlayerFilter(e.target.value);
+});
+
