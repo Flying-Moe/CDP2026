@@ -214,33 +214,28 @@ export async function getPeopleSnap(force = false) {
   return getCollectionCached("people", force);
 }
 
-// 🔄 OFFICIEL HARD REFRESH (bruges efter strukturelle ændringer)
+// 🔄 OFFICIEL HARD REFRESH (respekterer scope)
 export async function refreshAdminViews(options = {}) {
   const { force = false } = options;
 
   if (force) {
-    // 🔥 HARD INVALIDERING
+    // 🔥 Invalider ALLE relevante caches
     invalidateAdminCache("players", "people");
 
-// 🔥 KRITISK: invalider ALLE player-caches
-window.__players = null;
-window.__listsPlayers = null;
-window.__playersCache = null;
+    // global player-caches (bruges af lists / validate)
+    window.__players = null;
+    window.__playersCache = null;
+    window.__listsPlayers = null;
 
-    // 🔁 VIGTIGT:
-    // load BEGGE uanset aktiv tab
+    // 🔁 Reload data (bygger state)
     await loadPlayers({ force: true });
     await loadPeople({ force: true });
   }
 
-  // re-render aktiv tab (UI)
+  // 🔁 Trigger korrekt render via aktiv tab
   const activeBtn = document.querySelector("#admin-tabs button.active");
-  const tabId = activeBtn?.dataset?.tab || "players";
-
-  if (tabId === "players") {
-    renderPlayersTable();
-  } else if (tabId === "people") {
-    renderPeopleTable();
+  if (activeBtn) {
+    activeBtn.click();
   }
 }
 
