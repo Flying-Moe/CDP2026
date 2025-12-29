@@ -1133,10 +1133,17 @@ async function executeMergePlan(plan) {
     }
   }
 
-  await batch.commit();
-  closeMergeModal();
-  alert("Merge & clean-up completed");
-  await refreshAdminViews();
+await batch.commit();
+
+// 🔄 data ER ændret → cache er nu ugyldig
+invalidateAdminCache("players", "people");
+
+closeMergeModal();
+alert("Merge & clean-up completed");
+
+// force refresh af aktiv tab (nu med friske data)
+await refreshAdminViews({ force: true });
+
 }
 
 function closeMergeModal() {
