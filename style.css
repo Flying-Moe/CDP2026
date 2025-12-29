@@ -1119,3 +1119,16 @@ ul > li {
   font-size: 0.95rem;
   line-height: 1.4;
 }
+
+.grim-signoff {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.grim-signoff img {
+  width: 90px;
+  height: auto;
+  opacity: 0.85;
+  margin-bottom: 0.75rem;
+}
+
