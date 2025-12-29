@@ -12,8 +12,11 @@ import {
   fetchWikidataPerson,
   formatDateForDisplay,
   calculateHitPoints,
-  attachModalDirtyTracking
+  attachModalDirtyTracking,
+  getPlayersSnap,
+  getPeopleSnap
 } from "./admin.core.js";
+
 
 import {
   collection,
@@ -88,14 +91,17 @@ function sortPeople(groups) {
   });
 }
 
-export async function loadPeople() {
+export async function loadPeople(options = {}) {
+  const { force = false } = options;
+
   const tbody = document.querySelector("#people-table tbody");
   if (!tbody) return;
 
   tbody.innerHTML = "";
 
-  const playersSnap = await getDocs(collection(db, "players"));
-  const peopleSnap  = await getDocs(collection(db, "people"));
+  const playersSnap = await getPlayersSnap(force);
+  const peopleSnap  = await getPeopleSnap(force);
+
 
 // 🔑 map playerId -> playerName (bruges til tooltips)
 const playerNameMap = {};
@@ -981,7 +987,7 @@ document.addEventListener("change", e => {
 });
 
 async function handleMergeAndCleanup() {
-  const snap = await getDocs(collection(db, "people"));
+  const snap = await getPeopleSnap(false);
   const people = [];
 
   snap.forEach(doc => {
@@ -1029,7 +1035,7 @@ async function handleMergeAndCleanup() {
     return;
   }
 
-  const playerSnaps = await getDocs(collection(db, "players"));
+  const playerSnaps = await getPlayersSnap(false);
   const players = [];
 
   playerSnaps.forEach(s => {
