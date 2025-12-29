@@ -642,9 +642,15 @@ async function approveAllPicks() {
       pick.birthDate || ""
     );
 
-    pick.personId = personId;
-    pick.normalizedName = name;
-    pick.status = "approved";
+const personSnap = await getDoc(doc(db, "people", personId));
+const person = personSnap.exists() ? personSnap.data() : {};
+
+pick.personId = personId;
+pick.normalizedName = name;
+pick.birthDate = pick.birthDate || person.birthDate || "";
+pick.deathDate = pick.deathDate || person.deathDate || "";
+pick.status = "approved";
+
   }
 
   await updateDoc(ref, { "entries.2026.picks": picks });
