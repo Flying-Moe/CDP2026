@@ -204,6 +204,9 @@ if (hasRealMergeConflict) {
 } else if (hasDuplicatePerPlayer) {
   statusText = "Duplicate picks (already linked)";
   statusClass = "status-warning";
+} else if (hasDuplicatePerPlayer) {
+  statusText = "Duplicate picks (already linked)";
+  statusClass = "status-warning";
 } else if (g.birthDates.size === 0) {
   statusText = "Missing";
   statusClass = "status-missing";
