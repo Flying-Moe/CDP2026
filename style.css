@@ -162,9 +162,11 @@ table.list-table td:not(:first-child) {
 
 #people-table td.people-name {
   text-align: left;
-  white-space: normal;      /* tillad linjeskift */
-  max-width: 18em;          /* kontrolleret bredde */
-  word-break: break-word;  /* lange navne brydes pænt */
+  white-space: normal;         /* allow wrapping */
+  max-width: 18em;             /* controlled width */
+  word-break: normal;          /* DO NOT split words into letters */
+  overflow-wrap: normal;       /* wrap only at normal break points (spaces) */
+  hyphens: none;               /* no auto hyphenation */
 }
 
 /* Birth / Death kompakt (desktop + mobil) */
