@@ -1028,10 +1028,6 @@ async function executeMergePlan(plan) {
 
 await batch.commit();
 
-// 🔧 REPAIR PASS:
-// Sørg for at ALLE approved picks får birth/death fra people
-await autoLinkApprovedPicks();
-
 // 🔄 Force fuld re-render efter strukturel ændring
 await refreshAdminViews({ force: true });
 
