@@ -980,11 +980,86 @@ document.addEventListener("change", e => {
   applyPeoplePlayerFilter(currentPeoplePlayerFilter);
 });
 
+async function handleMergeAndCleanup() {
+  const peopleSnap = await getDocs(collection(db, "people"));
+  const people = peopleSnap.docs.map(d => ({ personId: d.id, ...d.data() }));
+
+  const picks = [];
+  for (const player of window.__adminPlayers || []) {
+    const ps = player.picks || player.entries?.["2026"]?.picks || [];
+    for (const p of ps) {
+      if (p.status === "approved") {
+        picks.push({ playerId: player.id, pick: p });
+      }
+    }
+  }
+
+  const groups = {};
+  for (const p of people) {
+    const name = normalizeName(p.name || "");
+    if (!name) continue;
+    if (!groups[name]) groups[name] = [];
+    groups[name].push(p);
+  }
+
+  const mergePlan = {
+    groups: [],
+    orphanPeopleIds: new Set(),
+    totalApprovedUpdates: 0
+  };
+
+  for (const [name, group] of Object.entries(groups)) {
+    if (group.length < 2) continue;
+
+    // vælg master
+    const master = group.find(p => p.birthDate) ||
+                   group.find(p => p.deathDate) ||
+                   (() => {
+                     const usage = group.map(p => ({
+                       person: p,
+                       usedBy: picks.filter(x => normalizeName(x.pick.normalizedName || x.pick.raw || "") === name && x.pick.personId === p.personId).length
+                     }));
+                     return usage.sort((a, b) => b.usedBy - a.usedBy)[0]?.person || group[0];
+                   })();
+
+    const otherIds = group.map(p => p.personId).filter(id => id !== master.personId);
+
+    let affected = 0;
+    for (const pickObj of picks) {
+      const { pick } = pickObj;
+      const norm = normalizeName(pick.normalizedName || pick.raw || "");
+      if (norm === name && otherIds.includes(pick.personId)) {
+        affected++;
+      }
+    }
+
+    mergePlan.groups.push({
+      name,
+      master,
+      affectedPicksCount: affected
+    });
+
+    for (const id of otherIds) {
+      const stillUsed = picks.some(p => p.pick.personId === id);
+      if (!stillUsed) mergePlan.orphanPeopleIds.add(id);
+    }
+
+    mergePlan.totalApprovedUpdates += affected;
+  }
+
+  if (mergePlan.groups.length === 0 && mergePlan.orphanPeopleIds.size === 0) {
+    alert("Ingen dubletter eller orphans fundet.");
+    return;
+  }
+
+  openMergeModal(mergePlan);
+}
+
 function openMergeModal(plan) {
   const overlay = document.getElementById("merge-modal-overlay");
   const content = document.getElementById("merge-preview-content");
 
-  content.innerHTML = "";  // Tøm indholdet af modalens preview
+  content.innerHTML = "";
 
   const summary = document.createElement("p");
   summary.innerHTML = `
@@ -994,31 +1069,25 @@ function openMergeModal(plan) {
   `;
   content.appendChild(summary);
 
-  // Gennemgå grupperne og vis deres oplysninger
-  plan.groups.forEach(g => {
-    const block = document.createElement("div");
-    block.style.marginBottom = "0.75rem";
-    block.innerHTML = `
+  for (const g of plan.groups) {
+    const div = document.createElement("div");
+    div.innerHTML = `
       <strong>${g.name}</strong><br>
-      Master personId: ${g.master.personId}<br>
-      Approved picks updated: ${g.affectedPicksCount}
+      Master: ${g.master.personId}<br>
+      Affected picks: ${g.affectedPicksCount}
     `;
-    content.appendChild(block);
-  });
+    div.style.marginBottom = "0.5rem";
+    content.appendChild(div);
+  }
 
-  // Vis modalen
-  overlay.classList.remove("hidden"); // Fjern "hidden" for at vise modalens overlay
-
-  // Lyt efter knapper til at lukke eller bekræfte modal
+  overlay.classList.remove("hidden");
   document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
   document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
 
-  // Luk modal, hvis du klikker udenfor den
   overlay.onclick = e => {
     if (e.target === overlay) closeMergeModal();
   };
 
-  // Lyt efter Escape-tasten for at lukke modalen
   document.onkeydown = e => {
     if (e.key === "Escape") closeMergeModal();
   };
@@ -1030,34 +1099,18 @@ function closeMergeModal() {
 }
 
 async function executeMergePlan(plan) {
-  // Firebase v9 batch
   const batch = writeBatch(db);
 
-  // 1) Update approved picks: align personId til master pr. group
   for (const group of plan.groups) {
     for (const ps of window.__adminPlayers || []) {
-      const playerId = ps.id;
-      const playerRef = doc(db, "players", playerId);
-
-      // OBS: dine players i admin.people.js er typisk “plain objects” (id + name),
-      // så vi skal læse picks fra snapshot igen for sikkerhed og korrekt feltsti.
-      // Minimal belastning: vi samler reads i ét call pr player-id? Nej.
-      // Vi bruger i stedet playersSnap i loadPeople-flow (eksisterer i scope dér).
-      // Derfor: executeMergePlan skal kaldes med playersSnap også, hvis vi vil 0 reads.
-      //
-      // For nu: lav 0 gæt. Brug refreshAdminViews efter commit.
-
-      // Hvis du allerede har players data med entries.2026.picks i __adminPlayers, brug det:
+      const ref = doc(db, "players", ps.id);
       const picks = ps.picks || ps.entries?.["2026"]?.picks || [];
-
       let changed = false;
 
       for (const p of picks) {
         if (p.status !== "approved") continue;
-
         const norm = normalizeName(p.normalizedName || p.raw || "");
         if (norm !== normalizeName(group.name)) continue;
-
         if (p.personId !== group.master.personId) {
           p.personId = group.master.personId;
           changed = true;
@@ -1065,23 +1118,20 @@ async function executeMergePlan(plan) {
       }
 
       if (changed) {
-        batch.update(playerRef, { "entries.2026.picks": picks });
+        batch.update(ref, { "entries.2026.picks": picks });
       }
     }
   }
 
-  // 2) Delete orphan people-docs (safe: kun dem der IKKE er master)
-  for (const personId of plan.orphanPeopleIds) {
-    const isMasterSomewhere = plan.groups.some(g => g.master.personId === personId);
-    if (isMasterSomewhere) continue;
-
-    batch.delete(doc(db, "people", personId));
+  for (const id of plan.orphanPeopleIds) {
+    const isMaster = plan.groups.some(g => g.master.personId === id);
+    if (!isMaster) {
+      batch.delete(doc(db, "people", id));
+    }
   }
 
   await batch.commit();
-
   closeMergeModal();
-  alert("Merge completed");
-
+  alert("Merge gennemført.");
   await refreshAdminViews();
 }
