@@ -256,16 +256,16 @@ export const BADGES = [
     }
   },
 
-  /* =========================
-     BLOOD THIEF
+   /* =========================
+     FIRST BLOOD
      First confirmed kill
   ========================= */
 
   {
-    id: "blood_thief",
-    name: "Blood Thief",
-    description: "Scored the first confirmed kill of the season",
-    order: 5,
+    id: "first_blood",
+    name: "First Blood",
+    description: "First confirmed kill of the season",
+    order: 0,
 
     evaluate({ players, deaths }) {
       const tiers = buildEmptyTiers();
@@ -279,7 +279,13 @@ export const BADGES = [
       });
 
       if (!earliest) {
-        return { id: this.id, name: this.name, description: this.description, globalUnlocked: false, tiers };
+        return {
+          id: this.id,
+          name: this.name,
+          description: this.description,
+          globalUnlocked: false,
+          tiers
+        };
       }
 
       players.forEach(player => {
@@ -298,7 +304,13 @@ export const BADGES = [
       tiers.bronze.unlocked = true;
       tiers.bronze.players.sort(sortPlayers);
 
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked: true, tiers };
+      return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        globalUnlocked: true,
+        tiers
+      };
     }
   },
 
