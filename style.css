@@ -1000,3 +1000,35 @@ table.hof-leaderboard th:nth-child(3) {
     margin: 0.1rem 0.15rem;
   }
 }
+
+/* ===============================
+   MODAL STYLES
+   =============================== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  padding: 1rem;
+  max-width: 640px;
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.hidden {
+  display: none;
+}
