@@ -407,30 +407,6 @@ window.previewMergePlan = function () {
     openMergeModal(plan);
   };
 }
-if (mergeAllBtn) {
-  const hasMergeCandidates = [...groups.values()].some(g => {
-    const similarGroups = [...groups.values()].filter(
-      other =>
-        other !== g &&
-        normalizeName(other.displayName) !== normalizeName(g.displayName) &&
-        (
-          normalizeName(other.displayName).includes(normalizeName(g.displayName)) ||
-          normalizeName(g.displayName).includes(normalizeName(other.displayName))
-        )
-    );
-
-    return (
-      g.birthDates.size > 1 ||
-      g.personIds.size > 1 ||
-      similarGroups.length > 0 ||
-      g.picks.length > g.playerIds.size
-    );
-  });
-
-// Hvis Merge-knappen ikke skal være deaktiveret, når der er konflikt
-mergeAllBtn.disabled = !hasMergeCandidates || !hasConflict;
-
-}
    
    // Cache all rows for filtering
 allPeopleRows = Array.from(
