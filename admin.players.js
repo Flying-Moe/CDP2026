@@ -14,7 +14,8 @@ import {
   formatDateForDisplay,
   calculatePlayerTotals,
   refreshAdminViews,
-  attachModalDirtyTracking
+  attachModalDirtyTracking,
+  getPlayersSnap
 } from "./admin.core.js";
 
 import {
