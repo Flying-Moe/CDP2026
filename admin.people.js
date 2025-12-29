@@ -1020,6 +1020,22 @@ async function executeMergePlan(plan) {
     let changed = false;
 
     picks.forEach(p => {
+
+       // ✅ REPAIR: udfyld manglende birth/deathDate fra people/{personId}
+if (p.status === "approved" && p.personId) {
+  const person = peopleById[p.personId];
+  if (person) {
+    if (!p.birthDate && person.birthDate) {
+      p.birthDate = person.birthDate;
+      changed = true;
+    }
+    if (!p.deathDate && person.deathDate) {
+      p.deathDate = person.deathDate;
+      changed = true;
+    }
+  }
+}
+
       if (p.status !== "approved") return;
 
       const group = plan.groups.find(
@@ -1057,11 +1073,16 @@ async function executeMergePlan(plan) {
 
 await batch.commit();
 
-// 🔄 HARD REFRESH via central controller
-await refreshAdminViews({ force: true });
+// ✅ VIGTIGT: ingen kald til loadPlayers/loadPeople/refreshAdminViews her,
+// fordi de kan være module-scopede og give "not defined".
+// I stedet: invalidér cache og genindlæs siden (sikkert og stabilt).
+invalidateAdminCache("players", "people");
 
 closeMergeModal();
 alert("Merge & clean-up completed");
+
+// 🔄 Hard refresh af admin (sikrer at People/Players UI samt grupper er 100% i sync)
+location.reload();
 
 }
 
