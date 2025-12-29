@@ -420,7 +420,7 @@ footer {
   display: none !important;
 }
 
-.modal {
+.modal:not(#merge-modal) {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
