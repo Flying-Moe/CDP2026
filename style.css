@@ -981,3 +981,9 @@ table.hof-leaderboard th:nth-child(3) {
   }
 }
 
+@media (max-width: 720px) {
+  #people-table td.people-name {
+    max-width: 12em;
+  }
+}
+
