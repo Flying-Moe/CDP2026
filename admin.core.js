@@ -214,25 +214,28 @@ export async function getPeopleSnap(force = false) {
   return getCollectionCached("people", force);
 }
 
-// 🔄 OFFICIEL RE-RENDER (bruges af actions)
-// -> refresh kun den aktive tab, og brug cache med force når relevant
+// 🔄 OFFICIEL HARD REFRESH (bruges efter strukturelle ændringer)
 export async function refreshAdminViews(options = {}) {
-  const { force = true } = options;
+  const { force = false } = options;
 
-  // default: når du refresher efter writes, så invalidér
   if (force) {
+    // 🔥 HARD INVALIDERING
     invalidateAdminCache("players", "people");
+
+    // 🔁 VIGTIGT:
+    // load BEGGE uanset aktiv tab
+    await loadPlayers({ force: true });
+    await loadPeople({ force: true });
   }
 
+  // re-render aktiv tab (UI)
   const activeBtn = document.querySelector("#admin-tabs button.active");
   const tabId = activeBtn?.dataset?.tab || "players";
 
   if (tabId === "players") {
-    await loadPlayers({ force });
+    renderPlayersTable();
   } else if (tabId === "people") {
-    await loadPeople({ force });
-  } else {
-    // fallback: gør ingenting (stats/rules osv. kan være read-only)
+    renderPeopleTable();
   }
 }
 
