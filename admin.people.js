@@ -926,60 +926,40 @@ document.addEventListener("change", e => {
 
 function openMergeModal(plan) {
   const overlay = document.getElementById("merge-modal-overlay");
-  const modal   = document.getElementById("merge-modal");
+  const modal = document.getElementById("merge-modal");
   const content = document.getElementById("merge-preview-content");
+  const cancelBtn = document.getElementById("merge-cancel-btn");
+  const confirmBtn = document.getElementById("merge-confirm-btn");
 
-  if (!overlay || !modal || !content) {
+  if (!overlay || !modal || !content || !cancelBtn || !confirmBtn) {
     console.error("Merge modal elements missing");
     return;
   }
 
-  content.innerHTML = "";
+  content.innerHTML = `
+    <p><strong>Groups to merge:</strong> ${plan.groups.length}</p>
+    <p><strong>Approved picks to update:</strong> ${plan.totalApprovedUpdates}</p>
+    <p><strong>Orphan people to remove:</strong> ${plan.orphanPeopleIds.size}</p>
 
-  const summary = document.createElement("p");
-  const orphanOnly = plan.groups.length === 0 && plan.orphanPeopleIds.size > 0;
-
-  summary.innerHTML = `
-    Groups to merge: <strong>${plan.groups.length}</strong><br>
-    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
-    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong><br><br>
-    <em>
-      ${
-        orphanOnly
-          ? "No approved picks will be modified. Unused people will be removed."
-          : "This will consolidate duplicate entries and keep the database clean."
-      }
-    </em>
+    <p style="margin-top:0.6rem; font-size:0.9em; color:#555;">
+      Approved picks will be reassigned to a single canonical person.
+      Unused people documents will be permanently removed.
+    </p>
   `;
 
-  content.appendChild(summary);
-
-  plan.groups.forEach(g => {
-    const block = document.createElement("div");
-    block.style.marginBottom = "0.75rem";
-    block.innerHTML = `
-      <strong>${g.name}</strong><br>
-      Master: ${g.master.personId}<br>
-      Picks updated: ${g.affectedPicksCount}
-    `;
-    content.appendChild(block);
-  });
-
-  // 🔑 VIS MODAL + OVERLAY
+  // VIS
   overlay.classList.remove("hidden");
   modal.classList.remove("hidden");
 
-  document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
-  document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
+  cancelBtn.onclick = () => closeMergeModal();
 
-  overlay.onclick = e => {
-    if (e.target === overlay) closeMergeModal();
-  };
-
-  document.onkeydown = e => {
-    if (e.key === "Escape") closeMergeModal();
+  confirmBtn.onclick = async () => {
+    confirmBtn.disabled = true;
+    await executeMergePlan(plan);
+    closeMergeModal();
   };
 }
+
 
 async function executeMergePlan(plan) {
   const batch = writeBatch(db);
