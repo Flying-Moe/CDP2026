@@ -908,11 +908,20 @@ function openMergeModal(plan) {
   content.innerHTML = "";
 
 const summary = document.createElement("p");
+
+const orphanOnly = plan.groups.length === 0 && plan.orphanPeopleIds.size > 0;
+
 summary.innerHTML = `
   Groups to merge: <strong>${plan.groups.length}</strong><br>
   Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
   Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong><br><br>
-  <em>This will consolidate duplicate entries and keep the database clean.</em>
+  <em>
+    ${
+      orphanOnly
+        ? "No approved picks will be modified. Unused people will be removed."
+        : "This will consolidate duplicate entries and keep the database clean."
+    }
+  </em>
 `;
 
   content.appendChild(summary);
