@@ -192,8 +192,7 @@ const hasDuplicatePerPlayer =
 
 const hasRealMergeConflict =
   g.birthDates.size > 1 ||
-  g.personIds.size > 1 ||
-  similarGroups.length > 0;
+  g.personIds.size > 1;
 
 let statusText = "OK";
 let statusClass = "";
@@ -1005,15 +1004,24 @@ async function executeMergePlan(plan) {
       if (list.length === 1) {
         cleanedPicks.push(list[0]);
       } else {
-        // behold den bedste
-        list.sort((a, b) => {
-          if (a.birthDate && !b.birthDate) return -1;
-          if (!a.birthDate && b.birthDate) return 1;
-          return 0;
-        });
+// 🧠 Sammensmelt picks sikkert – behold ALLE vigtige felter
+const mergedPick = { ...list[0] };
 
-        cleanedPicks.push(list[0]); // behold én
-        changed = true;
+for (const p of list) {
+  if (!mergedPick.birthDate && p.birthDate) {
+    mergedPick.birthDate = p.birthDate;
+  }
+  if (!mergedPick.deathDate && p.deathDate) {
+    mergedPick.deathDate = p.deathDate;
+  }
+  if (!mergedPick.personId && p.personId) {
+    mergedPick.personId = p.personId;
+  }
+}
+
+cleanedPicks.push(mergedPick);
+changed = true;
+
       }
     }
 
