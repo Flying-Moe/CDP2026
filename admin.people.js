@@ -343,11 +343,12 @@ function buildMergePlan(groups, players, peopleSnap) {
     });
   }
 
-  const plan = {
-    groups: [],
-    totalApprovedUpdates: 0,
-    orphanPeopleIds: new Set()
-  };
+const plan = {
+  groups: [],
+  totalApprovedUpdates: 0,
+  orphanPeopleIds: new Set(),
+  hasDuplicatePicks: false
+};
 
   for (const g of groups.values()) {
 
@@ -356,6 +357,10 @@ const hasConflict =
   g.personIds.size > 1 ||
   g.birthDates.size > 1 ||
   g.picks.length > g.playerIds.size;
+
+     if (g.picks.length > g.playerIds.size) {
+  plan.hasDuplicatePicks = true;
+}
 
     if (!hasConflict) continue;
 
@@ -426,24 +431,27 @@ const mergeAllBtn = document.getElementById("merge-all-btn");
 
 if (mergeAllBtn) {
   const plan = buildMergePlan(
-  window.__peopleGroups,
-  window.__adminPlayers || [],
-  await getPeopleSnap(false)
-);
+    window.__peopleGroups,
+    window.__adminPlayers || [],
+    await getPeopleSnap(false)
+  );
 
   const hasMergeConflicts = plan.groups.length > 0;
   const hasOrphans = plan.orphanPeopleIds.size > 0;
+  const hasDuplicatePicks = plan.hasDuplicatePicks;
 
-  mergeAllBtn.disabled = !(hasMergeConflicts || hasOrphans);
+  mergeAllBtn.disabled = !(hasMergeConflicts || hasOrphans || hasDuplicatePicks);
 
-  // Tooltip – forklar hvorfor knappen er aktiv
+  // Tooltip – forklar hvorfor knappen er (in)aktiv
   if (mergeAllBtn.disabled) {
-    mergeAllBtn.title = "No conflicts or unused people found";
+    mergeAllBtn.title = "No conflicts, duplicate picks, or unused people found";
   } else if (hasMergeConflicts && hasOrphans) {
-    mergeAllBtn.title = "Conflicts and unused people detected";
+    mergeAllBtn.title = "Conflicting people and unused entries detected";
   } else if (hasMergeConflicts) {
-    mergeAllBtn.title = "Conflicting entries detected";
-  } else {
+    mergeAllBtn.title = "Mergeable people detected";
+  } else if (hasDuplicatePicks) {
+    mergeAllBtn.title = "Duplicate picks can be auto-cleaned";
+  } else if (hasOrphans) {
     mergeAllBtn.title = "Unused people can be removed";
   }
 
