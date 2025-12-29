@@ -400,7 +400,6 @@ window.previewMergePlan = function () {
   return plan;
 };
 
-
    const mergeAllBtn = document.getElementById("merge-all-btn");
    if (mergeAllBtn) {
   mergeAllBtn.onclick = () => {
@@ -408,6 +407,8 @@ window.previewMergePlan = function () {
     openMergeModal(plan);
   };
 }
+
+if (mergeAllBtn) mergeAllBtn.disabled = false;
    
    // Cache all rows for filtering
 allPeopleRows = Array.from(
