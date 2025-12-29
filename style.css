@@ -317,6 +317,11 @@ table.list-table th {
   background: #fff6d6;
 }
 
+.status-warning {
+  background-color: #fff6d8;
+  color: #7a5a00;
+}
+
 table.leaderboard {
   width: auto;
   min-width: 400px;
