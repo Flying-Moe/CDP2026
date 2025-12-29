@@ -401,30 +401,6 @@ function buildMergePlan(groups, players) {
    
 }
 
-   // DEBUG / PREVIEW – bruges senere i modal
-window.previewMergePlan = function () {
-  const players = window.__adminPlayers || [];
-  const plan = buildMergePlan(window.__peopleGroups, players);
-
-  console.group("MERGE & CLEAN UP – PREVIEW");
-
-  console.log(`Grupper der merges: ${plan.groups.length}`);
-  console.log(`Approved picks der opdateres: ${plan.totalApprovedUpdates}`);
-  console.log(`Orphan people der kan slettes: ${plan.orphanPeopleIds.size}`);
-
-  plan.groups.forEach(g => {
-    console.group(g.name);
-    console.log("Master:", g.master);
-    console.log("Merged:", g.merged.map(m => m.personId));
-    console.log("Affected approved picks:", g.affectedPicksCount);
-    console.groupEnd();
-  });
-
-  console.groupEnd();
-
-  return plan;
-};
-
 const mergeAllBtn = document.getElementById("merge-all-btn");
 
 if (mergeAllBtn) {
@@ -652,80 +628,6 @@ function bindPeopleActions(groups, playersSnap) {
 attachModalDirtyTracking(modal);
 modal.__resetDirty();
 
-    };
-  });
-
-  /* ---------- MERGE ---------- */
-
-  document.querySelectorAll(".merge-people-btn").forEach(btn => {
-    btn.onclick = async () => {
-      const key = btn.dataset.key;
-      const group = groups.get(key);
-      if (!group) return;
-
-      const canonicalBirthDate =
-        group.birthDates.size === 1 ? [...group.birthDates][0] : "";
-
-      let personId;
-      if (group.personIds.size === 1) {
-        personId = [...group.personIds][0];
-      } else {
-        const q = query(
-          collection(db, "people"),
-          where("nameNormalized", "==", key)
-        );
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          personId = snap.docs[0].id;
-        } else {
-          personId = (
-            await addDoc(collection(db, "people"), {
-              name: group.displayName,
-              nameNormalized: key,
-              birthDate: canonicalBirthDate
-            })
-          ).id;
-        }
-      }
-
-      for (const ps of playersSnap.docs) {
-        const ref = doc(db, "players", ps.id);
-        const data = ps.data();
-        const picks = data.entries?.["2026"]?.picks || [];
-
-        const matching = picks.filter(
-          p =>
-            p.status === "approved" &&
-            normalizeName(p.normalizedName || p.raw) === key
-        );
-
-        if (matching.length <= 1) continue;
-
-        const keep = {
-          ...matching[0],
-          normalizedName: normalizeName(
-            matching[0].normalizedName || matching[0].raw
-          ),
-          personId,
-          birthDate: canonicalBirthDate,
-          deathDate:
-            matching.map(p => p.deathDate).find(Boolean) || ""
-        };
-
-        const cleaned = picks.filter(
-          p =>
-            normalizeName(p.normalizedName || p.raw) !== key
-        );
-
-        cleaned.push(keep);
-
-        await updateDoc(ref, {
-          "entries.2026.picks": cleaned
-        });
-      }
-
-      await refreshAdminViews();
     };
   });
 
@@ -985,94 +887,20 @@ document.addEventListener("change", e => {
   applyPeoplePlayerFilter(currentPeoplePlayerFilter);
 });
 
-async function handleMergeAndCleanup() {
-  const snap = await getPeopleSnap(false);
-  const people = [];
-
-  snap.forEach(doc => {
-    const p = doc.data();
-    if (!p.name) return;
-    people.push({ id: doc.id, ...p });
-  });
-
-  const groups = new Map();
-  for (const p of people) {
-    const norm = normalizeName(p.name);
-    if (!groups.has(norm)) groups.set(norm, []);
-    groups.get(norm).push(p);
-  }
-
-  const mergeGroups = [];
-  const orphanPeopleIds = new Set();
-  let totalApprovedUpdates = 0;
-
-  for (const [norm, group] of groups.entries()) {
-    if (group.length < 2) continue;
-
-    const master = [...group].sort((a, b) =>
-      (b.birthDate ? 10 : 0) +
-      (b.deathDate ? 5 : 0) +
-      (b.usedBy ?? 0) - ((a.birthDate ? 10 : 0) +
-      (a.deathDate ? 5 : 0) +
-      (a.usedBy ?? 0))
-    )[0];
-
-    const others = group.filter(p => p.id !== master.id);
-
-    mergeGroups.push({
-      name: norm,
-      master,
-      others,
-      affectedPicksCount: 0
-    });
-
-    others.forEach(p => orphanPeopleIds.add(p.id));
-  }
-
-  if (mergeGroups.length === 0) {
-    alert("No conflicts found. Nothing to merge.");
-    return;
-  }
-
-  const playerSnaps = await getPlayersSnap(false);
-  const players = [];
-
-  playerSnaps.forEach(s => {
-    const p = s.data();
-    players.push({ id: s.id, picks: p.entries?.["2026"]?.picks || [] });
-  });
-
-  for (const g of mergeGroups) {
-    for (const pl of players) {
-      for (const pick of pl.picks) {
-        if (pick.status !== "approved") continue;
-        if (normalizeName(pick.normalizedName || pick.raw || "") === g.name) {
-          g.affectedPicksCount += 1;
-        }
-      }
-    }
-    totalApprovedUpdates += g.affectedPicksCount;
-  }
-
-  openMergeModal({
-    groups: mergeGroups,
-    totalApprovedUpdates,
-    orphanPeopleIds
-  });
-}
-
 function openMergeModal(plan) {
   const overlay = document.getElementById("merge-modal-overlay");
   const content = document.getElementById("merge-preview-content");
 
   content.innerHTML = "";
 
-  const summary = document.createElement("p");
-  summary.innerHTML = `
-    Groups to merge: <strong>${plan.groups.length}</strong><br>
-    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
-    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong>
-  `;
+const summary = document.createElement("p");
+summary.innerHTML = `
+  Groups to merge: <strong>${plan.groups.length}</strong><br>
+  Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
+  Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong><br><br>
+  <em>This will consolidate duplicate entries and keep the database clean.</em>
+`;
+
   content.appendChild(summary);
 
   plan.groups.forEach(g => {
