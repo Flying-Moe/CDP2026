@@ -352,9 +352,10 @@ function buildMergePlan(groups, players, peopleSnap) {
   for (const g of groups.values()) {
 
     // 🔴 Kun REELLE merge-konflikter
-    const hasConflict =
-      g.personIds.size > 1 ||
-      g.birthDates.size > 1;
+const hasConflict =
+  g.personIds.size > 1 ||
+  g.birthDates.size > 1 ||
+  g.picks.length > g.playerIds.size;
 
     if (!hasConflict) continue;
 
