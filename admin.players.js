@@ -333,11 +333,11 @@ currentValidateListActive = listActive;
 
 const title = document.getElementById("validate-title");
 if (title) {
-  const playerLabel = player?.name ? ` – ${player.name}` : "";
+  const playerName = snap.data()?.name || "";
 
   title.textContent = listActive
-    ? `Validate picks${playerLabel}`
-    : `Validate picks${playerLabel} ❄️ (list deactivated)`;
+    ? `Validate picks${playerName ? " – " + playerName : ""}`
+    : `Validate picks${playerName ? " – " + playerName : ""} ❄️ (list deactivated)`;
 }
 
 const picks =
