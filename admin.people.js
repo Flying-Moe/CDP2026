@@ -990,7 +990,6 @@ async function handleMergeAndCleanup() {
     people.push({ id: doc.id, ...p });
   });
 
-  // 🔍 Gruppér efter normalizedName
   const groups = new Map();
   for (const p of people) {
     const norm = normalizeName(p.name);
@@ -1003,9 +1002,8 @@ async function handleMergeAndCleanup() {
   let totalApprovedUpdates = 0;
 
   for (const [norm, group] of groups.entries()) {
-    if (group.length < 2) continue; // ingen konflikt
+    if (group.length < 2) continue;
 
-    // Vælg master med prioritet
     const master = [...group].sort((a, b) =>
       (b.birthDate ? 10 : 0) +
       (b.deathDate ? 5 : 0) +
@@ -1031,7 +1029,6 @@ async function handleMergeAndCleanup() {
     return;
   }
 
-  // Hent players for at tælle påvirkede picks
   const playerSnaps = await getDocs(collection(db, "players"));
   const players = [];
 
@@ -1040,7 +1037,6 @@ async function handleMergeAndCleanup() {
     players.push({ id: s.id, picks: p.entries?.["2026"]?.picks || [] });
   });
 
-  // Opdater affectedPicksCount for preview
   for (const g of mergeGroups) {
     for (const pl of players) {
       for (const pick of pl.picks) {
@@ -1060,7 +1056,39 @@ async function handleMergeAndCleanup() {
   });
 }
 
-function openMergeModal(plan) async function executeMergePlan(plan) {
+function openMergeModal(plan) {
+  const overlay = document.getElementById("merge-modal-overlay");
+  const content = document.getElementById("merge-preview-content");
+
+  content.innerHTML = "";
+
+  const summary = document.createElement("p");
+  summary.innerHTML = `
+    Groups to merge: <strong>${plan.groups.length}</strong><br>
+    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
+    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong>
+  `;
+  content.appendChild(summary);
+
+  plan.groups.forEach(g => {
+    const block = document.createElement("div");
+    block.style.marginBottom = "0.75rem";
+    block.innerHTML = `
+      <strong>${g.name}</strong><br>
+      Master: ${g.master.id}<br>
+      Picks updated: ${g.affectedPicksCount}
+    `;
+    content.appendChild(block);
+  });
+
+  overlay.classList.remove("hidden");
+  document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
+  document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
+  overlay.onclick = e => { if (e.target === overlay) closeMergeModal(); };
+  document.onkeydown = e => { if (e.key === "Escape") closeMergeModal(); };
+}
+
+async function executeMergePlan(plan) {
   const batch = writeBatch(db);
 
   const playerSnaps = await getDocs(collection(db, "players"));
@@ -1102,38 +1130,6 @@ function openMergeModal(plan) async function executeMergePlan(plan) {
   closeMergeModal();
   alert("Merge & clean-up completed");
   await refreshAdminViews();
-}
-
-function openMergeModal(plan) {
-  const overlay = document.getElementById("merge-modal-overlay");
-  const content = document.getElementById("merge-preview-content");
-
-  content.innerHTML = "";
-
-  const summary = document.createElement("p");
-  summary.innerHTML = `
-    Groups to merge: <strong>${plan.groups.length}</strong><br>
-    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
-    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong>
-  `;
-  content.appendChild(summary);
-
-  plan.groups.forEach(g => {
-    const block = document.createElement("div");
-    block.style.marginBottom = "0.75rem";
-    block.innerHTML = `
-      <strong>${g.name}</strong><br>
-      Master: ${g.master.id}<br>
-      Picks updated: ${g.affectedPicksCount}
-    `;
-    content.appendChild(block);
-  });
-
-  overlay.classList.remove("hidden");
-  document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
-  document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
-  overlay.onclick = e => { if (e.target === overlay) closeMergeModal(); };
-  document.onkeydown = e => { if (e.key === "Escape") closeMergeModal(); };
 }
 
 function closeMergeModal() {
