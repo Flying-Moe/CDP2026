@@ -348,17 +348,6 @@ function buildMergePlan(groups, players) {
     orphanPeopleIds: new Set()
   };
 
-     // 🔎 Find ALL approved personIds actually in use
-  const usedPersonIds = new Set();
-
-  for (const player of players) {
-    (player.picks || []).forEach(p => {
-      if (p.status === "approved" && p.personId) {
-        usedPersonIds.add(p.personId);
-      }
-    });
-  }
-
   for (const g of groups.values()) {
 
     // kun grupper med reel konflikt
@@ -420,14 +409,6 @@ const hasConflict =
     });
   }
 
-     // 🧹 Add pure orphans (people never referenced by approved picks)
-  groups.forEach(g => {
-    g.personIds.forEach(pid => {
-      if (!usedPersonIds.has(pid)) {
-        plan.orphanPeopleIds.add(pid);
-      }
-    });
-  });
   // 🧹 Rene orphans: people uden nogen approved picks
   for (const g of groups.values()) {
     g.personIds.forEach(pid => {
@@ -436,7 +417,6 @@ const hasConflict =
       }
     });
   }
-
 
   return plan;
    
