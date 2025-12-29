@@ -204,9 +204,6 @@ if (hasRealMergeConflict) {
 } else if (hasDuplicatePerPlayer) {
   statusText = "Duplicate picks (already linked)";
   statusClass = "status-warning";
-} else if (hasDuplicatePerPlayer) {
-  statusText = "Duplicate picks (already linked)";
-  statusClass = "status-warning";
 } else if (g.birthDates.size === 0) {
   statusText = "Missing";
   statusClass = "status-missing";
@@ -334,6 +331,17 @@ function scorePersonCandidate(candidate) {
 }
 
 function buildMergePlan(groups, players) {
+     // 🔎 Alle personIds som faktisk bruges af approved picks
+  const usedPersonIds = new Set();
+
+  for (const player of players) {
+    (player.picks || []).forEach(p => {
+      if (p.status === "approved" && p.personId) {
+        usedPersonIds.add(p.personId);
+      }
+    });
+  }
+
   const plan = {
     groups: [],
     totalApprovedUpdates: 0,
@@ -354,10 +362,9 @@ function buildMergePlan(groups, players) {
   for (const g of groups.values()) {
 
     // kun grupper med reel konflikt
-    const hasConflict =
-      g.personIds.size > 1 ||
-      g.birthDates.size > 1 ||
-      g.picks.length > g.playerIds.size;
+const hasConflict =
+  g.personIds.size > 1 ||
+  g.birthDates.size > 1;
 
     if (!hasConflict) continue;
 
@@ -421,6 +428,14 @@ function buildMergePlan(groups, players) {
       }
     });
   });
+  // 🧹 Rene orphans: people uden nogen approved picks
+  for (const g of groups.values()) {
+    g.personIds.forEach(pid => {
+      if (!usedPersonIds.has(pid)) {
+        plan.orphanPeopleIds.add(pid);
+      }
+    });
+  }
 
 
   return plan;
