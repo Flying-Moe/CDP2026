@@ -1122,13 +1122,12 @@ ul > li {
 
 .grim-signoff {
   margin-top: 3rem;
-  text-align: center;
 }
 
 .grim-signoff img {
-  width: 90px;
+  width: 210px;
   height: auto;
-  opacity: 0.85;
+  opacity: 0.95;
   margin-bottom: 0.75rem;
 }
 
