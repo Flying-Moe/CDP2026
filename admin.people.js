@@ -330,7 +330,7 @@ function scorePersonCandidate(candidate) {
   return score;
 }
 
-function buildMergePlan(groups, players) {
+function buildMergePlan(groups, players, peopleSnap) {
 
   // 🔎 Alle personIds som faktisk bruges af approved picks
   const usedPersonIds = new Set();
@@ -408,22 +408,27 @@ function buildMergePlan(groups, players) {
     });
   }
 
-  // 🧹 Rene orphans: people uden NOGEN approved picks
-  for (const g of groups.values()) {
-    g.personIds.forEach(pid => {
-      if (!usedPersonIds.has(pid)) {
-        plan.orphanPeopleIds.add(pid);
-      }
-    });
-  }
-
+// 🧹 PURE ORPHANS FROM PEOPLE COLLECTION
+// people docs der ikke bruges af NOGEN approved picks
+if (peopleSnap) {
+  peopleSnap.forEach(docu => {
+    const pid = docu.id;
+    if (!usedPersonIds.has(pid)) {
+      plan.orphanPeopleIds.add(pid);
+    }
+  });
+}
   return plan;
 }
 
 const mergeAllBtn = document.getElementById("merge-all-btn");
 
 if (mergeAllBtn) {
-  const plan = buildMergePlan(window.__peopleGroups, window.__adminPlayers || []);
+  const plan = buildMergePlan(
+  window.__peopleGroups,
+  window.__adminPlayers || [],
+  await getPeopleSnap(false)
+);
 
   const hasMergeConflicts = plan.groups.length > 0;
   const hasOrphans = plan.orphanPeopleIds.size > 0;
