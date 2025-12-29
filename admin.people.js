@@ -198,11 +198,8 @@ const hasRealMergeConflict =
 let statusText = "OK";
 let statusClass = "";
 
-if (hasRealMergeConflict) {
-  statusText = "Conflict";
-  statusClass = "status-conflict";
 } else if (hasDuplicatePerPlayer) {
-  statusText = "Duplicate picks (already linked)";
+  statusText = "Duplicate picks (auto-clean)";
   statusClass = "status-warning";
 } else if (g.birthDates.size === 0) {
   statusText = "Missing";
@@ -940,6 +937,12 @@ function openMergeModal(plan) {
     <p><strong>Groups to merge:</strong> ${plan.groups.length}</p>
     <p><strong>Approved picks to update:</strong> ${plan.totalApprovedUpdates}</p>
     <p><strong>Orphan people to remove:</strong> ${plan.orphanPeopleIds.size}</p>
+${plan.duplicateSummary ? `
+  <p style="margin-top:0.4rem;">
+    <strong>Duplicate picks to clean:</strong><br>
+    ${plan.duplicateSummary.join("<br>")}
+  </p>
+` : ""}
 
     <p style="margin-top:0.6rem; font-size:0.9em; color:#555;">
       Approved picks will be reassigned to a single canonical person.
@@ -960,7 +963,6 @@ function openMergeModal(plan) {
   };
 }
 
-
 async function executeMergePlan(plan) {
   const batch = writeBatch(db);
 
@@ -971,6 +973,51 @@ async function executeMergePlan(plan) {
     const p = s.data();
     players.push({ id: s.id, picks: p.entries?.["2026"]?.picks || [] });
   });
+
+     // 🧹 STEP 1: DEDUPE PICKS PR. PLAYER (samme personId)
+  for (const ps of players) {
+    const byPerson = new Map();
+
+    ps.picks.forEach(p => {
+      if (p.status !== "approved" || !p.personId) return;
+
+      if (!byPerson.has(p.personId)) {
+        byPerson.set(p.personId, []);
+      }
+      byPerson.get(p.personId).push(p);
+    });
+
+    let changed = false;
+    const cleanedPicks = [];
+
+    for (const list of byPerson.values()) {
+      if (list.length === 1) {
+        cleanedPicks.push(list[0]);
+      } else {
+        // behold den bedste
+        list.sort((a, b) => {
+          if (a.birthDate && !b.birthDate) return -1;
+          if (!a.birthDate && b.birthDate) return 1;
+          return 0;
+        });
+
+        cleanedPicks.push(list[0]); // behold én
+        changed = true;
+      }
+    }
+
+    // behold også non-approved picks
+    ps.picks.forEach(p => {
+      if (p.status !== "approved") cleanedPicks.push(p);
+    });
+
+    if (changed) {
+      batch.update(
+        doc(db, "players", ps.id),
+        { "entries.2026.picks": cleanedPicks }
+      );
+    }
+  }
 
   for (const group of plan.groups) {
     for (const ps of players) {
