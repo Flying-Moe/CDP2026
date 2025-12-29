@@ -1028,10 +1028,8 @@ async function executeMergePlan(plan) {
 
 await batch.commit();
 
-// 🔄 TVING GENINDLÆSNING AF PLAYERS FRA FIRESTORE
-window.__adminPlayers = null;
-await loadPlayers();   // <-- KRITISK
-await loadPeople();    // rebuild groups baseret på NYE picks
+// 🔄 HARD REFRESH via central controller
+await refreshAdminViews({ force: true });
 
 closeMergeModal();
 alert("Merge & clean-up completed");
