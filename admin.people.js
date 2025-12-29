@@ -1021,3 +1021,52 @@ function closeMergeModal() {
   document.getElementById("merge-modal-overlay").classList.add("hidden");
   document.onkeydown = null;
 }
+
+async function executeMergePlan(plan) {
+  const db = window.db; // Firebase instance
+  const batch = db.batch();
+
+  // 1. Update approved picks
+  for (const group of plan.groups) {
+    for (const player of window.__adminPlayers) {
+      const picks = player.picks || [];
+      let changed = false;
+
+      picks.forEach(p => {
+        if (
+          p.status === "approved" &&
+          normalizeName(p.normalizedName || p.raw) === normalizeName(group.name) &&
+          p.personId !== group.master.personId
+        ) {
+          p.personId = group.master.personId;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        const ref = db.collection("players").doc(player.id);
+        batch.update(ref, { picks });
+      }
+    }
+  }
+
+  // 2. Remove orphan people (safe: only if unused)
+  for (const personId of plan.orphanPeopleIds) {
+    const stillUsed = plan.groups.some(g =>
+      g.master.personId === personId
+    );
+    if (!stillUsed) {
+      const ref = db.collection("people").doc(personId);
+      batch.delete(ref);
+    }
+  }
+
+  await batch.commit();
+
+  closeMergeModal();
+  alert("Merge completed");
+
+  // Reload admin views
+  if (typeof loadPeople === "function") loadPeople();
+  if (typeof loadPlayers === "function") loadPlayers();
+}
