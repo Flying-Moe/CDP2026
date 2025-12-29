@@ -290,6 +290,115 @@ tbody.innerHTML += `
 // 🔑 gem grupper globalt til Apply Wikidata
 window.__peopleGroups = groups;
 
+   /* ===============================
+   MERGE & CLEANUP – PLAN (READ ONLY)
+   =============================== */
+
+function scorePersonCandidate(candidate) {
+  let score = 0;
+  if (candidate.personId) score += 2;
+  if (candidate.birthDate) score += 2;
+  if (candidate.deathDate) score += 1;
+  return score;
+}
+
+function buildMergePlan(groups, players) {
+  const plan = {
+    groups: [],
+    totalApprovedUpdates: 0,
+    orphanPeopleIds: new Set()
+  };
+
+  for (const g of groups.values()) {
+
+    // kun grupper med reel konflikt
+    const hasConflict =
+      g.personIds.size > 1 ||
+      g.birthDates.size > 1 ||
+      g.picks.length > g.playerIds.size;
+
+    if (!hasConflict) continue;
+
+    // kandidater pr. personId
+    const candidates = [...g.personIds].map(pid => {
+      const pick = g.picks.find(p => p.personId === pid) || {};
+      return {
+        personId: pid,
+        birthDate: pick.birthDate || null,
+        deathDate: pick.deathDate || null
+      };
+    });
+
+    // vælg master = flest informationer
+    candidates.sort((a, b) => scorePersonCandidate(b) - scorePersonCandidate(a));
+    const master = candidates[0];
+
+    // find alle approved picks der skal opdateres
+    const affectedPicks = [];
+    for (const player of players) {
+      const approved = (player.picks || []).filter(
+        p =>
+          p.status === "approved" &&
+          normalizeName(p.normalizedName || p.raw) === normalizeName(g.displayName)
+      );
+
+      approved.forEach(p => {
+        if (p.personId !== master.personId) {
+          affectedPicks.push({
+            playerId: player.id,
+            from: p.personId,
+            to: master.personId
+          });
+        }
+      });
+    }
+
+    if (affectedPicks.length === 0) continue;
+
+    plan.groups.push({
+      name: g.displayName,
+      master,
+      merged: candidates.slice(1),
+      affectedPicksCount: affectedPicks.length
+    });
+
+    plan.totalApprovedUpdates += affectedPicks.length;
+
+    // orphan candidates (people uden picks)
+    candidates.slice(1).forEach(c => {
+      plan.orphanPeopleIds.add(c.personId);
+    });
+  }
+
+  return plan;
+   
+}
+
+   // DEBUG / PREVIEW – bruges senere i modal
+window.previewMergePlan = function () {
+  const players = window.__adminPlayers || [];
+  const plan = buildMergePlan(window.__peopleGroups, players);
+
+  console.group("MERGE & CLEAN UP – PREVIEW");
+
+  console.log(`Grupper der merges: ${plan.groups.length}`);
+  console.log(`Approved picks der opdateres: ${plan.totalApprovedUpdates}`);
+  console.log(`Orphan people der kan slettes: ${plan.orphanPeopleIds.size}`);
+
+  plan.groups.forEach(g => {
+    console.group(g.name);
+    console.log("Master:", g.master);
+    console.log("Merged:", g.merged.map(m => m.personId));
+    console.log("Affected approved picks:", g.affectedPicksCount);
+    console.groupEnd();
+  });
+
+  console.groupEnd();
+
+  return plan;
+};
+
+
    const mergeAllBtn = document.getElementById("merge-all-btn");
 if (mergeAllBtn) {
   const hasMergeCandidates = [...groups.values()].some(g => {
