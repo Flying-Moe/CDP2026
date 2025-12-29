@@ -176,11 +176,66 @@ export function formatDateForDisplay(isoDate) {
   return `${d}-${m}-${y}`;
 }
 
-// 🔄 OFFICIEL RE-RENDER (bruges af People-actions)
-export async function refreshAdminViews() {
-  await loadPlayers();
-  await loadPeople();
+// =====================================================
+// ADMIN DATA CACHE (SESSION) – REDUCERER READS
+// =====================================================
+
+const __adminCache = {
+  ttlMs: 60_000, // 60 sek
+  collections: new Map(), // key: "players"/"people" -> { at:number, snap:any }
+};
+
+export function invalidateAdminCache(...names) {
+  if (!names.length) {
+    __adminCache.collections.clear();
+    return;
+  }
+  names.forEach(n => __adminCache.collections.delete(n));
 }
+
+async function getCollectionCached(name, force = false) {
+  const now = Date.now();
+  const hit = __adminCache.collections.get(name);
+
+  if (!force && hit && (now - hit.at) < __adminCache.ttlMs) {
+    return hit.snap;
+  }
+
+  const snap = await getDocs(collection(db, name));
+  __adminCache.collections.set(name, { at: now, snap });
+  return snap;
+}
+
+export async function getPlayersSnap(force = false) {
+  return getCollectionCached("players", force);
+}
+
+export async function getPeopleSnap(force = false) {
+  return getCollectionCached("people", force);
+}
+
+// 🔄 OFFICIEL RE-RENDER (bruges af actions)
+// -> refresh kun den aktive tab, og brug cache med force når relevant
+export async function refreshAdminViews(options = {}) {
+  const { force = true } = options;
+
+  // default: når du refresher efter writes, så invalidér
+  if (force) {
+    invalidateAdminCache("players", "people");
+  }
+
+  const activeBtn = document.querySelector("#admin-tabs button.active");
+  const tabId = activeBtn?.dataset?.tab || "players";
+
+  if (tabId === "players") {
+    await loadPlayers({ force });
+  } else if (tabId === "people") {
+    await loadPeople({ force });
+  } else {
+    // fallback: gør ingenting (stats/rules osv. kan være read-only)
+  }
+}
+
 export function normalizeName(name) {
   return name
     .toLowerCase()
