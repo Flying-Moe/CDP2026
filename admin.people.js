@@ -92,6 +92,27 @@ function sortPeople(groups) {
   });
 }
 
+// 🔧 Enrich admin picks with people birth/death dates (runtime only)
+function enrichAdminPlayersWithPeopleData(adminPlayers, peopleById) {
+  if (!Array.isArray(adminPlayers) || !peopleById) return;
+
+  adminPlayers.forEach(player => {
+    (player.picks || []).forEach(pick => {
+      if (!pick.personId) return;
+
+      const person = peopleById[pick.personId];
+      if (!person) return;
+
+      if (!pick.birthDate && person.birthDate) {
+        pick.birthDate = person.birthDate;
+      }
+      if (!pick.deathDate && person.deathDate) {
+        pick.deathDate = person.deathDate;
+      }
+    });
+  });
+}
+
 export async function loadPeople(options = {}) {
   const { force = false } = options;
 
@@ -103,6 +124,14 @@ export async function loadPeople(options = {}) {
   const playersSnap = await getPlayersSnap(force);
   const peopleSnap  = await getPeopleSnap(force);
 
+   // 🔑 Build peopleById map (bruges til runtime-berigelse)
+const peopleById = {};
+peopleSnap.forEach(d => {
+  peopleById[d.id] = d.data();
+});
+
+// 🔑 Enrich admin players with birth/death dates from people
+enrichAdminPlayersWithPeopleData(window.__adminPlayers, peopleById);
 
 // 🔑 map playerId -> playerName (bruges til tooltips)
 const playerNameMap = {};
