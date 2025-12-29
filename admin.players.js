@@ -64,8 +64,9 @@ function sortPlayers(players) {
   });
 }
 
-export async function loadPlayers() {
-  const snap = await getDocs(collection(db, "players"));
+export async function loadPlayers(options = {}) {
+  const { force = false } = options;
+  const snap = await getPlayersSnap(force);
 
   const activeBody = document.querySelector("#players-table tbody");
   const inactiveBody = document.querySelector("#inactive-players-table tbody");
