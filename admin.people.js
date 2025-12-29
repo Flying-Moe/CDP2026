@@ -925,26 +925,31 @@ document.addEventListener("change", e => {
 
 function openMergeModal(plan) {
   const overlay = document.getElementById("merge-modal-overlay");
+  const modal   = document.getElementById("merge-modal");
   const content = document.getElementById("merge-preview-content");
+
+  if (!overlay || !modal || !content) {
+    console.error("Merge modal elements missing");
+    return;
+  }
 
   content.innerHTML = "";
 
-const summary = document.createElement("p");
+  const summary = document.createElement("p");
+  const orphanOnly = plan.groups.length === 0 && plan.orphanPeopleIds.size > 0;
 
-const orphanOnly = plan.groups.length === 0 && plan.orphanPeopleIds.size > 0;
-
-summary.innerHTML = `
-  Groups to merge: <strong>${plan.groups.length}</strong><br>
-  Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
-  Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong><br><br>
-  <em>
-    ${
-      orphanOnly
-        ? "No approved picks will be modified. Unused people will be removed."
-        : "This will consolidate duplicate entries and keep the database clean."
-    }
-  </em>
-`;
+  summary.innerHTML = `
+    Groups to merge: <strong>${plan.groups.length}</strong><br>
+    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
+    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong><br><br>
+    <em>
+      ${
+        orphanOnly
+          ? "No approved picks will be modified. Unused people will be removed."
+          : "This will consolidate duplicate entries and keep the database clean."
+      }
+    </em>
+  `;
 
   content.appendChild(summary);
 
@@ -953,17 +958,26 @@ summary.innerHTML = `
     block.style.marginBottom = "0.75rem";
     block.innerHTML = `
       <strong>${g.name}</strong><br>
-      Master: ${g.master.id}<br>
+      Master: ${g.master.personId}<br>
       Picks updated: ${g.affectedPicksCount}
     `;
     content.appendChild(block);
   });
 
+  // 🔑 VIS MODAL + OVERLAY
   overlay.classList.remove("hidden");
+  modal.classList.remove("hidden");
+
   document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
   document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
-  overlay.onclick = e => { if (e.target === overlay) closeMergeModal(); };
-  document.onkeydown = e => { if (e.key === "Escape") closeMergeModal(); };
+
+  overlay.onclick = e => {
+    if (e.target === overlay) closeMergeModal();
+  };
+
+  document.onkeydown = e => {
+    if (e.key === "Escape") closeMergeModal();
+  };
 }
 
 async function executeMergePlan(plan) {
@@ -1018,6 +1032,7 @@ await refreshAdminViews({ force: true });
 }
 
 function closeMergeModal() {
-  document.getElementById("merge-modal-overlay").classList.add("hidden");
+  document.getElementById("merge-modal-overlay")?.classList.add("hidden");
+  document.getElementById("merge-modal")?.classList.add("hidden");
   document.onkeydown = null;
 }
