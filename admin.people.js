@@ -1026,10 +1026,18 @@ async function executeMergePlan(plan) {
     batch.delete(doc(db, "people", pid));
   });
 
-  await batch.commit();
-  await refreshAdminViews({ force: true });
-  closeMergeModal();
-  alert("Merge & clean-up completed");
+await batch.commit();
+
+// 🔧 REPAIR PASS:
+// Sørg for at ALLE approved picks får birth/death fra people
+await autoLinkApprovedPicks();
+
+// 🔄 Force fuld re-render efter strukturel ændring
+await refreshAdminViews({ force: true });
+
+closeMergeModal();
+alert("Merge & clean-up completed");
+
 }
 
 function closeMergeModal() {
