@@ -556,6 +556,21 @@ footer {
   text-align: center;
 }
 
+.no-hscroll {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.no-hscroll th,
+.no-hscroll td {
+  word-wrap: break-word;
+}
+
+.no-hscroll th:last-child,
+.no-hscroll td:last-child {
+  width: 110px; /* Actions */
+}
+
 /* =========================
    MOBILE
 ========================= */
