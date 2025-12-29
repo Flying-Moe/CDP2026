@@ -333,9 +333,11 @@ currentValidateListActive = listActive;
 
 const title = document.getElementById("validate-title");
 if (title) {
+  const playerLabel = player?.name ? ` – ${player.name}` : "";
+
   title.textContent = listActive
-    ? "Validate picks"
-    : "Validate picks ❄️ (list deactivated)";
+    ? `Validate picks${playerLabel}`
+    : `Validate picks${playerLabel} ❄️ (list deactivated)`;
 }
 
 const picks =
