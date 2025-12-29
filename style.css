@@ -976,8 +976,8 @@ table.hof-leaderboard th:nth-child(3) {
   #people-table td.death-date {
     white-space: nowrap;
     min-width: 5em;
-    padding-left: 0.1rem;
-    padding-right: 0.1rem;
+    padding-left: 0.12rem;
+    padding-right: 0.12rem;
     text-align: center;         /* matcher Players-tab */
     line-height: 1.0;           /* kompakt højde */
   }
