@@ -528,15 +528,16 @@ onAuthStateChanged(auth, async user => {
   loginSection.style.display = "none";
   adminSection.style.display = "block";
 
-  setupTabs();
+// 🔒 INIT-SEKVENS – KØRER KUN ÉN GANG
+if (adminInitialized) return;
+adminInitialized = true;
 
-  // 🔒 INIT-SEKVENS – KØRER KUN ÉN GANG
-  if (adminInitialized) return;
-  adminInitialized = true;
+await autoLinkApprovedPicks();
 
-  await autoLinkApprovedPicks();
-  await loadPlayers();
-  await loadPeople();
+// Tabs loader selv den relevante data.
+// (Nu med cache + uden dobbelt-reads)
+setupTabs();
+
    
 });
 
