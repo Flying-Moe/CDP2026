@@ -14,7 +14,8 @@ import {
   calculateHitPoints,
   attachModalDirtyTracking,
   getPlayersSnap,
-  getPeopleSnap
+  getPeopleSnap,
+  invalidateAdminCache
 } from "./admin.core.js";
 
 
@@ -1097,7 +1098,7 @@ function openMergeModal(plan) {
 async function executeMergePlan(plan) {
   const batch = writeBatch(db);
 
-  const playerSnaps = await getDocs(collection(db, "players"));
+  const playerSnaps = await getPlayersSnap(false);
   const players = [];
 
   playerSnaps.forEach(s => {
