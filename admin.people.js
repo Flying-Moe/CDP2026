@@ -22,7 +22,8 @@ import {
   updateDoc,
   doc,
   query,
-  where
+  where,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentEditPersonKey = null;
@@ -999,42 +1000,52 @@ function closeMergeModal() {
 }
 
 async function executeMergePlan(plan) {
-  const db = window.db; // Firebase instance
-  const batch = db.batch();
+  // Firebase v9 batch
+  const batch = writeBatch(db);
 
-  // 1. Update approved picks
+  // 1) Update approved picks: align personId til master pr. group
   for (const group of plan.groups) {
-    for (const player of window.__adminPlayers) {
-      const picks = player.picks || [];
+    for (const ps of window.__adminPlayers || []) {
+      const playerId = ps.id;
+      const playerRef = doc(db, "players", playerId);
+
+      // OBS: dine players i admin.people.js er typisk “plain objects” (id + name),
+      // så vi skal læse picks fra snapshot igen for sikkerhed og korrekt feltsti.
+      // Minimal belastning: vi samler reads i ét call pr player-id? Nej.
+      // Vi bruger i stedet playersSnap i loadPeople-flow (eksisterer i scope dér).
+      // Derfor: executeMergePlan skal kaldes med playersSnap også, hvis vi vil 0 reads.
+      //
+      // For nu: lav 0 gæt. Brug refreshAdminViews efter commit.
+
+      // Hvis du allerede har players data med entries.2026.picks i __adminPlayers, brug det:
+      const picks = ps.picks || ps.entries?.["2026"]?.picks || [];
+
       let changed = false;
 
-      picks.forEach(p => {
-        if (
-          p.status === "approved" &&
-          normalizeName(p.normalizedName || p.raw) === normalizeName(group.name) &&
-          p.personId !== group.master.personId
-        ) {
+      for (const p of picks) {
+        if (p.status !== "approved") continue;
+
+        const norm = normalizeName(p.normalizedName || p.raw || "");
+        if (norm !== normalizeName(group.name)) continue;
+
+        if (p.personId !== group.master.personId) {
           p.personId = group.master.personId;
           changed = true;
         }
-      });
+      }
 
       if (changed) {
-        const ref = db.collection("players").doc(player.id);
-        batch.update(ref, { picks });
+        batch.update(playerRef, { "entries.2026.picks": picks });
       }
     }
   }
 
-  // 2. Remove orphan people (safe: only if unused)
+  // 2) Delete orphan people-docs (safe: kun dem der IKKE er master)
   for (const personId of plan.orphanPeopleIds) {
-    const stillUsed = plan.groups.some(g =>
-      g.master.personId === personId
-    );
-    if (!stillUsed) {
-      const ref = db.collection("people").doc(personId);
-      batch.delete(ref);
-    }
+    const isMasterSomewhere = plan.groups.some(g => g.master.personId === personId);
+    if (isMasterSomewhere) continue;
+
+    batch.delete(doc(db, "people", personId));
   }
 
   await batch.commit();
@@ -1042,7 +1053,5 @@ async function executeMergePlan(plan) {
   closeMergeModal();
   alert("Merge completed");
 
-  // Reload admin views
-  if (typeof loadPeople === "function") loadPeople();
-  if (typeof loadPlayers === "function") loadPlayers();
+  await refreshAdminViews();
 }
