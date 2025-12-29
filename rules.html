@@ -23,6 +23,26 @@
   This game is played for fun. No vigilante work on the side.
 </p>
 
+<div class="rules-model">
+<model-viewer
+  src="assets/models/rooster.glb"
+  alt="The rooster of death"
+  auto-rotate
+  auto-rotate-delay="0"
+  rotation-per-second="10deg"
+  camera-controls
+  disable-zoom
+  interaction-prompt="none"
+  exposure="1"
+  shadow-intensity="1"
+  camera-orbit="0deg 75deg 2.5m"
+  style="width: 100%; max-width: 420px; height: 420px;">
+</model-viewer>
+  <p class="rules-model-caption">
+  </p>
+</div>
+
+
 <ol>
   <li>
     Each contestant shall submit a list containing <strong>20 celebrity names</strong>
@@ -120,6 +140,7 @@
   <p id="build-info" class="build-info"></p>
 </footer>
 
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <script src="common.js"></script>
 
 </body>
