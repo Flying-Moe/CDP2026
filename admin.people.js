@@ -331,7 +331,8 @@ function scorePersonCandidate(candidate) {
 }
 
 function buildMergePlan(groups, players) {
-     // 🔎 Alle personIds som faktisk bruges af approved picks
+
+  // 🔎 Alle personIds som faktisk bruges af approved picks
   const usedPersonIds = new Set();
 
   for (const player of players) {
@@ -350,10 +351,10 @@ function buildMergePlan(groups, players) {
 
   for (const g of groups.values()) {
 
-    // kun grupper med reel konflikt
-const hasConflict =
-  g.personIds.size > 1 ||
-  g.birthDates.size > 1;
+    // 🔴 Kun REELLE merge-konflikter
+    const hasConflict =
+      g.personIds.size > 1 ||
+      g.birthDates.size > 1;
 
     if (!hasConflict) continue;
 
@@ -375,14 +376,12 @@ const hasConflict =
     const affectedPicks = [];
 
     for (const player of players) {
-      const approved = (player.picks || []).filter(
-        p =>
+      (player.picks || []).forEach(p => {
+        if (
           p.status === "approved" &&
-          normalizeName(p.normalizedName || p.raw) === normalizeName(g.displayName)
-      );
-
-      approved.forEach(p => {
-        if (p.personId !== master.personId) {
+          normalizeName(p.normalizedName || p.raw) === normalizeName(g.displayName) &&
+          p.personId !== master.personId
+        ) {
           affectedPicks.push({
             playerId: player.id,
             from: p.personId,
@@ -403,13 +402,13 @@ const hasConflict =
 
     plan.totalApprovedUpdates += affectedPicks.length;
 
-    // orphan candidates (people uden picks)
+    // merge-orphans (personIds der forsvinder pga merge)
     candidates.slice(1).forEach(c => {
       plan.orphanPeopleIds.add(c.personId);
     });
   }
 
-  // 🧹 Rene orphans: people uden nogen approved picks
+  // 🧹 Rene orphans: people uden NOGEN approved picks
   for (const g of groups.values()) {
     g.personIds.forEach(pid => {
       if (!usedPersonIds.has(pid)) {
@@ -419,7 +418,6 @@ const hasConflict =
   }
 
   return plan;
-   
 }
 
 const mergeAllBtn = document.getElementById("merge-all-btn");
