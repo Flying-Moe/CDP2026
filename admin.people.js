@@ -406,11 +406,12 @@ const mergeAllBtn = document.getElementById("merge-all-btn");
 if (mergeAllBtn) {
   const plan = buildMergePlan(window.__peopleGroups, window.__adminPlayers || []);
 
-  // 🔒 Aktivér kun hvis der er noget at merge
-  mergeAllBtn.disabled = plan.groups.length === 0;
+const hasMergeConflicts = plan.groups.length > 0;
+const hasOrphans = plan.orphanPeopleIds.size > 0;
+
+mergeAllBtn.disabled = !(hasMergeConflicts || hasOrphans);
 
   mergeAllBtn.onclick = async () => {
-    // Brug den samme plan – ingen genberegning
     openMergeModal(plan);
   };
 }
