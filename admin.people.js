@@ -978,7 +978,7 @@ function openMergeModal(plan) {
   const overlay = document.getElementById("merge-modal-overlay");
   const content = document.getElementById("merge-preview-content");
 
-  content.innerHTML = "";
+  content.innerHTML = "";  // Tøm indholdet af modalens preview
 
   const summary = document.createElement("p");
   summary.innerHTML = `
@@ -988,6 +988,7 @@ function openMergeModal(plan) {
   `;
   content.appendChild(summary);
 
+  // Gennemgå grupperne og vis deres oplysninger
   plan.groups.forEach(g => {
     const block = document.createElement("div");
     block.style.marginBottom = "0.75rem";
@@ -999,15 +1000,19 @@ function openMergeModal(plan) {
     content.appendChild(block);
   });
 
-  overlay.classList.remove("hidden");
+  // Vis modalen
+  overlay.classList.remove("hidden"); // Fjern "hidden" for at vise modalens overlay
 
+  // Lyt efter knapper til at lukke eller bekræfte modal
   document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
   document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
 
+  // Luk modal, hvis du klikker udenfor den
   overlay.onclick = e => {
     if (e.target === overlay) closeMergeModal();
   };
 
+  // Lyt efter Escape-tasten for at lukke modalen
   document.onkeydown = e => {
     if (e.key === "Escape") closeMergeModal();
   };
