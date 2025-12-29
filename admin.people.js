@@ -276,14 +276,6 @@ tbody.innerHTML += `
         </button>
 
         <button
-          class="merge-people-btn"
-          ${canMerge ? "" : "disabled"}
-          title="Merge ${g.picks.length} picks (${g.playerIds.size} player${g.playerIds.size > 1 ? "s" : ""})"
-          data-key="${normalizeName(g.displayName)}">
-          Merge (${g.picks.length})
-        </button>
-
-        <button
           class="delete-people-btn"
           data-key="${normalizeName(g.displayName)}">
           Delete
