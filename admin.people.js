@@ -190,18 +190,20 @@ sortPeople(groups).forEach(g => {
 const hasDuplicatePerPlayer =
   g.picks.length > g.playerIds.size;
 
-const canMerge =
+const hasRealMergeConflict =
   g.birthDates.size > 1 ||
   g.personIds.size > 1 ||
-  similarGroups.length > 0 ||
-  hasDuplicatePerPlayer;
+  similarGroups.length > 0;
 
 let statusText = "OK";
 let statusClass = "";
 
-if (hasDuplicatePerPlayer) {
-  statusText = "Conflict (duplicate picks)";
+if (hasRealMergeConflict) {
+  statusText = "Conflict";
   statusClass = "status-conflict";
+} else if (hasDuplicatePerPlayer) {
+  statusText = "Duplicate picks (already linked)";
+  statusClass = "status-warning";
 } else if (g.birthDates.size === 0) {
   statusText = "Missing";
   statusClass = "status-missing";
@@ -406,10 +408,21 @@ const mergeAllBtn = document.getElementById("merge-all-btn");
 if (mergeAllBtn) {
   const plan = buildMergePlan(window.__peopleGroups, window.__adminPlayers || []);
 
-const hasMergeConflicts = plan.groups.length > 0;
-const hasOrphans = plan.orphanPeopleIds.size > 0;
+  const hasMergeConflicts = plan.groups.length > 0;
+  const hasOrphans = plan.orphanPeopleIds.size > 0;
 
-mergeAllBtn.disabled = !(hasMergeConflicts || hasOrphans);
+  mergeAllBtn.disabled = !(hasMergeConflicts || hasOrphans);
+
+  // Tooltip – forklar hvorfor knappen er aktiv
+  if (mergeAllBtn.disabled) {
+    mergeAllBtn.title = "No conflicts or unused people found";
+  } else if (hasMergeConflicts && hasOrphans) {
+    mergeAllBtn.title = "Conflicts and unused people detected";
+  } else if (hasMergeConflicts) {
+    mergeAllBtn.title = "Conflicting entries detected";
+  } else {
+    mergeAllBtn.title = "Unused people can be removed";
+  }
 
   mergeAllBtn.onclick = async () => {
     openMergeModal(plan);
