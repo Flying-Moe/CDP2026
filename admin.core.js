@@ -581,8 +581,3 @@ export function attachModalDirtyTracking(modal) {
     dirty = false;
   };
 }
-
-// Når Merge er afsluttet, vis besked
-const modal = document.getElementById("merge-completed-modal");
-modal.querySelector('.modal-message').textContent = "Merge completed";
-modal.classList.remove("hidden");
