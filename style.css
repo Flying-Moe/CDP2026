@@ -1131,3 +1131,15 @@ ul > li {
   margin-bottom: 0.75rem;
 }
 
+/* =========================
+   Winner image (Rules)
+========================= */
+
+.winner-image {
+  width: 220px;          /* ← styrer størrelsen */
+  max-width: 100%;       /* ← sikker på mobil */
+  height: auto;
+
+  display: block;        /* ← gør margin-top/bottom pålidelig */
+  margin: 0 auto 0.5rem; /* ← centreret + lidt luft under */
+}
