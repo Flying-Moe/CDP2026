@@ -192,11 +192,9 @@ table.list-table td:not(:first-child) {
   white-space: nowrap;
 }
 
-/* Actions må ikke wrap */
 #people-table td:nth-child(7) {
-  white-space: nowrap;
+  white-space: normal;   /* tillad wrap */
 }
-
 
 /* =========================
    PLAYER LISTS (lists.html)
@@ -987,3 +985,9 @@ table.hof-leaderboard th:nth-child(3) {
   }
 }
 
+@media (max-width: 720px) {
+  #people-table td:nth-child(7) button {
+    display: inline-block;
+    margin: 0.1rem 0.15rem;
+  }
+}
