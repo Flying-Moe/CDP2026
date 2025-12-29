@@ -108,40 +108,58 @@ playersSnap.forEach(ps => {
      GROUP APPROVED PICKS BY NORMALIZED NAME
   -------------------------------------------- */
 
-  const groups = new Map();
+// Opret en mappe til at gemme grupperne
+const groups = new Map();
 
-  playersSnap.forEach(ps => {
-    const playerId = ps.id;
-    const picks = ps.data().entries?.["2026"]?.picks || [];
+// Opret en liste til admin players
+window.__adminPlayers = []; // Tilføj dette for at gemme spillerne
 
-    picks.forEach(pick => {
-      if (pick.status !== "approved") return;
+// Gennemgå playersSnap og opbyg grupperne og admin players
+playersSnap.forEach(ps => {
+  const playerId = ps.id;
+  const picks = ps.data().entries?.["2026"]?.picks || [];
 
-      const name = (pick.normalizedName || pick.raw || "").trim();
-      if (!name) return;
-
-      const key = normalizeName(name);
-
-      if (!groups.has(key)) {
-groups.set(key, {
-  displayName: name,
-  playerIds: new Set(),
-  birthDates: new Set(),
-  deathDates: new Set(),
-  personIds: new Set(),
-  picks: []
-});
-      }
-
-      const g = groups.get(key);
-      g.playerIds.add(playerId);
-      g.picks.push(pick);
-
-      if (pick.birthDate) g.birthDates.add(pick.birthDate);
-      if (pick.deathDate) g.deathDates.add(pick.deathDate);
-      if (pick.personId) g.personIds.add(pick.personId);
-    });
+  // Gem admin players med spillerdata
+  window.__adminPlayers.push({
+    id: playerId,
+    picks: picks // Gem picks for denne spiller
   });
+
+  // Gennemgå picks for at gruppere dem
+  picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+
+    const name = (pick.normalizedName || pick.raw || "").trim();
+    if (!name) return;
+
+    const key = normalizeName(name);
+
+    // Hvis gruppen ikke findes, opret en ny
+    if (!groups.has(key)) {
+      groups.set(key, {
+        displayName: name,
+        playerIds: new Set(),
+        birthDates: new Set(),
+        deathDates: new Set(),
+        personIds: new Set(),
+        picks: []
+      });
+    }
+
+    // Hent den eksisterende gruppe
+    const g = groups.get(key);
+    
+    // Tilføj spilleren og dens picks
+    g.playerIds.add(playerId);
+    g.picks.push(pick);
+
+    // Tilføj birthDate, deathDate og personId til gruppen
+    if (pick.birthDate) g.birthDates.add(pick.birthDate);
+    if (pick.deathDate) g.deathDates.add(pick.deathDate);
+    if (pick.personId) g.personIds.add(pick.personId);
+  });
+});
+
    
 const groupArray = [...groups.values()];
 
