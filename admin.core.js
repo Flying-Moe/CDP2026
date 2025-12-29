@@ -222,6 +222,11 @@ export async function refreshAdminViews(options = {}) {
     // 🔥 HARD INVALIDERING
     invalidateAdminCache("players", "people");
 
+// 🔥 KRITISK: invalider ALLE player-caches
+window.__players = null;
+window.__listsPlayers = null;
+window.__playersCache = null;
+
     // 🔁 VIGTIGT:
     // load BEGGE uanset aktiv tab
     await loadPlayers({ force: true });
