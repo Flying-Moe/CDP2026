@@ -160,10 +160,11 @@ table.list-table td:not(:first-child) {
   vertical-align: middle;
 }
 
-/* Name-kolonne */
 #people-table td.people-name {
   text-align: left;
-  white-space: nowrap;
+  white-space: normal;      /* tillad linjeskift */
+  max-width: 18em;          /* kontrolleret bredde */
+  word-break: break-word;  /* lange navne brydes pænt */
 }
 
 /* Birth / Death kompakt (desktop + mobil) */
