@@ -354,7 +354,7 @@ const plan = {
     // 🔴 Kun REELLE merge-konflikter
 const hasConflict =
   g.personIds.size > 1 ||
-  g.birthDates.size > 1 ||
+  (g.birthDates.size > 1 && g.birthDates.has("")) ||
   g.picks.length > g.playerIds.size;
 
      if (g.picks.length > g.playerIds.size) {
@@ -976,106 +976,60 @@ ${plan.duplicateSummary ? `
 async function executeMergePlan(plan) {
   const batch = writeBatch(db);
 
-  const playerSnaps = await getPlayersSnap(false);
-  const players = [];
+  const peopleSnap = await getPeopleSnap(true);
+  const peopleById = {};
+  peopleSnap.forEach(d => peopleById[d.id] = d.data());
 
-  playerSnaps.forEach(s => {
-    const p = s.data();
-    players.push({ id: s.id, picks: p.entries?.["2026"]?.picks || [] });
-  });
+  const playersSnap = await getDocs(collection(db, "players"));
 
-     // 🧹 STEP 1: DEDUPE PICKS PR. PLAYER (samme personId)
-  for (const ps of players) {
-    const byPerson = new Map();
-
-    ps.picks.forEach(p => {
-      if (p.status !== "approved" || !p.personId) return;
-
-      if (!byPerson.has(p.personId)) {
-        byPerson.set(p.personId, []);
-      }
-      byPerson.get(p.personId).push(p);
-    });
+  // 🔁 1) Re-link + REPAIR picks
+  for (const ps of playersSnap.docs) {
+    const ref = doc(db, "players", ps.id);
+    const data = ps.data();
+    const picks = data.entries?.["2026"]?.picks || [];
 
     let changed = false;
-    const cleanedPicks = [];
 
-    for (const list of byPerson.values()) {
-      if (list.length === 1) {
-        cleanedPicks.push(list[0]);
-      } else {
-// 🧠 Sammensmelt picks sikkert – behold ALLE vigtige felter
-const mergedPick = { ...list[0] };
+    picks.forEach(p => {
+      if (p.status !== "approved") return;
 
-for (const p of list) {
-  if (!mergedPick.birthDate && p.birthDate) {
-    mergedPick.birthDate = p.birthDate;
-  }
-  if (!mergedPick.deathDate && p.deathDate) {
-    mergedPick.deathDate = p.deathDate;
-  }
-  if (!mergedPick.personId && p.personId) {
-    mergedPick.personId = p.personId;
-  }
-}
+      const group = plan.groups.find(
+        g => normalizeName(g.name) === normalizeName(p.normalizedName || p.raw)
+      );
+      if (!group) return;
 
-cleanedPicks.push(mergedPick);
-changed = true;
+      const masterId = group.master.personId;
+      if (!masterId) return;
 
+      const person = peopleById[masterId];
+      if (!person) return;
+
+      // 🔑 REPAIR PASS
+      p.personId = masterId;
+      if (!p.birthDate && person.birthDate) {
+        p.birthDate = person.birthDate;
+        changed = true;
       }
-    }
-
-    // behold også non-approved picks
-    ps.picks.forEach(p => {
-      if (p.status !== "approved") cleanedPicks.push(p);
+      if (!p.deathDate && person.deathDate) {
+        p.deathDate = person.deathDate;
+        changed = true;
+      }
     });
 
     if (changed) {
-      batch.update(
-        doc(db, "players", ps.id),
-        { "entries.2026.picks": cleanedPicks }
-      );
+      batch.update(ref, { "entries.2026.picks": picks });
     }
   }
 
-  for (const group of plan.groups) {
-    for (const ps of players) {
-      let changed = false;
+  // 🧹 2) Slet orphan people
+  plan.orphanPeopleIds.forEach(pid => {
+    batch.delete(doc(db, "people", pid));
+  });
 
-      for (const p of ps.picks) {
-        if (p.status !== "approved") continue;
-        if (normalizeName(p.normalizedName || p.raw || "") === group.name &&
-            p.personId !== group.master.id) {
-          p.personId = group.master.id;
-          changed = true;
-        }
-      }
-
-      if (changed) {
-        const ref = doc(db, "players", ps.id);
-        batch.update(ref, { "entries.2026.picks": ps.picks });
-      }
-    }
-  }
-
-  for (const pid of plan.orphanPeopleIds) {
-    const stillUsed = plan.groups.some(g => g.master.id === pid);
-    if (!stillUsed) {
-      batch.delete(doc(db, "people", pid));
-    }
-  }
-
-await batch.commit();
-
-// 🔄 data ER ændret → cache er nu ugyldig
-invalidateAdminCache("players", "people");
-
-closeMergeModal();
-alert("Merge & clean-up completed");
-
-// force refresh af aktiv tab (nu med friske data)
-await refreshAdminViews({ force: true });
-
+  await batch.commit();
+  await refreshAdminViews({ force: true });
+  closeMergeModal();
+  alert("Merge & clean-up completed");
 }
 
 function closeMergeModal() {
