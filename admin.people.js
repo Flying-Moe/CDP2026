@@ -335,6 +335,14 @@ function buildMergePlan(groups, players) {
 
     // find alle approved picks der skal opdateres
     const affectedPicks = [];
+
+// Opdater merge-logikken så der kan fjernes picks uden player tilknytning.
+const orphanPicks = g.picks.filter(pick => !pick.playerId);
+orphanPicks.forEach(orphan => {
+    // Hvis picken er forældreløs, fjern den fra systemet.
+    delete pick;
+});
+
     for (const player of players) {
       const approved = (player.picks || []).filter(
         p =>
