@@ -420,7 +420,9 @@ if (mergeAllBtn) {
     );
   });
 
-  mergeAllBtn.disabled = !hasMergeCandidates;
+// Hvis Merge-knappen ikke skal være deaktiveret, når der er konflikt
+mergeAllBtn.disabled = !hasMergeCandidates || !hasConflict;
+
 }
    
    // Cache all rows for filtering
