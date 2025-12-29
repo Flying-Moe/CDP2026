@@ -419,9 +419,15 @@ window.previewMergePlan = function () {
 };
 
    const mergeAllBtn = document.getElementById("merge-all-btn");
-   if (mergeAllBtn) {
-  mergeAllBtn.onclick = () => {
+if (mergeAllBtn) {
+  mergeAllBtn.onclick = async () => {
     const plan = buildMergePlan(window.__peopleGroups, window.__adminPlayers || []);
+
+    if (plan.groups.length === 0) {
+      alert("No conflicts found. Nothing to merge.");
+      return;
+    }
+
     openMergeModal(plan);
   };
 }
