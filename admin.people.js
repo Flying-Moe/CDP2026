@@ -401,6 +401,12 @@ window.previewMergePlan = function () {
 
 
    const mergeAllBtn = document.getElementById("merge-all-btn");
+   if (mergeAllBtn) {
+  mergeAllBtn.onclick = () => {
+    const plan = buildMergePlan(window.__peopleGroups, window.__adminPlayers || []);
+    openMergeModal(plan);
+  };
+}
 if (mergeAllBtn) {
   const hasMergeCandidates = [...groups.values()].some(g => {
     const similarGroups = [...groups.values()].filter(
@@ -971,3 +977,47 @@ document.addEventListener("change", e => {
   currentPeoplePlayerFilter = e.target.value;
   applyPeoplePlayerFilter(currentPeoplePlayerFilter);
 });
+
+function openMergeModal(plan) {
+  const overlay = document.getElementById("merge-modal-overlay");
+  const content = document.getElementById("merge-preview-content");
+
+  content.innerHTML = "";
+
+  const summary = document.createElement("p");
+  summary.innerHTML = `
+    Groups to merge: <strong>${plan.groups.length}</strong><br>
+    Approved picks to update: <strong>${plan.totalApprovedUpdates}</strong><br>
+    Orphan people to remove: <strong>${plan.orphanPeopleIds.size}</strong>
+  `;
+  content.appendChild(summary);
+
+  plan.groups.forEach(g => {
+    const block = document.createElement("div");
+    block.style.marginBottom = "0.75rem";
+    block.innerHTML = `
+      <strong>${g.name}</strong><br>
+      Master personId: ${g.master.personId}<br>
+      Approved picks updated: ${g.affectedPicksCount}
+    `;
+    content.appendChild(block);
+  });
+
+  overlay.classList.remove("hidden");
+
+  document.getElementById("merge-cancel-btn").onclick = closeMergeModal;
+  document.getElementById("merge-confirm-btn").onclick = () => executeMergePlan(plan);
+
+  overlay.onclick = e => {
+    if (e.target === overlay) closeMergeModal();
+  };
+
+  document.onkeydown = e => {
+    if (e.key === "Escape") closeMergeModal();
+  };
+}
+
+function closeMergeModal() {
+  document.getElementById("merge-modal-overlay").classList.add("hidden");
+  document.onkeydown = null;
+}
