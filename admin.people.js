@@ -198,6 +198,9 @@ const hasRealMergeConflict =
 let statusText = "OK";
 let statusClass = "";
 
+if (hasRealMergeConflict) {
+  statusText = "Mergeable people";
+  statusClass = "status-conflict";
 } else if (hasDuplicatePerPlayer) {
   statusText = "Duplicate picks (auto-clean)";
   statusClass = "status-warning";
