@@ -149,11 +149,11 @@ function renderBadges(context, selectedPlayerId = "all") {
   progHost.innerHTML = "";
 
   const singleBadges = allBadges
-    .filter(b => b.type === "single" && b.globalUnlocked)
+    .filter(b => b.type === "single")
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
   const tieredBadges = allBadges
-    .filter(b => b.type === "tiered" && b.globalUnlocked)
+    .filter(b => b.type === "tiered")
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
   // Vis kun tabs hvis begge typer findes
