@@ -518,7 +518,7 @@ footer {
 /* ===== BIRTH DATE ===== */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 65px;             /* stramt omkring dato */
+  width: 40px;             /* stramt omkring dato */
   text-align: center;
 }
 
@@ -532,13 +532,14 @@ footer {
 /* ===== DEATH DATE ===== */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
-  width: 50px;
+  width: 25px;
   text-align: center;
+  font-size: 0.85rem;
 }
 
 /* ===== STATUS ===== */
 #validate-picks-modal th:nth-child(4) {
-  width: 25px;
+  width: 10px;
   text-align: center;
   font-size: 0.85rem;
 }
