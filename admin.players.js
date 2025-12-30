@@ -206,7 +206,10 @@ document.querySelectorAll(".delete-player-btn").forEach(b =>
     if (row) row.remove();
 
     // 2️⃣ FIRESTORE WRITE (sandheden)
-    await updateDoc(doc(db, "players", playerId), { active: false });
+    await updateDoc(doc(db, "players", playerId), {
+  active: false,
+  "entries.2026.active": false
+});
 
     // 3️⃣ SILENT RELOAD (valgfri, men sikker)
     loadPlayers();
@@ -222,7 +225,10 @@ document.querySelectorAll(".restore-player-btn").forEach(b =>
     if (row) row.remove();
 
     // 2️⃣ FIRESTORE WRITE
-    await updateDoc(doc(db, "players", playerId), { active: true });
+    await updateDoc(doc(db, "players", playerId), {
+  active: true,
+  "entries.2026.active": true
+});
 
     // 3️⃣ SILENT RELOAD
     loadPlayers();
