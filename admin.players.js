@@ -224,7 +224,7 @@ document.querySelectorAll(".restore-player-btn").forEach(b =>
     // 2️⃣ FIRESTORE WRITE
     await updateDoc(doc(db, "players", playerId), { active: true });
 
-    // 3️⃣ SILENT RELOAD (genopbygger Active korrekt)
+    // 3️⃣ SILENT RELOAD
     loadPlayers();
   }
 );
