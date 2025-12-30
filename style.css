@@ -627,6 +627,17 @@ footer {
   }
 }
 
+/* Make disabled inputs look like plain text */
+#validate-picks-modal input:disabled {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+
 /* =========================
    MODAL SAFETY
 ========================= */
