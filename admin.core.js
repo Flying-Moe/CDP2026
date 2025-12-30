@@ -43,10 +43,10 @@ async function loadAdminAnalytics() {
   const todayKey = new Date().toISOString().slice(0, 10);
 
   const totalRef = doc(db, "analytics", "site");
-  const todayRef = doc(
-    collection(db, "analytics", "daily"),
-    todayKey
-  );
+const todayRef = doc(
+  collection(db, "analytics", "site", "daily"),
+  todayKey
+);
 
   const [totalSnap, todaySnap] = await Promise.all([
     getDoc(totalRef),
@@ -61,10 +61,10 @@ async function loadAdminAnalytics() {
 
   const cutoff = Timestamp.fromMillis(Date.now() - 60000);
 
-  const liveQuery = query(
-    collection(db, "analytics", "liveSessions"),
-    where("lastSeen", ">", cutoff)
-  );
+const liveQuery = query(
+  collection(db, "analytics", "site", "liveSessions"),
+  where("lastSeen", ">", cutoff)
+);
 
   const liveSnap = await getDocs(liveQuery);
   document.getElementById("a-live").textContent = liveSnap.size;
