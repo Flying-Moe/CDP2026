@@ -438,7 +438,7 @@ footer {
   padding: 1rem 1.1rem;
   border-radius: 6px;
   max-width: 720px;
-  width: 100%;
+  width: 85%;
   max-height: 90vh;
   overflow: auto;
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.35);
@@ -494,9 +494,9 @@ footer {
 
 #validate-picks-modal table {
   width: 100%;
-  min-width: 720px;
+  min-width: 500px;
   border-collapse: collapse;
-  table-layout: fixed; /* 🔒 stabil kolonnegeometri */
+  /* table-layout: fixed; */ /* 🔒 stabil kolonnegeometri */
 }
 
 #validate-picks-modal th,
@@ -542,7 +542,7 @@ footer {
 /* BIRTH DATE */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 40px;
+  width: 2px;
   text-align: center;
 }
 
@@ -556,20 +556,19 @@ footer {
 /* DEATH DATE */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
-  width: 25px;
+  width: 2px;
   text-align: center;
-  font-size: 0.85rem;
 }
 
 /* STATUS */
 #validate-picks-modal th:nth-child(4) {
-  width: 10px;
+  width: 1px;
   text-align: center;
-  font-size: 0.85rem;
+
 }
 
 #validate-picks-modal td:nth-child(4) {
-  width: 55px;
+  width: 50px;
   text-align: center;
   font-size: 0.75rem;
 }
@@ -577,7 +576,7 @@ footer {
 /* ACTIONS */
 #validate-picks-modal th:nth-child(5),
 #validate-picks-modal td:nth-child(5) {
-  width: 25px;
+  width: 10px;
   text-align: center;
   white-space: nowrap;
 }
