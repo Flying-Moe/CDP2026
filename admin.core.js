@@ -40,8 +40,10 @@ import {
 ===================================================== */
 
 async function loadAdminAnalytics() {
-  const totalRef = doc(db, "analytics", "totals", "site");
-  const todayRef = doc(db, "analytics", "daily", new Date().toISOString().slice(0, 10));
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  const totalRef = doc(collection(db, "analytics", "totals"), "site");
+  const todayRef = doc(collection(db, "analytics", "daily"), todayKey);
 
   const [totalSnap, todaySnap] = await Promise.all([
     getDoc(totalRef),
@@ -55,6 +57,7 @@ async function loadAdminAnalytics() {
     todaySnap.exists() ? todaySnap.data().views || 0 : 0;
 
   const cutoff = Timestamp.fromMillis(Date.now() - 60000);
+
   const liveQuery = query(
     collection(db, "analytics", "liveSessions"),
     where("lastSeen", ">", cutoff)
@@ -65,6 +68,7 @@ async function loadAdminAnalytics() {
 
   document.getElementById("admin-analytics").classList.remove("hidden");
 }
+
 
 /* =====================================================
    WIKI LOOKUP CACHE (SESSION)
