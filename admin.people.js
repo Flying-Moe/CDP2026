@@ -715,8 +715,6 @@ document.querySelectorAll(".delete-people-btn").forEach(btn => {
 
     if (!confirm(`Delete ALL picks named "${group.displayName}"?`)) return;
 
-    btn.closest("tr")?.remove();
-     
     const updates = [];
 
     for (const ps of playersSnap.docs) {
@@ -737,15 +735,15 @@ document.querySelectorAll(".delete-people-btn").forEach(btn => {
       }
     }
 
-    // 🔥 Kør alle Firestore-opdateringer parallelt
     if (updates.length) {
       await Promise.all(updates);
     }
 
-    // 🔄 Opdatér UI bagefter
-    await refreshAdminViews();
+    invalidateAdminCache("players", "people");
+    await loadPeople({ force: true });
   };
 });
+
 }
 
 /* =====================================================
@@ -870,7 +868,8 @@ if (row) {
   }
 }
 
-// ❌ ingen refresh her
+invalidateAdminCache("players", "people");
+await loadPeople({ force: true });
 
 });
 
@@ -986,7 +985,8 @@ if (row) {
 currentEditPersonKey = null;
 document.getElementById("edit-person-modal")?.classList.add("hidden");
 
-// ❌ ingen refresh her
+invalidateAdminCache("players", "people");
+await loadPeople({ force: true });
 
 });
 
