@@ -453,7 +453,7 @@ footer {
 
 #edit-player-modal .modal-content,
 #edit-person-modal .modal-content {
-  max-width: 250px;        /* markant mindre */
+  max-width: 250px;
   padding: 0.8rem 1rem;
 }
 
@@ -485,7 +485,7 @@ footer {
 }
 
 /* =========================
-   VALIDATE PICKS TABLE – COMPACT
+   VALIDATE PICKS – TABLE BASE
 ========================= */
 
 #validate-picks-modal {
@@ -494,42 +494,66 @@ footer {
 
 #validate-picks-modal table {
   width: 100%;
-  min-width: 720px;        /* mindre end før – mere samlet */
+  min-width: 720px;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: fixed; /* 🔒 stabil kolonnegeometri */
 }
 
 #validate-picks-modal th,
 #validate-picks-modal td {
-  padding: 1px 2px;        /* 🔑 mindre luft */
   vertical-align: middle;
+  padding: 1px 2px;
 }
 
-/* ===== NAME ===== */
-/* Fylder kun det nødvendige, ikke “resten af verden” */
+/* =========================
+   VALIDATE PICKS – HEADER (TH)
+========================= */
+
+#validate-picks-modal th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+/* =========================
+   VALIDATE PICKS – CELLS (TD)
+========================= */
+
+#validate-picks-modal td {
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+/* =========================
+   VALIDATE PICKS – COLUMNS
+   (nth-child = eksisterende funktionalitet)
+========================= */
+
+/* NAME */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
-  width: 25%;              /* mindre end før */
+  width: 25%;
   text-align: left;
   white-space: normal;
   word-break: break-word;
 }
 
-/* ===== BIRTH DATE ===== */
+/* BIRTH DATE */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 40px;             /* stramt omkring dato */
+  width: 40px;
   text-align: center;
 }
 
 #validate-picks-modal td:nth-child(2) input {
   width: 65%;
-  text-align: center;
   padding: 2px 3px;
+  text-align: center;
   box-sizing: border-box;
 }
 
-/* ===== DEATH DATE ===== */
+/* DEATH DATE */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
   width: 25px;
@@ -537,7 +561,7 @@ footer {
   font-size: 0.85rem;
 }
 
-/* ===== STATUS ===== */
+/* STATUS */
 #validate-picks-modal th:nth-child(4) {
   width: 10px;
   text-align: center;
@@ -550,12 +574,17 @@ footer {
   font-size: 0.75rem;
 }
 
-/* ===== ACTIONS ===== */
+/* ACTIONS */
 #validate-picks-modal th:nth-child(5),
 #validate-picks-modal td:nth-child(5) {
   width: 25px;
   text-align: center;
+  white-space: nowrap;
 }
+
+/* =========================
+   NO HORIZONTAL SCROLL HELPER
+========================= */
 
 .no-hscroll {
   width: 100%;
@@ -569,83 +598,12 @@ footer {
 
 .no-hscroll th:last-child,
 .no-hscroll td:last-child {
-  width: 110px; /* Actions */
+  width: 110px;
 }
 
-/* =====================================================
-   VALIDATE PICKS – COLUMN CONTROL LAYER
-   (fine-grained tuning: widths, padding, typography)
-===================================================== */
-
-/* ---------- GLOBAL TABLE BEHAVIOR ---------- */
-#validate-picks-modal table {
-  table-layout: fixed;          /* 🔒 stabil kolonnebredde */
-}
-
-/* ---------- HEADER (TH) STYLING ---------- */
-#validate-picks-modal th {
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-/* ---------- CELL (TD) STYLING ---------- */
-#validate-picks-modal td {
-  font-size: 0.75rem;
-  padding-top: 1px;
-  padding-bottom: 1px;
-  line-height: 1.25;
-}
-
-/* =====================================================
-   COLUMN WIDTHS (ONE PLACE TO RULE THEM ALL)
-   Justér disse tal frit
-===================================================== */
-
-/* NAME */
-#validate-picks-modal th.col-name,
-#validate-picks-modal td.col-name {
-  width: 26%;
-  text-align: left;
-  white-space: normal;
-}
-
-/* BIRTH DATE */
-#validate-picks-modal th.col-birth,
-#validate-picks-modal td.col-birth {
-  width: 4.5em;
-  text-align: center;
-}
-
-/* DEATH DATE / STATUS ICON */
-#validate-picks-modal th.col-death,
-#validate-picks-modal td.col-death {
-  width: 2.8em;
-  text-align: center;
-}
-
-/* STATUS TEXT */
-#validate-picks-modal th.col-status,
-#validate-picks-modal td.col-status {
-  width: 5.5em;
-  text-align: center;
-  font-size: 0.7rem;
-}
-
-/* ACTIONS */
-#validate-picks-modal th.col-actions,
-#validate-picks-modal td.col-actions {
-  width: 6.5em;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* =====================================================
-   INPUT FIELD POLISH
-===================================================== */
+/* =========================
+   VALIDATE PICKS – INPUT POLISH
+========================= */
 
 #validate-picks-modal td input {
   font-size: 0.75rem;
@@ -655,12 +613,12 @@ footer {
 }
 
 /* =========================
-   MOBILE
+   VALIDATE PICKS – MOBILE
 ========================= */
 
 @media (max-width: 720px) {
   #validate-picks-modal table {
-    min-width: 640px;      /* scroll, men kompakt */
+    min-width: 640px;
   }
 
   #validate-picks-modal th,
@@ -669,7 +627,10 @@ footer {
   }
 }
 
-/* 🔒 Safety */
+/* =========================
+   MODAL SAFETY
+========================= */
+
 .modal.hidden {
   display: none !important;
 }
