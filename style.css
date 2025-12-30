@@ -616,8 +616,23 @@ footer {
 ========================= */
 
 @media (max-width: 720px) {
+
+  /* Modal skal fylde skærmen korrekt */
+  #validate-picks-modal .modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+  /* Scroll skal ske INDE i modal – ikke udenfor */
+  #validate-picks-modal {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tabellen må gerne være bred, men kontrolleret */
   #validate-picks-modal table {
-    min-width: 640px;
+    min-width: 480px;   /* ← matcher dit desktop-look */
   }
 
   #validate-picks-modal th,
