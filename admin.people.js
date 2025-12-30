@@ -268,6 +268,7 @@ tbody.innerHTML += `
   <tr
   class="${statusClass} ${g.deathDates?.size === 1 ? "is-dead" : ""}"
   data-player-ids="${[...g.playerIds].join(",")}"
+  data-key="${normalizeName(g.displayName)}"
 >
       <td class="people-name">
         ${g.displayName}
