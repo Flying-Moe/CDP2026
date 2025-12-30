@@ -849,7 +849,30 @@ document.addEventListener("click", async e => {
     }
   }
 
-  await refreshAdminViews();
+// 🔄 Optimistic UI – opdatér rækken direkte
+const row = document.querySelector(
+  `#people-table tr[data-player-ids][data-key="${key}"]`
+);
+
+if (row) {
+  const birthCell = row.querySelector(".birth-date");
+  const deathCell = row.querySelector(".death-date");
+
+  if (birthCell) {
+    birthCell.textContent = finalBirth
+      ? formatDateForDisplay(finalBirth)
+      : "—";
+  }
+
+  if (deathCell) {
+    deathCell.textContent = finalDeath
+      ? formatDateForDisplay(finalDeath)
+      : "—";
+  }
+}
+
+// ❌ ingen refresh her
+
 });
 
 /* =====================================================
@@ -936,10 +959,34 @@ document.addEventListener("click", async e => {
     }
   }
 
-  // 3) Luk + refresh
-  currentEditPersonKey = null;
-  document.getElementById("edit-person-modal")?.classList.add("hidden");
-  await refreshAdminViews();
+// 🔄 Optimistic UI – opdatér people-row direkte
+const row = document.querySelector(
+  `#people-table tr[data-player-ids][data-key="${newNormalized}"]`
+);
+
+if (row) {
+  const nameCell = row.querySelector(".people-name");
+  const birthCell = row.querySelector(".birth-date");
+  const deathCell = row.querySelector(".death-date");
+
+  if (nameCell) nameCell.firstChild.textContent = name;
+  if (birthCell) {
+    birthCell.textContent = birthDate
+      ? formatDateForDisplay(birthDate)
+      : "—";
+  }
+  if (deathCell) {
+    deathCell.textContent = deathDate
+      ? formatDateForDisplay(deathDate)
+      : "—";
+  }
+}
+
+currentEditPersonKey = null;
+document.getElementById("edit-person-modal")?.classList.add("hidden");
+
+// ❌ ingen refresh her
+
 });
 
 function applyPeoplePlayerFilter(playerId) {
