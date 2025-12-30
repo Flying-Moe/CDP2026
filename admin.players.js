@@ -211,7 +211,7 @@ document.querySelectorAll(".delete-player-btn").forEach(b =>
     // 3️⃣ SILENT RELOAD (valgfri, men sikker)
     loadPlayers();
   }
-);
+)};
 
 document.querySelectorAll(".restore-player-btn").forEach(b =>
   b.onclick = async () => {
