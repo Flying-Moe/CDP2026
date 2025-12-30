@@ -52,6 +52,7 @@ export const BADGES = [
     name: "The Undertaker",
     description: "Confirmed kills accumulated",
     order: 1,
+    type: "tiered",
 
     evaluate({ players, deaths }) {
       const tiers = buildEmptyTiers();
@@ -101,6 +102,7 @@ export const BADGES = [
     name: "Glass Cannon",
     description: "Accumulated minus points",
     order: 2,
+    type: "tiered",
 
     evaluate({ players }) {
       const tiers = buildEmptyTiers();
@@ -160,6 +162,7 @@ export const BADGES = [
     name: "The Vulture",
     description: "Low average age across approved picks",
     order: 3,
+    type: "tiered",
 
     evaluate({ players }) {
       const tiers = buildEmptyTiers();
@@ -213,6 +216,7 @@ export const BADGES = [
     name: "Pension Sniper",
     description: "High average age across approved picks",
     order: 4,
+    type: "tiered",
 
     evaluate({ players }) {
       const tiers = buildEmptyTiers();
@@ -261,58 +265,54 @@ export const BADGES = [
      First confirmed kill
   ========================= */
 
-  {
-    id: "first_blood",
-    name: "First Blood",
-    description: "First confirmed kill of the season",
-    order: 0,
+{
+  id: "first_blood",
+  name: "First Blood",
+  description: "First confirmed kill of the season",
+  order: 0,
+  type: "single",
 
-    evaluate({ players, deaths }) {
-      const tiers = buildEmptyTiers();
-      let earliest = null;
+  evaluate({ players, deaths }) {
+    let earliest = null;
 
-      players.forEach(p => {
-        const dates = deaths[p.id] || [];
-        if (!dates.length) return;
-        const first = dates.sort()[0];
-        if (!earliest || first < earliest) earliest = first;
-      });
+    players.forEach(p => {
+      const dates = deaths[p.id] || [];
+      if (!dates.length) return;
+      const first = dates.slice().sort()[0];
+      if (!earliest || first < earliest) earliest = first;
+    });
 
-      if (!earliest) {
-        return {
-          id: this.id,
-          name: this.name,
-          description: this.description,
-          globalUnlocked: false,
-          tiers
-        };
-      }
-
-      players.forEach(player => {
-        const dates = deaths[player.id] || [];
-        if (dates.includes(earliest)) {
-          tiers.bronze.players.push({
-            id: player.id,
-            name: player.name,
-            value: 1,
-            achievedAt: earliest,
-            leaderboardScore: player.totalScore
-          });
-        }
-      });
-
-      tiers.bronze.unlocked = true;
-      tiers.bronze.players.sort(sortPlayers);
-
+    if (!earliest) {
       return {
         id: this.id,
         name: this.name,
         description: this.description,
-        globalUnlocked: true,
-        tiers
+        type: this.type,
+        earned: false,
+        players: []
       };
     }
-  },
+
+    const winners = players
+      .filter(p => (deaths[p.id] || []).includes(earliest))
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        achievedAt: earliest,
+        leaderboardScore: p.totalScore
+      }))
+      .sort(sortPlayers);
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: true,
+      players: winners
+    };
+  }
+},
 
   /* =========================
      OPTIMIST
@@ -320,58 +320,57 @@ export const BADGES = [
   ========================= */
 
   {
-    id: "optimist",
-    name: "Optimist",
-    description: "Held a full list with no confirmed kills",
-    order: 6,
+  id: "optimist",
+  name: "Optimist",
+  description: "Held a full list with no confirmed kills",
+  order: 6,
+  type: "single",
 
-    evaluate({ players }) {
-      const tiers = buildEmptyTiers();
-      let globalUnlocked = false;
+  evaluate({ players }) {
+    const winners = players
+      .filter(p => p.approvedPicks === 20 && p.hits === 0)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        achievedAt: "9999-12-31",
+        leaderboardScore: p.totalScore
+      }))
+      .sort(sortPlayers);
 
-      players.forEach(player => {
-        if (player.approvedPicks === 20 && player.hits === 0) {
-          tiers.bronze.players.push({
-            id: player.id,
-            name: player.name,
-            value: 0,
-            achievedAt: "9999-12-31",
-            leaderboardScore: player.totalScore
-          });
-        }
-      });
-
-      if (tiers.bronze.players.length) {
-        tiers.bronze.unlocked = true;
-        globalUnlocked = true;
-        tiers.bronze.players.sort(sortPlayers);
-      }
-
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
-    }
-  },
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: winners.length > 0,
+      players: winners
+    };
+  }
+},
 
   /* =========================
      JULY SWEEP
      Single season action
   ========================= */
 
-  {
-    id: "july_sweep",
-    name: "July Sweep",
-    description: "Performed a full July Sweep reset",
-    order: 7,
+{
+  id: "july_sweep",
+  name: "July Sweep",
+  description: "Performed a full July Sweep reset",
+  order: 7,
+  type: "single",
 
-    evaluate() {
-      return {
-        id: this.id,
-        name: this.name,
-        description: this.description,
-        globalUnlocked: false,
-        tiers: buildEmptyTiers()
-      };
-    }
-  },
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
+  }
+},
 
   /* =========================
      AGENT OF CHAOS
@@ -381,18 +380,21 @@ export const BADGES = [
     id: "agent_of_chaos",
     name: "Agent of Chaos",
     description: "Chaos-driven mayhem",
-    order: 8,
+  order: 8,
+  type: "single",
 
-    evaluate() {
-      return {
-        id: this.id,
-        name: this.name,
-        description: this.description,
-        globalUnlocked: false,
-        tiers: buildEmptyTiers()
-      };
-    }
-  },
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
+  }
+},
+
 
   /* =========================
      THE STABILIZER
@@ -402,18 +404,21 @@ export const BADGES = [
     id: "the_stabilizer",
     name: "The Stabilizer",
     description: "Maintained control in a chaotic world",
-    order: 9,
+  order: 9,
+  type: "single",
 
-    evaluate() {
-      return {
-        id: this.id,
-        name: this.name,
-        description: this.description,
-        globalUnlocked: false,
-        tiers: buildEmptyTiers()
-      };
-    }
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
   }
+},
+
 
 ];
 
