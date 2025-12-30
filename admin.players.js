@@ -275,15 +275,25 @@ document.getElementById("save-edit-player-btn")
 
     const ref = doc(db, "players", currentEditPlayerId);
 
-    await updateDoc(ref, {
-      name: newName
-    });
+await updateDoc(ref, {
+  name: newName
+});
 
-    currentEditPlayerId = null;
-    document.getElementById("edit-player-modal")?.classList.add("hidden");
+// 🔄 Optimistic UI – opdatér navn direkte i tabellen
+const row = document
+  .querySelector(`.edit-player-btn[data-id="${ref.id}"]`)
+  ?.closest("tr");
 
-    // 🔄 Single source refresh
-    await refreshAdminViews();
+if (row) {
+  const nameCell = row.querySelector("td");
+  if (nameCell) nameCell.textContent = newName;
+}
+
+currentEditPlayerId = null;
+document.getElementById("edit-player-modal")?.classList.add("hidden");
+
+// ❌ ingen refresh her
+
   });
 
 /* =====================================================
