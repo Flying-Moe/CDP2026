@@ -34,6 +34,47 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import {
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  query,
+  where,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* =====================================================
+   ADMIN ANALYTICS
+===================================================== */
+
+async function loadAdminAnalytics() {
+  const totalRef = doc(db, "analytics", "totals", "site");
+  const todayRef = doc(db, "analytics", "daily", new Date().toISOString().slice(0, 10));
+
+  const [totalSnap, todaySnap] = await Promise.all([
+    getDoc(totalRef),
+    getDoc(todayRef)
+  ]);
+
+  document.getElementById("a-total").textContent =
+    totalSnap.exists() ? totalSnap.data().totalViews || 0 : 0;
+
+  document.getElementById("a-today").textContent =
+    todaySnap.exists() ? todaySnap.data().views || 0 : 0;
+
+  const cutoff = Timestamp.fromMillis(Date.now() - 60000);
+  const liveQuery = query(
+    collection(db, "analytics", "liveSessions"),
+    where("lastSeen", ">", cutoff)
+  );
+
+  const liveSnap = await getDocs(liveQuery);
+  document.getElementById("a-live").textContent = liveSnap.size;
+
+  document.getElementById("admin-analytics").classList.remove("hidden");
+}
+
 /* =====================================================
    WIKI LOOKUP CACHE (SESSION)
 ===================================================== */
