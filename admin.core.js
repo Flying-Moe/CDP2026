@@ -582,6 +582,8 @@ await autoLinkApprovedPicks();
 // (Nu med cache + uden dobbelt-reads)
 setupTabs();
 
+   // 📊 Load site activity counters (admin only)
+  await loadAdminAnalytics();
    
 });
 
