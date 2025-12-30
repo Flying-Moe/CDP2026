@@ -572,6 +572,88 @@ footer {
   width: 110px; /* Actions */
 }
 
+/* =====================================================
+   VALIDATE PICKS – COLUMN CONTROL LAYER
+   (fine-grained tuning: widths, padding, typography)
+===================================================== */
+
+/* ---------- GLOBAL TABLE BEHAVIOR ---------- */
+#validate-picks-modal table {
+  table-layout: fixed;          /* 🔒 stabil kolonnebredde */
+}
+
+/* ---------- HEADER (TH) STYLING ---------- */
+#validate-picks-modal th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+/* ---------- CELL (TD) STYLING ---------- */
+#validate-picks-modal td {
+  font-size: 0.75rem;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  line-height: 1.25;
+}
+
+/* =====================================================
+   COLUMN WIDTHS (ONE PLACE TO RULE THEM ALL)
+   Justér disse tal frit
+===================================================== */
+
+/* NAME */
+#validate-picks-modal th.col-name,
+#validate-picks-modal td.col-name {
+  width: 26%;
+  text-align: left;
+  white-space: normal;
+}
+
+/* BIRTH DATE */
+#validate-picks-modal th.col-birth,
+#validate-picks-modal td.col-birth {
+  width: 4.5em;
+  text-align: center;
+}
+
+/* DEATH DATE / STATUS ICON */
+#validate-picks-modal th.col-death,
+#validate-picks-modal td.col-death {
+  width: 2.8em;
+  text-align: center;
+}
+
+/* STATUS TEXT */
+#validate-picks-modal th.col-status,
+#validate-picks-modal td.col-status {
+  width: 5.5em;
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+/* ACTIONS */
+#validate-picks-modal th.col-actions,
+#validate-picks-modal td.col-actions {
+  width: 6.5em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   INPUT FIELD POLISH
+===================================================== */
+
+#validate-picks-modal td input {
+  font-size: 0.75rem;
+  padding: 1px 3px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
 /* =========================
    MOBILE
 ========================= */
