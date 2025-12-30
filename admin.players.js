@@ -206,10 +206,22 @@ document.querySelectorAll(".delete-player-btn").forEach(b =>
     if (row) row.remove();
 
     // 2️⃣ FIRESTORE WRITE (sandheden)
+document.querySelectorAll(".delete-player-btn").forEach(b =>
+  b.onclick = async () => {
+    if (!confirm("Deactivate this player?")) return;
+
+    const playerId = b.dataset.id;
+
     await updateDoc(doc(db, "players", playerId), {
-  active: false,
-  "entries.2026.active": false
-});
+      active: false,
+      "entries.2026.active": false
+    });
+
+    // 🔄 ÉN sand refresh – flytter spilleren korrekt
+    await loadPlayers({ force: true });
+  }
+);
+
 
     // 3️⃣ SILENT RELOAD (valgfri, men sikker)
     loadPlayers();
@@ -225,10 +237,20 @@ document.querySelectorAll(".restore-player-btn").forEach(b =>
     if (row) row.remove();
 
     // 2️⃣ FIRESTORE WRITE
+document.querySelectorAll(".restore-player-btn").forEach(b =>
+  b.onclick = async () => {
+    const playerId = b.dataset.id;
+
     await updateDoc(doc(db, "players", playerId), {
-  active: true,
-  "entries.2026.active": true
-});
+      active: true,
+      "entries.2026.active": true
+    });
+
+    // 🔄 Flyt spilleren tilbage korrekt
+    await loadPlayers({ force: true });
+  }
+);
+
 
     // 3️⃣ SILENT RELOAD
     loadPlayers();
@@ -253,7 +275,8 @@ document.querySelectorAll(".perma-delete-player-btn").forEach(b =>
     await deleteDoc(ref);
 
     // 3️⃣ SILENT RELOAD (sikkerhed)
-    loadPlayers();
+    await loadPlayers({ force: true });
+
   }
 );
 
