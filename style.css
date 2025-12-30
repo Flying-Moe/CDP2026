@@ -533,7 +533,7 @@ footer {
 /* NAME */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
-  width: 25%;
+  width: 40%;
   text-align: left;
   white-space: normal;
   word-break: break-word;
