@@ -758,5 +758,14 @@ async function undoMinusPoint(playerId) {
   });
 
   // 3️⃣ SILENT REFRESH
-  refreshAdminViews({ force: false });
+ // 🔄 Opdatér in-memory cache før refresh
+if (window.__adminPlayers) {
+  const cached = window.__adminPlayers.find(p => p.id === playerId);
+  if (cached) {
+    cached.scoreHistory = history;
+  }
+}
+
+refreshAdminViews({ force: false });
+
 }
