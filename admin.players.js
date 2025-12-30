@@ -704,17 +704,6 @@ async function giveMinusPoint(playerId) {
     scoreHistory
   });
 
-  // 4️⃣ SILENT REFRESH (respekterer cache)
-  // 🔄 Opdatér in-memory cache før refresh
-if (window.__adminPlayers) {
-  const cached = window.__adminPlayers.find(p => p.id === playerId);
-  if (cached) {
-    cached.scoreHistory = scoreHistory;
-  }
-}
-
-refreshAdminViews({ force: false });
-
 }
 
 async function undoMinusPoint(playerId) {
@@ -756,16 +745,5 @@ async function undoMinusPoint(playerId) {
   await updateDoc(ref, {
     scoreHistory: history
   });
-
-  // 3️⃣ SILENT REFRESH
- // 🔄 Opdatér in-memory cache før refresh
-if (window.__adminPlayers) {
-  const cached = window.__adminPlayers.find(p => p.id === playerId);
-  if (cached) {
-    cached.scoreHistory = history;
-  }
-}
-
-refreshAdminViews({ force: false });
 
 }
