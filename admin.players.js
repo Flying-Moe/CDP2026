@@ -195,13 +195,23 @@ function bindPlayerActions() {
     b.onclick = () => undoMinusPoint(b.dataset.id)
   );
 
-  document.querySelectorAll(".delete-player-btn").forEach(b =>
-    b.onclick = async () => {
-      if (!confirm("Deactivate this player?")) return;
-      await updateDoc(doc(db, "players", b.dataset.id), { active: false });
-      loadPlayers();
-    }
-  );
+document.querySelectorAll(".delete-player-btn").forEach(b =>
+  b.onclick = async () => {
+    if (!confirm("Deactivate this player?")) return;
+
+    const playerId = b.dataset.id;
+    const row = b.closest("tr");
+
+    // 1️⃣ OPTIMISTIC UI — fjern spilleren straks fra listen
+    if (row) row.remove();
+
+    // 2️⃣ FIRESTORE WRITE (sandheden)
+    await updateDoc(doc(db, "players", playerId), { active: false });
+
+    // 3️⃣ SILENT RELOAD (valgfri, men sikker)
+    loadPlayers();
+  }
+);
 
   document.querySelectorAll(".restore-player-btn").forEach(b =>
     b.onclick = async () => {
