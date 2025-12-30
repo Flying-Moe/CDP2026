@@ -43,7 +43,10 @@ async function loadAdminAnalytics() {
   const todayKey = new Date().toISOString().slice(0, 10);
 
   const totalRef = doc(db, "analytics", "site");
-  const todayRef = doc(db, "analytics", "daily", todayKey);
+  const todayRef = doc(
+    collection(db, "analytics", "daily"),
+    todayKey
+  );
 
   const [totalSnap, todaySnap] = await Promise.all([
     getDoc(totalRef),
@@ -68,7 +71,6 @@ async function loadAdminAnalytics() {
 
   document.getElementById("admin-analytics").classList.remove("hidden");
 }
-
 
 /* =====================================================
    WIKI LOOKUP CACHE (SESSION)
