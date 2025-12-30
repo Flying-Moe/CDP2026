@@ -31,7 +31,16 @@ async function startSessionIfNeeded() {
   sessionStorage.setItem(SESSION_KEY, "1");
 
   const totalRef = doc(db, "analytics", "totals", "site");
-  const todayRef = doc(db, "analytics", "daily", getTodayKey());
+const todayRef = doc(
+  collection(db, "analytics", "site", "daily"),
+  getTodayKey()
+);
+
+const ref = doc(
+  collection(db, "analytics", "site", "liveSessions"),
+  sessionId
+);
+
 
   await Promise.all([
     setDoc(totalRef, { totalViews: increment(1) }, { merge: true }),
