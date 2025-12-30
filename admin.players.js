@@ -738,4 +738,16 @@ async function undoMinusPoint(playerId) {
     if (scoreCell) {
       scoreCell.textContent =
         totals.penalty !== 0
-          ? `${totals.hi
+          ? `${totals.hitPoints} (${totals.penalty}) = ${totals.totalScore}`
+          : `${totals.hitPoints}`;
+    }
+  }
+
+  // 2️⃣ FIRESTORE WRITE
+  await updateDoc(ref, {
+    scoreHistory: history
+  });
+
+  // 3️⃣ SILENT REFRESH
+  refreshAdminViews({ force: false });
+}
