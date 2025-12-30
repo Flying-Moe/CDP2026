@@ -18,79 +18,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* =====================================================
-   BADGES – LOGIC (LOCAL, SAFE)
+   BADGES – LOGIC (LOCAL, DISABLED)
+   (legacy UI badges – intentionally disabled)
 ===================================================== */
 
-function computeBadges(players) {
-  const out = {};
-  const give = (id, badge) => {
-    if (!out[id]) out[id] = [];
-    out[id].push(badge);
-  };
-
-  // 🥇 Grim’s Favorite – highest score (ties allowed)
-  const maxScore = Math.max(...players.map(p => p.score));
-  if (maxScore > 0) {
-    players
-      .filter(p => p.score === maxScore)
-      .forEach(p =>
-        give(p.id, {
-          icon: "🥇",
-          class: "badge-gold",
-          name: "Grim’s Favorite",
-          reason: "Highest score"
-        })
-      );
-  }
-
-  // ☠️ The Undertaker – most deaths
-  const maxHits = Math.max(...players.map(p => p.hits));
-  if (maxHits > 0) {
-    players
-      .filter(p => p.hits === maxHits)
-      .forEach(p =>
-        give(p.id, {
-          icon: "☠️",
-          class: "badge-dark",
-          name: "The Undertaker",
-          reason: "Most confirmed deaths"
-        })
-      );
-  }
-
-  players.forEach(p => {
-    // 🪦 The Optimist
-    if (p.approvedCount === 20 && p.hits === 0) {
-      give(p.id, {
-        icon: "🪦",
-        class: "badge-gray",
-        name: "The Optimist",
-        reason: "20 picks, no deaths"
-      });
-    }
-
-    // 🧨 Glass Cannon
-    if (p.minusPoints >= 2) {
-      give(p.id, {
-        icon: "🧨",
-        class: "badge-orange",
-        name: "Glass Cannon",
-        reason: "High risk strategy"
-      });
-    }
-
-    // 🩸 Blood Thief (First Blood, but not #1)
-    if (p.firstBlood && p.rank > 1) {
-      give(p.id, {
-        icon: "🩸",
-        class: "badge-red",
-        name: "Blood Thief",
-        reason: "First Blood without the lead"
-      });
-    }
-  });
-
-  return out;
+function computeBadges() {
+  return {};
 }
 
 /* =====================================================
@@ -247,12 +180,7 @@ rowData.forEach(r => {
       `;
     }
 
-    const badgeIcons = (badgesByPlayer[player.id] || [])
-      .map(
-        b =>
-          `<span class="badge ${b.class}" title="${b.name} – ${b.reason}">${b.icon}</span>`
-      )
-      .join(" ");
+const badgeIcons = "";
 
     container.insertAdjacentHTML(
       "beforeend",
