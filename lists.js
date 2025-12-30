@@ -186,11 +186,10 @@ const badgeIcons = "";
       "beforeend",
       `
       <section class="player-list">
-        <h2>
-          ${player.name}
-          ${badgeIcons}
-          <span class="count">(${player.totalCount}/20)</span>
-        </h2>
+<h2>
+  ${player.name}
+  <span class="count">(${player.totalCount}/20)</span>
+</h2>
 
         <table class="list-table">
           <thead>
