@@ -851,9 +851,7 @@ document.addEventListener("click", async e => {
   }
 
 // 🔄 Optimistic UI – opdatér rækken direkte
-const row = document.querySelector(
-  `#people-table tr[data-player-ids][data-key="${key}"]`
-);
+const row = btn.closest("tr");
 
 if (row) {
   const birthCell = row.querySelector(".birth-date");
@@ -962,10 +960,12 @@ document.addEventListener("click", async e => {
 
 // 🔄 Optimistic UI – opdatér people-row direkte
 const row = document.querySelector(
-  `#people-table tr[data-player-ids][data-key="${newNormalized}"]`
+  `#people-table tr[data-player-ids][data-key="${oldNormalized}"]`
 );
 
 if (row) {
+  row.dataset.key = newNormalized;
+
   const nameCell = row.querySelector(".people-name");
   const birthCell = row.querySelector(".birth-date");
   const deathCell = row.querySelector(".death-date");
