@@ -509,7 +509,7 @@ footer {
 /* Fylder kun det nødvendige, ikke “resten af verden” */
 #validate-picks-modal th:nth-child(1),
 #validate-picks-modal td:nth-child(1) {
-  width: 30%;              /* mindre end før */
+  width: 25%;              /* mindre end før */
   text-align: left;
   white-space: normal;
   word-break: break-word;
@@ -518,12 +518,12 @@ footer {
 /* ===== BIRTH DATE ===== */
 #validate-picks-modal th:nth-child(2),
 #validate-picks-modal td:nth-child(2) {
-  width: 70px;             /* stramt omkring dato */
+  width: 65px;             /* stramt omkring dato */
   text-align: center;
 }
 
 #validate-picks-modal td:nth-child(2) input {
-  width: 90%;
+  width: 65%;
   text-align: center;
   padding: 2px 3px;
   box-sizing: border-box;
@@ -532,13 +532,13 @@ footer {
 /* ===== DEATH DATE ===== */
 #validate-picks-modal th:nth-child(3),
 #validate-picks-modal td:nth-child(3) {
-  width: 70px;
+  width: 50px;
   text-align: center;
 }
 
 /* ===== STATUS ===== */
 #validate-picks-modal th:nth-child(4) {
-  width: 55px;
+  width: 25px;
   text-align: center;
   font-size: 0.85rem;
 }
@@ -552,7 +552,7 @@ footer {
 /* ===== ACTIONS ===== */
 #validate-picks-modal th:nth-child(5),
 #validate-picks-modal td:nth-child(5) {
-  width: 55px;
+  width: 25px;
   text-align: center;
 }
 
