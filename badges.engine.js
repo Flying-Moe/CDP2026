@@ -42,10 +42,210 @@ function sortPlayers(a, b) {
 
 export const BADGES = [
 
-  /* =========================
-     THE UNDERTAKER
-     Confirmed kills accumulated
-  ========================= */
+ /* ======================================================
+   BADGES – SINGLE ACHIEVEMENTS
+======================================================= */
+  
+/* ============ First Blood ======================== */
+{
+  id: "first_blood",
+  name: "First Blood",
+  description: "First confirmed death of the season",
+  type: "single",
+
+  // Rendering / ordering
+  order: 0,
+
+  // Evaluation result
+  globalUnlocked: false,   // sættes true når betingelsen rammes
+  earned: false,           // redundant men eksplicit
+  players: [],             // én eller flere hvis samme dag
+
+  evaluate(context) {
+    const deaths = context.deaths
+      .filter(d => d.confirmed)
+      .sort((a, b) => new Date(a.deathDate) - new Date(b.deathDate));
+
+    if (!deaths.length) return this;
+
+    const firstDate = deaths[0].deathDate;
+
+    const firstDeaths = deaths.filter(
+      d => d.deathDate === firstDate
+    );
+
+    this.players = [
+      ...new Set(firstDeaths.flatMap(d => d.playerIds))
+    ];
+
+    this.globalUnlocked = this.players.length > 0;
+    this.earned = this.globalUnlocked;
+
+    return this;
+  }
+},
+
+/* ============ OPTIMIST ========================= */
+/* ====== Single-forkerte ========================== */
+
+  {
+  id: "optimist",
+  name: "Optimist",
+  description: "Held a full list with no confirmed kills",
+  order: 6,
+  type: "single",
+
+  evaluate({ players }) {
+    const winners = players
+      .filter(p => p.approvedPicks === 20 && p.hits === 0)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        achievedAt: "9999-12-31",
+        leaderboardScore: p.totalScore
+      }))
+      .sort(sortPlayers);
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: winners.length > 0,
+      players: winners
+    };
+  }
+},
+
+/* ============ JULY SWEEP ========================= */
+/* ====== Single-forkerte ========================== */
+
+{
+  id: "july_sweep",
+  name: "July Sweep",
+  description: "Performed a full July Sweep reset",
+  order: 7,
+  type: "single",
+
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
+  }
+},
+
+
+  
+/* ============ LAST LAUGH ============================ */
+/* ====== korrekt single ============================== */
+  
+
+  
+/* ============ CLEAN KILL ============================ */
+/* ====== korrekt single ============================== */
+
+  
+  
+/* ============ DEAD ON ARRIVAL ======================= */
+/* ====== korrekt single ============================== */
+
+
+  
+/* ============ FRIDAY THE 13TH======================== */
+/* ====== korrekt single ============================== */
+
+  
+  
+/* ============ SILENT NIGHT ========================== */
+/* ====== korrekt single ============================== */
+
+  
+  
+/* ============ MASS CASUALTY EVENT =================== */
+/* ====== korrekt single ============================== */
+  
+
+  
+/* ============ DARK HORSE ============================ */
+/* ====== korrekt single ============================== */
+
+
+  
+/* ============ TOO SOON ============================= */
+/* ====== korrekt single ============================= */
+
+
+  
+/* ============ DEAD WEIGHT =========================== */
+/* ====== korrekt single ============================== */
+
+
+  
+/* ============ ZOMBIE ALERT ========================== */
+/* ====== korrekt single ============================== */
+
+  
+  
+/* ============ VIGILANTE WORK ======================== */
+/* ====== korrekt single ============================== */
+
+  
+ /* ========================================================================
+   BADGES – TIERED ACHIEVEMENTS
+============================================================================ */
+  
+/* ============ AGENT OF CHAOS ============================= */
+/* ====== ⚠ afhænger af Chaos-logik ======================== */
+
+  {
+    id: "agent_of_chaos",
+    name: "Agent of Chaos",
+    description: "Chaos-driven mayhem",
+  order: 8,
+  type: "tiered",
+
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
+  }
+},
+
+
+/* ============ THE STABILIZER ============================== */
+/* ====== ⚠ afhænger af Chaos-logik ========================== */
+
+  {
+    id: "the_stabilizer",
+    name: "The Stabilizer",
+    description: "Maintained control in a chaotic world",
+  order: 9,
+  type: "tiered",
+
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: this.type,
+      earned: false,
+      players: []
+    };
+  }
+},
+
+/* ============ THE UNDERTAKER ========================= */
+/* ========== OK?  ===================================== */
 
   {
     id: "undertaker",
@@ -92,10 +292,8 @@ export const BADGES = [
     }
   },
 
-  /* =========================
-     GLASS CANNON
-     Accumulated minus points
-  ========================= */
+/* ============ GLASS CANNON ========================= */
+/* =========== OK?  ================================== */
 
   {
     id: "glass_cannon",
@@ -152,11 +350,8 @@ export const BADGES = [
     }
   },
 
-  /* =========================
-     THE VULTURE
-     Low average age on picks
-  ========================= */
-
+/* ============ THE VULTURE ========================= */
+/* ====== ⚠ check grænser   ========================== */
   {
     id: "the_vulture",
     name: "The Vulture",
@@ -206,11 +401,8 @@ export const BADGES = [
     }
   },
 
-  /* =========================
-     PENSION SNIPER
-     High average age on picks
-  ========================= */
-
+/* ============ PENSION SNIPER ========================= */
+/* ====== ⚠ check grænser   ========================== */
   {
     id: "pension_sniper",
     name: "Pension Sniper",
@@ -259,166 +451,56 @@ export const BADGES = [
       return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
     }
   },
-
-   /* =========================
-     FIRST BLOOD
-     First confirmed kill
-  ========================= */
-
-{
-  id: "first_blood",
-  name: "First Blood",
-  description: "First confirmed kill of the season",
-  order: 0,
-  type: "single",
-
-  evaluate({ players, deaths }) {
-    let earliest = null;
-
-    players.forEach(p => {
-      const dates = deaths[p.id] || [];
-      if (!dates.length) return;
-      const first = dates.slice().sort()[0];
-      if (!earliest || first < earliest) earliest = first;
-    });
-
-    if (!earliest) {
-      return {
-        id: this.id,
-        name: this.name,
-        description: this.description,
-        type: this.type,
-        earned: false,
-        players: []
-      };
-    }
-
-    const winners = players
-      .filter(p => (deaths[p.id] || []).includes(earliest))
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        achievedAt: earliest,
-        leaderboardScore: p.totalScore
-      }))
-      .sort(sortPlayers);
-
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: this.type,
-      earned: true,
-      players: winners
-    };
-  }
-},
-
-  /* =========================
-     OPTIMIST
-     Full list, no kills (historical)
-  ========================= */
-
-  {
-  id: "optimist",
-  name: "Optimist",
-  description: "Held a full list with no confirmed kills",
-  order: 6,
-  type: "single",
-
-  evaluate({ players }) {
-    const winners = players
-      .filter(p => p.approvedPicks === 20 && p.hits === 0)
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        achievedAt: "9999-12-31",
-        leaderboardScore: p.totalScore
-      }))
-      .sort(sortPlayers);
-
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: this.type,
-      earned: winners.length > 0,
-      players: winners
-    };
-  }
-},
-
-  /* =========================
-     JULY SWEEP
-     Single season action
-  ========================= */
-
-{
-  id: "july_sweep",
-  name: "July Sweep",
-  description: "Performed a full July Sweep reset",
-  order: 7,
-  type: "single",
-
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: this.type,
-      earned: false,
-      players: []
-    };
-  }
-},
-
-  /* =========================
-     AGENT OF CHAOS
-  ========================= */
-
-  {
-    id: "agent_of_chaos",
-    name: "Agent of Chaos",
-    description: "Chaos-driven mayhem",
-  order: 8,
-  type: "single",
-
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: this.type,
-      earned: false,
-      players: []
-    };
-  }
-},
+  
+/* ============ BODY COUNT =========================== */
+/* ====== ✅ 1 / 3 / 5 / 8  ========================== */
 
 
-  /* =========================
-     THE STABILIZER
-  ========================= */
+  
+/* ============ MOMENTUM ============================== */
+/* ====== ⚠ kræver tidslogik  ========================= */
 
-  {
-    id: "the_stabilizer",
-    name: "The Stabilizer",
-    description: "Maintained control in a chaotic world",
-  order: 9,
-  type: "single",
 
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: this.type,
-      earned: false,
-      players: []
-    };
-  }
-},
+  
+/* ============ POINT HOARDER ========================= */
+/* ====== ⚠ afhænger af score-skala  ================== */
 
+
+  
+/* ============ YOLO ================================= */
+/* ====== ✅ 1 / 2 / 3 / 5  ========================== */
+
+
+  
+/* ============ COWARD ================================ */
+/* ====== ⚠ semantisk modsat YOLO  =================== */
+
+
+
+/* ============ COPYCAT =============================== */
+/* ====== ⚠ kræver overlap-logik  ==================== */
+
+
+
+/* ============ LONE WOLF ============================= */
+/* ====== ✅ %-baseret  =============================== */
+
+
+
+/* ============ EARLY GAME PREDATOR ==================== */
+/* ====== ⚠ Q1-logik  ================================= */
+
+
+
+/* ============ LATE GAME REAPER ====================== */
+/* ====== ⚠ Q4-logik  ================================= */
+
+
+
+/* ============ ZOMBIE INDEX ========================== */
+/* ====== ✅ count-baseret ============================ */
+
+  
 
 ];
 
