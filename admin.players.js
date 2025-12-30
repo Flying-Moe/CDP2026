@@ -664,22 +664,48 @@ pick.status = "approved";
 ===================================================== */
 
 async function giveMinusPoint(playerId) {
-  const ref = doc(db, "players", playerId);
-  const snap = await getDoc(ref);
+  // 1️⃣ OPTIMISTIC UI — opdatér in-memory player
+  const playerRow = document.querySelector(
+    `.minus-btn[data-id="${playerId}"]`
+  )?.closest("tr");
+
+  const snap = await getDoc(doc(db, "players", playerId));
   if (!snap.exists()) return;
 
-  const p = snap.data();
+  const player = snap.data();
 
+  const scoreHistory = [...(player.scoreHistory || []), {
+    delta: -1,
+    at: new Date().toISOString(),
+    reason: "admin"
+  }];
+
+  const tempPlayer = {
+    ...player,
+    scoreHistory
+  };
+
+  // 2️⃣ OPDATÉR DOM STRAKS
+  if (playerRow) {
+    const totals = calculatePlayerTotals(tempPlayer);
+    const scoreCell = playerRow.querySelector("td:nth-child(3)");
+
+    if (scoreCell) {
+      scoreCell.textContent =
+        totals.penalty !== 0
+          ? `${totals.hitPoints} (${totals.penalty}) = ${totals.totalScore}`
+          : `${totals.hitPoints}`;
+    }
+  }
+
+  // 3️⃣ FIRESTORE WRITE (sandheden)
+  const ref = doc(db, "players", playerId);
   await updateDoc(ref, {
-    score: (p.score || 0) - 1,
-    scoreHistory: [...(p.scoreHistory || []), {
-      delta: -1,
-      at: new Date().toISOString(),
-      reason: "admin"
-    }]
+    scoreHistory
   });
 
-  loadPlayers();
+  // 4️⃣ SILENT REFRESH (respekterer cache)
+  refreshAdminViews({ force: false });
 }
 
 async function undoMinusPoint(playerId) {
@@ -687,16 +713,29 @@ async function undoMinusPoint(playerId) {
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
 
-  const history = [...(snap.data().scoreHistory || [])];
+  const player = snap.data();
+  const history = [...(player.scoreHistory || [])];
+
   const idx = [...history].reverse().findIndex(h => h.delta === -1);
   if (idx === -1) return;
 
   history.splice(history.length - 1 - idx, 1);
 
-  await updateDoc(ref, {
-    score: (snap.data().score || 0) + 1,
+  const tempPlayer = {
+    ...player,
     scoreHistory: history
-  });
+  };
 
-  loadPlayers();
-}
+  // 1️⃣ OPDATÉR DOM STRAKS
+  const playerRow = document.querySelector(
+    `.undo-minus-btn[data-id="${playerId}"]`
+  )?.closest("tr");
+
+  if (playerRow) {
+    const totals = calculatePlayerTotals(tempPlayer);
+    const scoreCell = playerRow.querySelector("td:nth-child(3)");
+
+    if (scoreCell) {
+      scoreCell.textContent =
+        totals.penalty !== 0
+          ? `${totals.hi
