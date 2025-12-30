@@ -202,10 +202,10 @@ export const BADGES = [
 /* ============ AGENT OF CHAOS ============================= */
 /* ====== ⚠ afhænger af Chaos-logik ======================== */
 
-  {
-    id: "agent_of_chaos",
-    name: "Agent of Chaos",
-    description: "Chaos-driven mayhem",
+{
+  id: "agent_of_chaos",
+  name: "Agent of Chaos",
+  description: "Chaos-driven mayhem",
   order: 8,
   type: "tiered",
 
@@ -214,21 +214,19 @@ export const BADGES = [
       id: this.id,
       name: this.name,
       description: this.description,
-      type: this.type,
-      earned: false,
-      players: []
+      globalUnlocked: true,   // synlig men låst
+      tiers: buildEmptyTiers()
     };
   }
 },
 
-
 /* ============ THE STABILIZER ============================== */
 /* ====== ⚠ afhænger af Chaos-logik ========================== */
 
-  {
-    id: "the_stabilizer",
-    name: "The Stabilizer",
-    description: "Maintained control in a chaotic world",
+{
+  id: "the_stabilizer",
+  name: "The Stabilizer",
+  description: "Maintained control in a chaotic world",
   order: 9,
   type: "tiered",
 
@@ -237,9 +235,8 @@ export const BADGES = [
       id: this.id,
       name: this.name,
       description: this.description,
-      type: this.type,
-      earned: false,
-      players: []
+      globalUnlocked: true,   // synlig men låst
+      tiers: buildEmptyTiers()
     };
   }
 },
