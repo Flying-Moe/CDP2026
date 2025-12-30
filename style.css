@@ -617,39 +617,52 @@ footer {
 
 @media (max-width: 720px) {
 
-  /* Modal skal fylde skærmen korrekt */
+  /* Modal fylder skærmen korrekt */
   #validate-picks-modal .modal-content {
     width: 100%;
     max-width: 100%;
     border-radius: 0;
   }
 
-  /* Scroll skal ske INDE i modal – ikke udenfor */
+  /* Scroll håndteres inde i modal */
   #validate-picks-modal {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Tabellen må gerne være bred, men kontrolleret */
+  /* Tabellen – kompakt men læsbar */
   #validate-picks-modal table {
-    min-width: 480px;   /* ← matcher dit desktop-look */
+    min-width: 460px; /* ↓ lidt smallere end før */
   }
 
   #validate-picks-modal th,
   #validate-picks-modal td {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
   }
-}
 
-/* Make disabled inputs look like plain text */
-#validate-picks-modal input:disabled {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  color: inherit;
-  font: inherit;
-  cursor: default;
+  /* ===== NAME – en anelse smallere ===== */
+  #validate-picks-modal th:nth-child(1),
+  #validate-picks-modal td:nth-child(1) {
+    width: 32%;              /* ↓ var reelt lidt for bred */
+    white-space: normal;
+  }
+
+  /* ===== STATUS – mere kompakt ===== */
+  #validate-picks-modal th:nth-child(4) {
+    font-size: 0.7rem;
+  }
+
+  #validate-picks-modal td:nth-child(4) {
+    width: 48px;             /* ↓ mindre plads til “approved” */
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  /* ===== ACTIONS – får mere luft ===== */
+  #validate-picks-modal th:nth-child(5),
+  #validate-picks-modal td:nth-child(5) {
+    width: 70px;             /* ↑ nok til at være helt synlig */
+  }
 }
 
 /* =========================
