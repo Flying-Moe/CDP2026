@@ -56,7 +56,7 @@ button[disabled] {
 }
 
 #merge-all-btn {
-  padding: 0.35rem 0.6rem;
+  /* padding: 0.35rem 0.6rem; */
   font-size: 0.85rem;
 }
 
@@ -109,6 +109,7 @@ th {
   margin-right: -4px;
   font-size: 0.8rem;
   white-space: nowrap;
+}
 
 /* =========================
    LISTS TABLE (DESKTOP-FIRST)
@@ -617,52 +618,39 @@ footer {
 
 @media (max-width: 720px) {
 
-  /* Modal fylder skærmen korrekt */
+  /* Modal skal fylde skærmen korrekt */
   #validate-picks-modal .modal-content {
     width: 100%;
     max-width: 100%;
     border-radius: 0;
   }
 
-  /* Scroll håndteres inde i modal */
+  /* Scroll skal ske INDE i modal – ikke udenfor */
   #validate-picks-modal {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Tabellen – kompakt men læsbar */
+  /* Tabellen må gerne være bred, men kontrolleret */
   #validate-picks-modal table {
-    min-width: 460px; /* ↓ lidt smallere end før */
+    min-width: 480px;   /* ← matcher dit desktop-look */
   }
 
   #validate-picks-modal th,
   #validate-picks-modal td {
-    font-size: 0.76rem;
+    font-size: 0.78rem;
   }
+}
 
-  /* ===== NAME – en anelse smallere ===== */
-  #validate-picks-modal th:nth-child(1),
-  #validate-picks-modal td:nth-child(1) {
-    width: 32%;              /* ↓ var reelt lidt for bred */
-    white-space: normal;
-  }
-
-  /* ===== STATUS – mere kompakt ===== */
-  #validate-picks-modal th:nth-child(4) {
-    font-size: 0.7rem;
-  }
-
-  #validate-picks-modal td:nth-child(4) {
-    width: 48px;             /* ↓ mindre plads til “approved” */
-    font-size: 0.68rem;
-    white-space: nowrap;
-  }
-
-  /* ===== ACTIONS – får mere luft ===== */
-  #validate-picks-modal th:nth-child(5),
-  #validate-picks-modal td:nth-child(5) {
-    width: 70px;             /* ↑ nok til at være helt synlig */
-  }
+/* Make disabled inputs look like plain text */
+#validate-picks-modal input:disabled {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: default;
 }
 
 /* =========================
@@ -1106,24 +1094,6 @@ table.hof-leaderboard th:nth-child(3) {
 /* ===============================
    MODAL STYLES
    =============================== */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 2rem;
-  z-index: 1000;
-}
-
-.modal {
-  background: #fff;
-  padding: 1rem;
-  max-width: 640px;
-  width: 100%;
-}
 
 .modal-actions {
   display: flex;
