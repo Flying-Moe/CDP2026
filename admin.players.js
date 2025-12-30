@@ -183,50 +183,77 @@ document
 ===================================================== */
 
 function bindPlayerActions() {
-  document.querySelectorAll(".validate-btn").forEach(b =>
-    b.onclick = () => openValidateModal(b.dataset.id)
-  );
 
-  document.querySelectorAll(".minus-btn").forEach(b =>
-    b.onclick = () => giveMinusPoint(b.dataset.id)
-  );
+  // =========================
+  // VALIDATE
+  // =========================
+  document.querySelectorAll(".validate-btn").forEach(btn => {
+    btn.onclick = () => openValidateModal(btn.dataset.id);
+  });
 
-  document.querySelectorAll(".undo-minus-btn").forEach(b =>
-    b.onclick = () => undoMinusPoint(b.dataset.id)
-  );
+  // =========================
+  // MINUS / UNDO
+  // =========================
+  document.querySelectorAll(".minus-btn").forEach(btn => {
+    btn.onclick = () => giveMinusPoint(btn.dataset.id);
+  });
 
-document.querySelectorAll(".delete-player-btn").forEach(b =>
-  b.onclick = async () => {
-    if (!confirm("Deactivate this player?")) return;
+  document.querySelectorAll(".undo-minus-btn").forEach(btn => {
+    btn.onclick = () => undoMinusPoint(btn.dataset.id);
+  });
 
-    const playerId = b.dataset.id;
-    const row = b.closest("tr");
+  // =========================
+  // DEACTIVATE PLAYER
+  // =========================
+  document.querySelectorAll(".delete-player-btn").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm("Deactivate this player?")) return;
 
-    // 1️⃣ OPTIMISTIC UI — fjern spilleren straks fra listen
-    if (row) row.remove();
+      const playerId = btn.dataset.id;
 
-    // 2️⃣ FIRESTORE WRITE (sandheden)
-document.querySelectorAll(".delete-player-btn").forEach(b =>
-  b.onclick = async () => {
-    if (!confirm("Deactivate this player?")) return;
+      await updateDoc(doc(db, "players", playerId), {
+        active: false,
+        "entries.2026.active": false
+      });
 
-    const playerId = b.dataset.id;
+      await loadPlayers({ force: true });
+    };
+  });
 
-    await updateDoc(doc(db, "players", playerId), {
-      active: false,
-      "entries.2026.active": false
-    });
+  // =========================
+  // RESTORE PLAYER
+  // =========================
+  document.querySelectorAll(".restore-player-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const playerId = btn.dataset.id;
 
-    // 🔄 ÉN sand refresh – flytter spilleren korrekt
-    await loadPlayers({ force: true });
-  }
-);
+      await updateDoc(doc(db, "players", playerId), {
+        active: true,
+        "entries.2026.active": true
+      });
 
+      await loadPlayers({ force: true });
+    };
+  });
 
-    // 3️⃣ SILENT RELOAD (valgfri, men sikker)
-    loadPlayers();
-  }
-)};
+  // =========================
+  // DELETE PERMANENTLY
+  // =========================
+  document.querySelectorAll(".perma-delete-player-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const playerId = btn.dataset.id;
+      const ref = doc(db, "players", playerId);
+      const snap = await getDoc(ref);
+      const name = snap.exists() ? snap.data().name : "this player";
+
+      if (!confirm(`PERMANENTLY delete "${name}"?`)) return;
+
+      await deleteDoc(ref);
+      await loadPlayers({ force: true });
+    };
+  });
+
+}
 
 document.querySelectorAll(".restore-player-btn").forEach(b =>
   b.onclick = async () => {
