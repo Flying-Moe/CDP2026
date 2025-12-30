@@ -1,9 +1,9 @@
 import { db } from "./firebase.js";
 import {
   doc,
+  collection,
   getDoc,
   setDoc,
-  updateDoc,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -30,17 +30,11 @@ async function startSessionIfNeeded() {
 
   sessionStorage.setItem(SESSION_KEY, "1");
 
-  const totalRef = doc(db, "analytics", "totals", "site");
-const todayRef = doc(
-  collection(db, "analytics", "site", "daily"),
-  getTodayKey()
-);
-
-const ref = doc(
-  collection(db, "analytics", "site", "liveSessions"),
-  sessionId
-);
-
+  const totalRef = doc(db, "analytics", "site");
+  const todayRef = doc(
+    collection(db, "analytics", "site", "daily"),
+    getTodayKey()
+  );
 
   await Promise.all([
     setDoc(totalRef, { totalViews: increment(1) }, { merge: true }),
@@ -50,7 +44,10 @@ const ref = doc(
 
 async function pingLiveSession() {
   const sessionId = getSessionId();
-  const ref = doc(db, "analytics", "liveSessions", sessionId);
+  const ref = doc(
+    collection(db, "analytics", "site", "liveSessions"),
+    sessionId
+  );
 
   await setDoc(
     ref,
@@ -62,6 +59,5 @@ async function pingLiveSession() {
 export async function initAnalytics() {
   await startSessionIfNeeded();
   await pingLiveSession();
-
   setInterval(pingLiveSession, LIVE_PING_INTERVAL);
 }
