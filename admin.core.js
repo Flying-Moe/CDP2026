@@ -231,25 +231,14 @@ export function invalidateAdminCache(...names) {
   names.forEach(n => __adminCache.collections.delete(n));
 }
 
-async function getCollectionCached(name, force = false) {
-  const now = Date.now();
-  const hit = __adminCache.collections.get(name);
-
-  if (!force && hit && (now - hit.at) < __adminCache.ttlMs) {
-    return hit.snap;
-  }
-
-  const snap = await getDocs(collection(db, name));
-  __adminCache.collections.set(name, { at: now, snap });
-  return snap;
-}
-
 export async function getPlayersSnap(force = false) {
-  return getCollectionCached("players", force);
+  // 🔴 TEMP: cache disabled
+  return await getDocs(collection(db, "players"));
 }
 
 export async function getPeopleSnap(force = false) {
-  return getCollectionCached("people", force);
+  // 🔴 TEMP: cache disabled
+  return await getDocs(collection(db, "people"));
 }
 
 // 🔄 OFFICIEL HARD REFRESH (respekterer scope)
