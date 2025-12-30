@@ -105,10 +105,10 @@ th {
 
 #people-table .wiki-result {
   display: inline-block;
-  margin-left: px;
+  margin-left: 1px;
+  margin-right: -4px;
   font-size: 0.8rem;
   white-space: nowrap;
-}
 
 /* =========================
    LISTS TABLE (DESKTOP-FIRST)
