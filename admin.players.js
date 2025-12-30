@@ -376,24 +376,30 @@ const picks =
 
     tbody.innerHTML += `
       <tr class="${isDuplicate ? "status-duplicate" : ""} ${pick.deathDate ? "is-dead" : ""}">
-        <td>
-          <input
-            class="name-input"
-            data-id="${pick.id}"
-            value="${pick.normalizedName || pick.raw || ""}"
-            ${pick.status === "approved" ? "disabled" : ""}
-          >
-          ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-        </td>
+<td>
+  ${
+    pick.status === "approved"
+      ? `<span class="cell-text">${pick.normalizedName || pick.raw || ""}</span>`
+      : `<input
+           class="name-input"
+           data-id="${pick.id}"
+           value="${pick.normalizedName || pick.raw || ""}"
+         >`
+  }
+  ${pick.deathDate ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+</td>
 
-        <td>
-          <input
-            class="date-input"
-            data-id="${pick.id}"
-            value="${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}"
-            ${pick.status === "approved" ? "disabled" : ""}
-          >
-        </td>
+<td>
+  ${
+    pick.status === "approved"
+      ? `<span class="cell-text">${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}</span>`
+      : `<input
+           class="date-input"
+           data-id="${pick.id}"
+           value="${pick.birthDate ? formatDateForDisplay(pick.birthDate) : ""}"
+         >`
+  }
+</td>
 
         <td>
           ${pick.deathDate ? formatDateForDisplay(pick.deathDate) : "—"}
