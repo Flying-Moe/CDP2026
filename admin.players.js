@@ -213,25 +213,29 @@ document.querySelectorAll(".delete-player-btn").forEach(b =>
   }
 );
 
-  document.querySelectorAll(".restore-player-btn").forEach(b =>
-    b.onclick = async () => {
-      await updateDoc(doc(db, "players", b.dataset.id), { active: true });
-      loadPlayers();
-    }
-  );
+document.querySelectorAll(".restore-player-btn").forEach(b =>
 
-  document.querySelectorAll(".perma-delete-player-btn").forEach(b =>
-    b.onclick = async () => {
-      const ref = doc(db, "players", b.dataset.id);
-      const snap = await getDoc(ref);
-      const name = snap.exists() ? snap.data().name : "this player";
+document.querySelectorAll(".perma-delete-player-btn").forEach(b =>
+  b.onclick = async () => {
+    const playerId = b.dataset.id;
+    const row = b.closest("tr");
 
-      if (!confirm(`PERMANENTLY delete "${name}"?`)) return;
-      await deleteDoc(ref);
-      loadPlayers();
-    }
-  );
-}
+    const ref = doc(db, "players", playerId);
+    const snap = await getDoc(ref);
+    const name = snap.exists() ? snap.data().name : "this player";
+
+    if (!confirm(`PERMANENTLY delete "${name}"?`)) return;
+
+    // 1️⃣ OPTIMISTIC UI — fjern rækken straks
+    if (row) row.remove();
+
+    // 2️⃣ FIRESTORE DELETE
+    await deleteDoc(ref);
+
+    // 3️⃣ SILENT RELOAD (sikkerhed)
+    loadPlayers();
+  }
+);
 
   /* ---------- Edit player ---------- */
 
