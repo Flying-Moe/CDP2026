@@ -137,84 +137,54 @@ function getHighestTierIndex(tiers, playerId) {
 }
 
 function renderBadges(context, selectedPlayerId = "all") {
-  const host = document.getElementById("badges-stats");
-  if (!host) return;
+  const allBadges = evaluateBadges(context);
 
-  const badges = evaluateBadges(context);
+  const singleHost = document.getElementById("badges-single");
+  const progHost = document.getElementById("badges-progressive");
+  const tabs = document.getElementById("badge-tabs");
 
-  const tierOrder = ["bronze", "silver", "gold", "prestige"];
-  const tierSuffix = {
-    bronze: "r1_c1",
-    silver: "r1_c2",
-    gold: "r2_c1",
-    prestige: "r2_c2"
-  };
+  if (!singleHost || !progHost) return;
 
-  host.innerHTML = badges.map(badge => {
-    const hasUnlockedAnything = badge.globalUnlocked;
+  singleHost.innerHTML = "";
+  progHost.innerHTML = "";
 
-    const descriptionHtml = hasUnlockedAnything
-      ? `<div class="badge-description">${badge.description}</div>`
-      : `<div class="badge-placeholder">Not yet claimed</div>`;
+  const singleBadges = allBadges
+    .filter(b => b.type === "single" && b.globalUnlocked)
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
-    const tiersHtml = tierOrder.map(tierId => {
-      const tier = badge.tiers[tierId];
-      const unlocked = tier.unlocked;
+  const tieredBadges = allBadges
+    .filter(b => b.type === "tiered" && b.globalUnlocked)
+    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
-      const imgSrc = `assets/badges/${badge.id}_${tierSuffix[tierId]}_processed_by_imagy.png`;
+  // Vis kun tabs hvis begge typer findes
+  if (singleBadges.length && tieredBadges.length) {
+    tabs.style.display = "flex";
+  } else {
+    tabs.style.display = "none";
+  }
 
-const tierOrder = ["bronze", "silver", "gold", "prestige"];
-const tierIndex = tierOrder.indexOf(tierId);
-
-const visiblePlayers = tier.players
-  .filter(p =>
-    selectedPlayerId === "all" || p.id === selectedPlayerId
-  )
-  .map(p => {
-    const highestTier = getHighestTierIndex(badge.tiers, p.id);
-    return {
-      ...p,
-      isDemoted: highestTier > tierIndex
-    };
-  })
-  .sort((a, b) => {
-    if (a.isDemoted !== b.isDemoted) {
-      return a.isDemoted ? 1 : -1;
-    }
-    return 0;
+  // Render SINGLE
+  singleBadges.forEach(badge => {
+    singleHost.appendChild(renderTieredBadge(badge, selectedPlayerId));
   });
 
-const playersHtml = visiblePlayers.length
-  ? visiblePlayers.map(p => `
-      <div class="badge-player ${p.isDemoted ? "demoted" : ""}">
-        ${p.name} (${p.value})
-      </div>
-    `).join("")
-  : "";
+  // Render PROGRESSIVE
+  tieredBadges.forEach(badge => {
+    progHost.appendChild(renderTieredBadge(badge, selectedPlayerId));
+  });
 
-      return `
-        <div class="badge-tier ${unlocked ? "unlocked" : "locked"}">
-          <img src="${imgSrc}" alt="${badge.name} ${tierId}">
-          <div class="badge-tier-players">
-            ${playersHtml}
-          </div>
-        </div>
-      `;
-    }).join("");
+  // Default tab = Single
+  document
+    .querySelectorAll("#badge-tabs button")
+    .forEach(b => b.classList.remove("active"));
 
-    return `
-      <div class="badge-block">
-        <div class="badge-header">
-          <div class="badge-title">${badge.name}</div>
-          ${descriptionHtml}
-        </div>
+  const defaultBtn = document.querySelector(
+    '#badge-tabs button[data-badge-tab="single"]'
+  );
+  if (defaultBtn) defaultBtn.classList.add("active");
 
-        <div class="badge-tiers">
-          ${tiersHtml}
-        </div>
-      </div>
-    `;
-  }).join("");
+  singleHost.style.display = "block";
+  progHost.style.display = "none";
 }
 
 /* =====================================================
@@ -431,8 +401,25 @@ setupBadgePlayerDropdown(badgeContext.players, (playerId) => {
   renderBadges(badgeContext, playerId);
 });
 
-renderBadges(badgeContext, storedPlayer);
+document.querySelectorAll("#badge-tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll("#badge-tabs button")
+      .forEach(b => b.classList.remove("active"));
 
+    btn.classList.add("active");
+
+    const tab = btn.dataset.badgeTab;
+
+    document.getElementById("badges-single").style.display =
+      tab === "single" ? "block" : "none";
+
+    document.getElementById("badges-progressive").style.display =
+      tab === "progressive" ? "block" : "none";
+  });
+});
+
+renderBadges(badgeContext, storedPlayer);
 renderDeathStatsFromPlayers(players, peopleMap);
 renderFunStats(players, peopleMap);
 
