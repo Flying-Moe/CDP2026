@@ -214,6 +214,20 @@ document.querySelectorAll(".delete-player-btn").forEach(b =>
 );
 
 document.querySelectorAll(".restore-player-btn").forEach(b =>
+  b.onclick = async () => {
+    const playerId = b.dataset.id;
+    const row = b.closest("tr");
+
+    // 1️⃣ OPTIMISTIC UI — fjern straks fra inactive-listen
+    if (row) row.remove();
+
+    // 2️⃣ FIRESTORE WRITE
+    await updateDoc(doc(db, "players", playerId), { active: true });
+
+    // 3️⃣ SILENT RELOAD (genopbygger Active korrekt)
+    loadPlayers();
+  }
+);
 
 document.querySelectorAll(".perma-delete-player-btn").forEach(b =>
   b.onclick = async () => {
