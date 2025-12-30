@@ -46,49 +46,63 @@ export const BADGES = [
    BADGES – SINGLE ACHIEVEMENTS
 ======================================================= */
   
+/* ======================================================
+   BADGES – SINGLE ACHIEVEMENTS
+======================================================= */
+
 /* ============ First Blood ======================== */
 {
   id: "first_blood",
   name: "First Blood",
   description: "First confirmed death of the season",
+  order: 0,
   type: "single",
 
-  // Rendering / ordering
-  order: 0,
-
-  // Evaluation result
-  globalUnlocked: false,   // sættes true når betingelsen rammes
-  earned: false,           // redundant men eksplicit
-  players: [],             // én eller flere hvis samme dag
-
-  evaluate(context) {
-    const deaths = context.deaths
+  evaluate({ deaths, players }) {
+    const confirmed = deaths
       .filter(d => d.confirmed)
       .sort((a, b) => new Date(a.deathDate) - new Date(b.deathDate));
 
-    if (!deaths.length) return this;
+    if (!confirmed.length) {
+      return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        type: "single",
+        players: []
+      };
+    }
 
-    const firstDate = deaths[0].deathDate;
+    const firstDate = confirmed[0].deathDate;
 
-    const firstDeaths = deaths.filter(
-      d => d.deathDate === firstDate
+    const winnerIds = new Set(
+      confirmed
+        .filter(d => d.deathDate === firstDate)
+        .flatMap(d => d.playerIds)
     );
 
-    this.players = [
-      ...new Set(firstDeaths.flatMap(d => d.playerIds))
-    ];
+    const winners = players
+      .filter(p => winnerIds.has(p.id))
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        achievedAt: firstDate,
+        leaderboardScore: p.totalScore
+      }))
+      .sort(sortPlayers);
 
-    this.globalUnlocked = this.players.length > 0;
-    this.earned = this.globalUnlocked;
-
-    return this;
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      players: winners
+    };
   }
 },
 
-/* ============ OPTIMIST ========================= */
-/* ====== Single-forkerte ========================== */
-
-  {
+/* ============ Optimist ========================= */
+{
   id: "optimist",
   name: "Optimist",
   description: "Held a full list with no confirmed kills",
@@ -110,16 +124,13 @@ export const BADGES = [
       id: this.id,
       name: this.name,
       description: this.description,
-      type: this.type,
-      earned: winners.length > 0,
+      type: "single",
       players: winners
     };
   }
 },
 
-/* ============ JULY SWEEP ========================= */
-/* ====== Single-forkerte ========================== */
-
+/* ============ July Sweep ========================= */
 {
   id: "july_sweep",
   name: "July Sweep",
@@ -132,67 +143,134 @@ export const BADGES = [
       id: this.id,
       name: this.name,
       description: this.description,
-      type: this.type,
-      earned: false,
+      type: "single",
       players: []
     };
   }
 },
 
+/* ============ Placeholder Singles ================= */
 
-  
-/* ============ LAST LAUGH ============================ */
-/* ====== korrekt single ============================== */
-  
+{
+  id: "last_laugh",
+  name: "Last Laugh",
+  description: "Final confirmed death of the season",
+  order: 10,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-/* ============ CLEAN KILL ============================ */
-/* ====== korrekt single ============================== */
+{
+  id: "clean_kill",
+  name: "Clean Kill",
+  description: "A death that only one player had picked",
+  order: 11,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-  
-/* ============ DEAD ON ARRIVAL ======================= */
-/* ====== korrekt single ============================== */
+{
+  id: "dead_on_arrival",
+  name: "Dead on Arrival",
+  description: "Death within the first week of the season",
+  order: 12,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
+{
+  id: "friday_13",
+  name: "Friday the 13th",
+  description: "Death on Friday the 13th",
+  order: 13,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-/* ============ FRIDAY THE 13TH======================== */
-/* ====== korrekt single ============================== */
+{
+  id: "silent_night",
+  name: "Silent Night",
+  description: "Death during Christmas",
+  order: 14,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-  
-/* ============ SILENT NIGHT ========================== */
-/* ====== korrekt single ============================== */
+{
+  id: "mass_casualty",
+  name: "Mass Casualty Event",
+  description: "One death affected half or more of the players",
+  order: 15,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-  
-/* ============ MASS CASUALTY EVENT =================== */
-/* ====== korrekt single ============================== */
-  
+{
+  id: "dark_horse",
+  name: "Dark Horse",
+  description: "Unexpected young death",
+  order: 16,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-/* ============ DARK HORSE ============================ */
-/* ====== korrekt single ============================== */
+{
+  id: "too_soon",
+  name: "Too Soon",
+  description: "Death under 60 years of age",
+  order: 17,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
+{
+  id: "dead_weight",
+  name: "Dead Weight",
+  description: "Death of the oldest pick",
+  order: 18,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-  
-/* ============ TOO SOON ============================= */
-/* ====== korrekt single ============================= */
+{
+  id: "zombie_alert",
+  name: "Zombie Alert",
+  description: "First 90+ year old pick",
+  order: 19,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
-
-  
-/* ============ DEAD WEIGHT =========================== */
-/* ====== korrekt single ============================== */
-
-
-  
-/* ============ ZOMBIE ALERT ========================== */
-/* ====== korrekt single ============================== */
-
-  
-  
-/* ============ VIGILANTE WORK ======================== */
-/* ====== korrekt single ============================== */
+{
+  id: "vigilante_work",
+  name: "Vigilante Work",
+  description: "Two deaths within seven days",
+  order: 20,
+  type: "single",
+  evaluate() {
+    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+  }
+},
 
   
  /* ========================================================================
