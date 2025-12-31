@@ -216,7 +216,7 @@ function renderTieredBadge(badge, selectedPlayerId) {
     if (earnedPlayers.length === 0) {
       const placeholder = document.createElement("p");
       placeholder.className = "badge-placeholder";
-      placeholder.textContent = "Not unlocked yet";
+      placeholder.textContent = "Not yet claimed";
       wrapper.appendChild(placeholder);
       return wrapper;
     }
