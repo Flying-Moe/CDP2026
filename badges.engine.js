@@ -528,9 +528,50 @@ export const BADGES = [
   },
   
 /* ============ BODY COUNT =========================== */
-/* ====== ✅ 1 / 3 / 5 / 8  ========================== */
+{
+  id: "body_count",
+  name: "Body Count",
+  description: "Confirmed kills accumulated",
+  order: 21,
+  type: "tiered",
 
+  evaluate({ players, deaths }) {
+    const tiers = buildEmptyTiers();
+    let globalUnlocked = false;
 
+    players.forEach(player => {
+      const hits = player.hits || 0;
+      if (hits <= 0) return;
+
+      const deathDates = deaths[player.id] || [];
+      if (!deathDates.length) return;
+
+      const achievedAt = deathDates.sort()[0];
+
+      TIERS.forEach(t => {
+        if (hits >= t.min) {
+          tiers[t.id].players.push({
+            id: player.id,
+            name: player.name,
+            value: hits,
+            achievedAt,
+            leaderboardScore: player.totalScore
+          });
+        }
+      });
+    });
+
+    Object.values(tiers).forEach(tier => {
+      if (tier.players.length) {
+        tier.unlocked = true;
+        globalUnlocked = true;
+        tier.players.sort(sortPlayers);
+      }
+    });
+
+    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+  }
+},
   
 /* ============ MOMENTUM ============================== */
 /* ====== ⚠ kræver tidslogik  ========================= */
@@ -543,9 +584,50 @@ export const BADGES = [
 
   
 /* ============ YOLO ================================= */
-/* ====== ✅ 1 / 2 / 3 / 5  ========================== */
+{
+  id: "body_count",
+  name: "Body Count",
+  description: "Confirmed kills accumulated",
+  order: 21,
+  type: "tiered",
 
+  evaluate({ players, deaths }) {
+    const tiers = buildEmptyTiers();
+    let globalUnlocked = false;
 
+    players.forEach(player => {
+      const hits = player.hits || 0;
+      if (hits <= 0) return;
+
+      const deathDates = deaths[player.id] || [];
+      if (!deathDates.length) return;
+
+      const achievedAt = deathDates.sort()[0];
+
+      TIERS.forEach(t => {
+        if (hits >= t.min) {
+          tiers[t.id].players.push({
+            id: player.id,
+            name: player.name,
+            value: hits,
+            achievedAt,
+            leaderboardScore: player.totalScore
+          });
+        }
+      });
+    });
+
+    Object.values(tiers).forEach(tier => {
+      if (tier.players.length) {
+        tier.unlocked = true;
+        globalUnlocked = true;
+        tier.players.sort(sortPlayers);
+      }
+    });
+
+    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+  }
+},
   
 /* ============ COWARD ================================ */
 /* ====== ⚠ semantisk modsat YOLO  =================== */
@@ -558,9 +640,54 @@ export const BADGES = [
 
 
 /* ============ LONE WOLF ============================= */
-/* ====== ✅ %-baseret  =============================== */
+{
+  id: "lone_wolf",
+  name: "Lone Wolf",
+  description: "Picked celebrities no one else dared to pick",
+  order: 23,
+  type: "tiered",
 
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+    let globalUnlocked = false;
 
+    players.forEach(player => {
+      const ratio = player.uniquePickRatio;
+      if (ratio == null) return;
+
+      const achievedAt = "9999-12-31";
+
+      const thresholds = {
+        bronze: 0.25,
+        silver: 0.5,
+        gold: 0.75,
+        prestige: 1
+      };
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (ratio >= min) {
+          tiers[tierId].players.push({
+            id: player.id,
+            name: player.name,
+            value: Math.round(ratio * 100),
+            achievedAt,
+            leaderboardScore: player.totalScore
+          });
+        }
+      });
+    });
+
+    Object.values(tiers).forEach(tier => {
+      if (tier.players.length) {
+        tier.unlocked = true;
+        globalUnlocked = true;
+        tier.players.sort(sortPlayers);
+      }
+    });
+
+    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+  }
+},
 
 /* ============ EARLY GAME PREDATOR ==================== */
 /* ====== ⚠ Q1-logik  ================================= */
@@ -573,9 +700,54 @@ export const BADGES = [
 
 
 /* ============ ZOMBIE INDEX ========================== */
-/* ====== ✅ count-baseret ============================ */
+{
+  id: "zombie_index",
+  name: "Zombie Index",
+  description: "Picked celebrities who refuse to die",
+  order: 24,
+  type: "tiered",
 
-  
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+    let globalUnlocked = false;
+
+    players.forEach(player => {
+      const count = player.picksOver90 || 0;
+      if (count <= 0) return;
+
+      const achievedAt = "9999-12-31";
+
+      const thresholds = {
+        bronze: 1,
+        silver: 2,
+        gold: 3,
+        prestige: 5
+      };
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (count >= min) {
+          tiers[tierId].players.push({
+            id: player.id,
+            name: player.name,
+            value: count,
+            achievedAt,
+            leaderboardScore: player.totalScore
+          });
+        }
+      });
+    });
+
+    Object.values(tiers).forEach(tier => {
+      if (tier.players.length) {
+        tier.unlocked = true;
+        globalUnlocked = true;
+        tier.players.sort(sortPlayers);
+      }
+    });
+
+    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+  }
+},
 
 ];
 
