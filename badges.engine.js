@@ -58,47 +58,52 @@ export const BADGES = [
   order: 0,
   type: "single",
 
-  evaluate({ deaths, players }) {
-    const confirmed = deaths
-      .filter(d => d.confirmed)
-      .sort((a, b) => new Date(a.deathDate) - new Date(b.deathDate));
+evaluate({ deaths, players }) {
+  // deaths = { playerId: [deathDate, ...] }
 
-    if (!confirmed.length) {
-      return {
-        id: this.id,
-        name: this.name,
-        description: this.description,
-        type: "single",
-        players: []
-      };
-    }
+  let earliestDate = null;
+  const winnerIds = new Set();
 
-    const firstDate = confirmed[0].deathDate;
+  Object.entries(deaths).forEach(([playerId, dates]) => {
+    dates.forEach(date => {
+      if (!earliestDate || date < earliestDate) {
+        earliestDate = date;
+        winnerIds.clear();
+        winnerIds.add(playerId);
+      } else if (date === earliestDate) {
+        winnerIds.add(playerId);
+      }
+    });
+  });
 
-    const winnerIds = new Set(
-      confirmed
-        .filter(d => d.deathDate === firstDate)
-        .flatMap(d => d.playerIds)
-    );
-
-    const winners = players
-      .filter(p => winnerIds.has(p.id))
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        achievedAt: firstDate,
-        leaderboardScore: p.totalScore
-      }))
-      .sort(sortPlayers);
-
+  if (!earliestDate) {
     return {
       id: this.id,
       name: this.name,
       description: this.description,
       type: "single",
-      players: winners
+      players: []
     };
   }
+
+  const winners = players
+    .filter(p => winnerIds.has(p.id))
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      achievedAt: earliestDate,
+      leaderboardScore: p.totalScore
+    }))
+    .sort(sortPlayers);
+
+  return {
+    id: this.id,
+    name: this.name,
+    description: this.description,
+    type: "single",
+    players: winners
+  };
+}
 },
 
 /* ============ Optimist ========================= */
