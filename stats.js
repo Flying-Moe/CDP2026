@@ -623,46 +623,6 @@ async function renderOverallStats() {
 function renderFunStats(players, peopleMap) {
   const scores = buildScoreTable(players, "2026");
 
-     /* ===============================
-     GLOBAL STAT: YOUNGEST PICK
-     =============================== */
-
-  const now = new Date();
-  let youngestAge = null;
-  let youngestPicks = [];
-
-  scores.forEach(player => {
-    player.picks.forEach(pick => {
-      if (pick.status !== "approved") return;
-      if (!pick.birthDate) return;
-
-      const age =
-        (now - new Date(pick.birthDate)) /
-        (365.25 * 24 * 60 * 60 * 1000);
-
-      if (youngestAge === null || age < youngestAge) {
-        youngestAge = age;
-        youngestPicks = [{
-          player: player.name,
-          person:
-            (pick.personId && peopleMap[pick.personId]?.name) ||
-            pick.normalizedName ||
-            "Unknown",
-          age: age
-        }];
-      } else if (Math.abs(age - youngestAge) < 0.01) {
-        youngestPicks.push({
-          player: player.name,
-          person:
-            (pick.personId && peopleMap[pick.personId]?.name) ||
-            pick.normalizedName ||
-            "Unknown",
-          age: age
-        });
-      }
-    });
-  });
-
    /* =====================================================
    RENDER AGE & PICKS STATS
 ===================================================== */
@@ -826,45 +786,6 @@ function renderAgeAndPickStats(players, peopleMap) {
       ul.appendChild(li);
     });
 }
-
-     /* ===============================
-     GLOBAL STAT: OLDEST PICK
-     =============================== */
-
-  let oldestAge = null;
-  let oldestPicks = [];
-
-  scores.forEach(player => {
-    player.picks.forEach(pick => {
-      if (pick.status !== "approved") return;
-      if (!pick.birthDate) return;
-
-      const age =
-        (now - new Date(pick.birthDate)) /
-        (365.25 * 24 * 60 * 60 * 1000);
-
-      if (oldestAge === null || age > oldestAge) {
-        oldestAge = age;
-        oldestPicks = [{
-          player: player.name,
-          person:
-            (pick.personId && peopleMap[pick.personId]?.name) ||
-            pick.normalizedName ||
-            "Unknown",
-          age
-        }];
-      } else if (Math.abs(age - oldestAge) < 0.01) {
-        oldestPicks.push({
-          player: player.name,
-          person:
-            (pick.personId && peopleMap[pick.personId]?.name) ||
-            pick.normalizedName ||
-            "Unknown",
-          age
-        });
-      }
-    });
-  });
 
   const set = (id, value) => {
     const el = document.getElementById(id);
