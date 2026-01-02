@@ -61,6 +61,16 @@ function toDateAny(v) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function computeAgeDecimal(birthDate, refDate = new Date()) {
+  const bd = toDateAny(birthDate);
+  if (!bd) return null;
+
+  const rd = toDateAny(refDate);
+  if (!rd) return null;
+
+  return (rd - bd) / (365.25 * 24 * 60 * 60 * 1000);
+}
+
 
 /* =====================================================
    TAB SYSTEM (FIXED)
@@ -670,9 +680,8 @@ function renderAgeAndPickStats(players, peopleMap) {
 const bd = toDateAny(birthDate);
 if (!bd) return;
 
-const age =
-  (now - bd) /
-  (365.25 * 24 * 60 * 60 * 1000);
+const age = computeAgeDecimal(birthDate, now);
+if (age === null) return;
 
       ages.push(age);
       allAges.push(age);
@@ -771,7 +780,7 @@ const age =
     const p = youngestPicks[0];
     set(
       "stat-youngest-pick",
-      `${p.person} (Age: ${p.age.toFixed(1)} · Potential Points: ${p.pp})`
+      `${p.person} (Age: ${p.age.toFixed(2)} · Potential Points: ${p.pp})`
     );
     set(
       "stat-youngest-picked-by",
@@ -798,8 +807,8 @@ const age =
 
   ul.innerHTML = "";
 
-  perPlayer
-    .sort((a, b) => a.avg - b.avg)
+perPlayer
+  .sort((a, b) => a.name.localeCompare(b.name))
     .forEach(p => {
       const li = document.createElement("li");
       li.innerHTML = `
@@ -1063,10 +1072,8 @@ function renderBehaviorStats(players, peopleMap) {
       const bd = toDateAny(birth);
       if (!bd) return;
 
-      const age =
-        (now - bd) /
-        (365.25 * 24 * 60 * 60 * 1000);
-
+const age = computeAgeDecimal(birthDate, now);
+if (age === null) return;
 
       playerData[s.name].ages.push(age);
 
