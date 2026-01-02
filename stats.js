@@ -1175,39 +1175,79 @@ function renderBehaviorStats(players, peopleMap) {
   const svg = d3.select("#overlap-network");
   if (svg.empty()) return;
 
-  const width = +svg.attr("width");
-  const height = +svg.attr("height");
+  const width = 900;
+  const height = 600;
+
+  svg
+    .attr("width", width)
+    .attr("height", height);
 
   svg.selectAll("*").remove();
 
+  /* ---------- FORCE SIMULATION ---------- */
+
   const simulation = d3.forceSimulation(graph.nodes)
-    .force("link", d3.forceLink(graph.links)
-      .id(d => d.id)
-      .strength(d => d.weight * 0.08)
+    .force(
+      "link",
+      d3.forceLink(graph.links)
+        .id(d => d.id)
+        .distance(d => 120 - Math.min(d.weight * 5, 60))
+        .strength(d => 0.15)
     )
-    .force("charge", d3.forceManyBody().strength(-300))
-    .force("center", d3.forceCenter(width / 2, height / 2));
+    .force("charge", d3.forceManyBody().strength(-600))
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(30));
+
+  /* ---------- LINKS ---------- */
 
   const link = svg.append("g")
+    .attr("stroke", "#999")
+    .attr("stroke-opacity", 0.6)
     .selectAll("line")
     .data(graph.links)
     .enter()
     .append("line")
-    .attr("stroke-width", d => d.weight)
-    .attr("stroke", "#999");
+    .attr("stroke-width", d => Math.sqrt(d.weight));
 
-  const node = svg.append("g")
-    .selectAll("circle")
+  /* ---------- NODES ---------- */
+
+  const nodeGroup = svg.append("g")
+    .selectAll("g")
     .data(graph.nodes)
     .enter()
-    .append("circle")
-    .attr("r", d => 5 + d.size * 0.3)
-    .attr("fill", "#8b0000")
-    .call(d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended)
+    .append("g")
+    .call(
+      d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended)
     );
+
+  const node = nodeGroup.append("circle")
+    .attr("r", d => 8 + d.size * 0.4)
+    .attr("fill", "#8b0000");
+
+  /* ---------- LABELS ---------- */
+
+  const label = nodeGroup.append("text")
+    .text(d => d.id)
+    .attr("x", 12)
+    .attr("y", 4)
+    .style("font-size", "11px")
+    .style("pointer-events", "none");
+
+  /* ---------- TOOLTIP ---------- */
+
+  node.append("title")
+    .text(d => {
+      const connections = graph.links.filter(
+        l => l.source.id === d.id || l.target.id === d.id
+      );
+      const total = connections.reduce((s, l) => s + l.weight, 0);
+      return `${d.id}\nShared picks: ${total}`;
+    });
+
+  /* ---------- TICK ---------- */
 
   simulation.on("tick", () => {
     link
@@ -1216,26 +1256,30 @@ function renderBehaviorStats(players, peopleMap) {
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y);
 
-    node
-      .attr("cx", d => d.x)
-      .attr("cy", d => d.y);
+    nodeGroup
+      .attr("transform", d => `translate(${d.x}, ${d.y})`);
   });
 
+  /* ---------- DRAG ---------- */
+
   function dragstarted(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
+    if (!event.active) simulation.alphaTarget(0.4).restart();
     d.fx = d.x;
     d.fy = d.y;
   }
+
   function dragged(event, d) {
     d.fx = event.x;
     d.fy = event.y;
   }
+
   function dragended(event, d) {
     if (!event.active) simulation.alphaTarget(0);
     d.fx = null;
     d.fy = null;
   }
 }
+
 
   /* ============================
      AGE HEATMAP (HTML)
