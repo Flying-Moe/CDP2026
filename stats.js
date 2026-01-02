@@ -796,57 +796,187 @@ function renderFunStats(players, peopleMap) {
     if (el) el.textContent = value;
   };
 
-  /* Most picked celebrity */
-  const pickCount = {};
+  /* ===============================
+     BUILD MAPS
+  =============================== */
+
+  const pickFrequency = {};          // personId -> count
+  const personPlayers = {};          // personId -> [playerName]
+  const playerUniqueCount = {};      // player -> unique picks
+  const playerApprovedCount = {};    // player -> approved picks
+  const playerHits = {};             // player -> hits
+  const overlapMap = {};             // "A|B" -> count
+  const cleanKills = {};             // player -> unique hits
+
   scores.forEach(s => {
+    playerUniqueCount[s.name] = 0;
+    playerApprovedCount[s.name] = 0;
+    playerHits[s.name] = s.hits || 0;
+
+    const seenPersons = new Set();
+
     s.picks.forEach(pick => {
       if (pick.status !== "approved") return;
-      const key = pick.personId || pick.normalizedName;
-      pickCount[key] = (pickCount[key] || 0) + 1;
+
+      const pid = pick.personId || pick.normalizedName;
+      if (!pid) return;
+
+      playerApprovedCount[s.name]++;
+
+      pickFrequency[pid] = (pickFrequency[pid] || 0) + 1;
+
+      if (!personPlayers[pid]) personPlayers[pid] = [];
+      personPlayers[pid].push(s.name);
+
+      seenPersons.add(pid);
     });
-  });
 
-  const mostPickedKey = Object.keys(pickCount).sort(
-    (a, b) => pickCount[b] - pickCount[a]
-  )[0];
-
-  set(
-    "stat-fun-most-picked",
-    mostPickedKey
-      ? `${peopleMap[mostPickedKey]?.name || mostPickedKey} (${pickCount[mostPickedKey]})`
-      : "—"
-  );
-
-  /* Highest single score */
-  let highest = null;
-
-  scores.forEach(s => {
-    s.picks.forEach(pick => {
-      if (!pick.birthDate || !pick.deathDate || pick.status !== "approved") return;
-      const pts = calculateHitPoints(pick.birthDate, pick.deathDate);
-      if (!highest || pts > highest.points) {
-        highest = {
-          player: s.name,
-          person:
-            (pick.personId && peopleMap[pick.personId]?.name) ||
-            pick.normalizedName ||
-            "Unknown",
-          points: pts
-        };
+    seenPersons.forEach(pid => {
+      if (personPlayers[pid].length === 1) {
+        playerUniqueCount[s.name]++;
       }
     });
   });
 
+  /* ===============================
+     OVERLAPS (PAIRWISE)
+  =============================== */
+
+  scores.forEach(a => {
+    scores.forEach(b => {
+      if (a.name >= b.name) return;
+
+      const aSet = new Set(
+        a.picks.filter(p => p.status === "approved")
+          .map(p => p.personId || p.normalizedName)
+      );
+
+      const bSet = new Set(
+        b.picks.filter(p => p.status === "approved")
+          .map(p => p.personId || p.normalizedName)
+      );
+
+      let overlap = 0;
+      aSet.forEach(x => { if (bSet.has(x)) overlap++; });
+
+      if (overlap > 0) {
+        overlapMap[`${a.name}|${b.name}`] = overlap;
+      }
+    });
+  });
+
+  /* ===============================
+     MOST PICKED CELEBRITY
+  =============================== */
+
+  const mostPickedId = Object.keys(pickFrequency)
+    .sort((a, b) => pickFrequency[b] - pickFrequency[a])[0];
+
   set(
-    "stat-fun-highest-score",
-    highest
-      ? `${highest.player} – ${highest.person} (${highest.points})`
+    "stat-fun-most-picked",
+    mostPickedId
+      ? `${peopleMap[mostPickedId]?.name || mostPickedId} (${pickFrequency[mostPickedId]})`
       : "—"
   );
 
-  /* Most penalties */
+  /* ===============================
+     MOST / LEAST UNIQUE PICKS
+  =============================== */
+
+  const uniqueValues = Object.values(playerUniqueCount);
+  const maxUnique = Math.max(...uniqueValues);
+  const minUnique = Math.min(...uniqueValues);
+
+  set(
+    "stat-fun-most-unique",
+    Object.entries(playerUniqueCount)
+      .filter(([, v]) => v === maxUnique)
+      .map(([n]) => n)
+      .join(", ") + ` (${maxUnique})`
+  );
+
+  set(
+    "stat-fun-least-unique",
+    Object.entries(playerUniqueCount)
+      .filter(([, v]) => v === minUnique)
+      .map(([n]) => n)
+      .join(", ") + ` (${minUnique})`
+  );
+
+  /* ===============================
+     MOST SHARED PICKS (PAIR)
+  =============================== */
+
+  const topPair = Object.entries(overlapMap)
+    .sort((a, b) => b[1] - a[1])[0];
+
+  set(
+    "stat-fun-most-shared",
+    topPair
+      ? `${topPair[0].replace("|", " & ")} (${topPair[1]})`
+      : "—"
+  );
+
+  /* ===============================
+     CLEAN KILLS LEADER
+  =============================== */
+
+  scores.forEach(s => {
+    cleanKills[s.name] = 0;
+  });
+
+  scores.forEach(s => {
+    s.picks.forEach(pick => {
+      if (!pick.deathDate) return;
+      const pid = pick.personId || pick.normalizedName;
+      if (pid && personPlayers[pid]?.length === 1) {
+        cleanKills[s.name]++;
+      }
+    });
+  });
+
+  const maxClean = Math.max(...Object.values(cleanKills));
+
+  set(
+    "stat-fun-clean-kills",
+    maxClean > 0
+      ? Object.entries(cleanKills)
+          .filter(([, v]) => v === maxClean)
+          .map(([n]) => n)
+          .join(", ") + ` (${maxClean})`
+      : "—"
+  );
+
+  /* ===============================
+     UNLUCKIEST PLAYER
+  =============================== */
+
+  const rates = Object.entries(playerApprovedCount)
+    .map(([n, total]) => {
+      const hits = playerHits[n] || 0;
+      return total > 0
+        ? { name: n, rate: hits / total, hits, total }
+        : null;
+    })
+    .filter(Boolean);
+
+  const worst = rates.sort((a, b) => a.rate - b.rate)[0];
+
+  set(
+    "stat-fun-unlucky",
+    worst
+      ? `${worst.name} (${worst.hits}/${worst.total} · ${(worst.rate * 100).toFixed(0)}%)`
+      : "—"
+  );
+
+  /* ===============================
+     MOST PENALTIES (EXISTING)
+  =============================== */
+
   const worstPenalty = Math.min(...scores.map(s => s.penalty));
-  const penaltyPlayers = scores.filter(s => s.penalty === worstPenalty && worstPenalty < 0);
+  const penaltyPlayers = scores.filter(
+    s => s.penalty === worstPenalty && worstPenalty < 0
+  );
 
   set(
     "stat-fun-most-penalties",
