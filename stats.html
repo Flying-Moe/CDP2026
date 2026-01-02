@@ -63,7 +63,7 @@
 
 </div>
 
-<!-- ===== DEATHS ===== -->
+<!-- ===== DEATHS ==================================================================== -->
 <div id="stats-deaths" class="stats-tab" style="display:none;">
 
   <h2>Death statistics</h2>
@@ -81,7 +81,49 @@
 
 </div>
 
-<!-- ===== FUN STATS ===== -->
+<button data-tab="age">Age & Picks</button>
+  
+  <!-- ===== AGE & PICKS ==================================================================== -->
+<div id="stats-age" class="stats-tab" style="display:none;">
+
+  <h2>Age & Picks</h2>
+  <p class="muted description">
+    Statistics based on the age profile of approved picks.
+  </p>
+
+  <h3>Extremes</h3>
+  <ul>
+    <li>
+      Youngest pick:
+      <div class="stat-block">
+        <strong id="stat-youngest-pick">—</strong><br>
+        <span class="muted" id="stat-youngest-picked-by">—</span>
+      </div>
+    </li>
+
+    <li>
+      Oldest pick:
+      <div class="stat-block">
+        <strong id="stat-oldest-pick">—</strong><br>
+        <span class="muted" id="stat-oldest-picked-by">—</span>
+      </div>
+    </li>
+  </ul>
+
+  <h3>Averages</h3>
+  <ul>
+    <li>Average pick age (global): <strong id="stat-avg-age-global">—</strong></li>
+    <li>Median pick age (global): <strong id="stat-median-age-global">—</strong></li>
+  </ul>
+
+  <h3>Per player</h3>
+  <ul id="stat-age-per-player">
+    <li class="muted">—</li>
+  </ul>
+
+</div>
+
+<!-- ===== FUN STATS ==================================================================== -->
 <div id="stats-fun" class="stats-tab" style="display:none;">
 
   <h2>Fun & dark statistics</h2>
