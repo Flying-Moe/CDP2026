@@ -744,7 +744,7 @@ if (!birthDate) return;
     const p = youngestPicks[0];
     set(
       "stat-youngest-pick",
-      `${p.person} (Age: ${p.age.toFixed(1)} · PP: ${p.pp})`
+      `${p.person} (Age: ${p.age.toFixed(1)} · Potential Points: ${p.pp})`
     );
     set(
       "stat-youngest-picked-by",
@@ -756,7 +756,7 @@ if (!birthDate) return;
     const p = oldestPicks[0];
     set(
       "stat-oldest-pick",
-      `${p.person} (Age: ${p.age.toFixed(1)} · PP: ${p.pp})`
+      `${p.person} (Age: ${p.age.toFixed(1)} · Potential Points: ${p.pp})`
     );
     set(
       "stat-oldest-picked-by",
