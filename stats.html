@@ -34,13 +34,23 @@
 
 <!-- ================= STATS TABS ================= -->
 
-<div id="stats-tabs">
+<!-- ================= TOP TABS ================= -->
+
+<div id="top-tabs">
+  <button data-top-tab="stats" class="active">Stats</button>
+  <button data-top-tab="badges">Badges</button>
+  <button data-top-tab="misses">Misses</button>
+  <button data-top-tab="hof">Hall of Fame</button>
+</div>
+
+  <!-- ================= STATS SUB TABS ================= -->
+
+<div id="stats-sub-tabs" style="display:block;">
   <button data-tab="overall" class="active">Overall</button>
   <button data-tab="deaths">Deaths</button>
-  <button data-tab="fun">Fun stats</button>
-  <button data-tab="misses">Misses</button>
-  <button data-tab="badges">Badges</button>
-  <button data-tab="hof">Hall of Fame</button>
+  <button data-tab="age">Age & Picks</button>
+  <button data-tab="fun">Fun & Dark</button>
+  <button data-tab="behavior">Behavior</button>
 </div>
 
 <!-- ================= TAB CONTENT ================= -->
@@ -80,8 +90,6 @@
   </ul>
 
 </div>
-
-<button data-tab="age">Age & Picks</button>
   
   <!-- ===== AGE & PICKS ==================================================================== -->
 <div id="stats-age" class="stats-tab" style="display:none;">
