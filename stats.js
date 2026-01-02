@@ -778,7 +778,7 @@ if (!birthDate) return;
       li.innerHTML = `
         <strong>${p.name}</strong> –
         Avg: ${p.avg.toFixed(1)} 
-       ( Median: ${p.median.toFixed(1)})
+       <i>(Median: ${p.median.toFixed(1)})</i)
       `;
       ul.appendChild(li);
     });
