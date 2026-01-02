@@ -1154,6 +1154,17 @@ function renderBehaviorStats(players, peopleMap) {
       ul.appendChild(li);
     });
 
+   const overlapGraph = {
+  nodes: Object.keys(playerData).map(name => ({
+    id: name,
+    size: playerData[name].approved
+  })),
+  links: Object.entries(overlap).map(([key, weight]) => {
+    const [a, b] = key.split("|");
+    return { source: a, target: b, weight };
+  })
+};
+
   /* ============================
      AGE HEATMAP (HTML)
   ============================ */
