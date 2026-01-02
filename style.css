@@ -1195,3 +1195,13 @@ ul > li {
   display: block;        /* ← gør margin-top/bottom pålidelig */
   margin: 0 auto 0.5rem; /* ← centreret + lidt luft under */
 }
+
+/* =========================
+   Winner image (Rules)
+========================= */
+
+.overlap-wrapper {
+  max-width: 900px;
+  margin-left: 0;
+  margin-right: auto;
+}
