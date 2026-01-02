@@ -42,48 +42,87 @@ function avg(arr) {
 ===================================================== */
 
 function initTabs() {
-  const buttons = document.querySelectorAll("#stats-tabs button");
-  const tabs = document.querySelectorAll(".stats-tab");
+  const topButtons = document.querySelectorAll("#top-tabs button");
+  const statsSubTabs = document.getElementById("stats-sub-tabs");
+  const badgeSubTabs = document.getElementById("badge-tabs");
+  const hofTabs = document.getElementById("hof-tabs");
 
-  buttons.forEach(btn => {
+  const contentTabs = document.querySelectorAll(".stats-tab");
+
+  function hideAllContent() {
+    contentTabs.forEach(t => t.style.display = "none");
+    if (statsSubTabs) statsSubTabs.style.display = "none";
+    if (badgeSubTabs) badgeSubTabs.style.display = "none";
+    if (hofTabs) hofTabs.style.display = "none";
+  }
+
+  // ---------- TOP TABS ----------
+  topButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      buttons.forEach(b => b.classList.remove("active"));
+      topButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      tabs.forEach(t => t.style.display = "none");
-      const target = document.getElementById(`stats-${btn.dataset.tab}`);
-      if (target) target.style.display = "block";
+      hideAllContent();
 
-      // 🔑 GEM AKTIV TAB
-      localStorage.setItem(STATS_TAB_STORAGE_KEY, btn.dataset.tab);   
+      const tab = btn.dataset.topTab;
+
+      if (tab === "stats") {
+        statsSubTabs.style.display = "block";
+        activateStatsSubTab(
+          localStorage.getItem("statsSubTab") || "overall"
+        );
+      }
+
+      if (tab === "badges") {
+        badgeSubTabs.style.display = "flex";
+        document.getElementById("stats-badges").style.display = "block";
+      }
+
+      if (tab === "misses") {
+        document.getElementById("stats-misses").style.display = "block";
+      }
+
+      if (tab === "hof") {
+        hofTabs.style.display = "block";
+        document.getElementById("stats-hof").style.display = "block";
+      }
+
+      localStorage.setItem("topTab", tab);
     });
   });
 
-  // Force default
-  buttons.forEach(b => b.classList.remove("active"));
-  tabs.forEach(t => t.style.display = "none");
+  // ---------- STATS SUB TABS ----------
+  document.querySelectorAll("#stats-sub-tabs button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activateStatsSubTab(btn.dataset.tab);
+    });
+  });
 
-// 🔁 Restore last active tab (fallback: overall)
-const savedTab =
-  localStorage.getItem(STATS_TAB_STORAGE_KEY) || "overall";
+  function activateStatsSubTab(tab) {
+    document
+      .querySelectorAll("#stats-sub-tabs button")
+      .forEach(b => b.classList.remove("active"));
 
-const restoreBtn = document.querySelector(
-  `#stats-tabs button[data-tab="${savedTab}"]`
-);
-const restoreTab = document.getElementById(`stats-${savedTab}`);
+    const btn = document.querySelector(
+      `#stats-sub-tabs button[data-tab="${tab}"]`
+    );
+    if (btn) btn.classList.add("active");
 
-if (restoreBtn && restoreTab) {
-  restoreBtn.classList.add("active");
-  restoreTab.style.display = "block";
-} else {
-  // Fallback hvis noget er galt i storage
-  const fallbackBtn = document.querySelector('#stats-tabs button[data-tab="overall"]');
-  const fallbackTab = document.getElementById("stats-overall");
-  if (fallbackBtn && fallbackTab) {
-    fallbackBtn.classList.add("active");
-    fallbackTab.style.display = "block";
+    contentTabs.forEach(t => t.style.display = "none");
+
+    const target = document.getElementById(`stats-${tab}`);
+    if (target) target.style.display = "block";
+
+    localStorage.setItem("statsSubTab", tab);
   }
-}}
+
+  // ---------- RESTORE STATE ----------
+  const savedTop = localStorage.getItem("topTab") || "stats";
+  const restoreTopBtn = document.querySelector(
+    `#top-tabs button[data-top-tab="${savedTop}"]`
+  );
+  if (restoreTopBtn) restoreTopBtn.click();
+}
 
 /* =====================================================
    RENDER BADGES - DROP DOWN MENU)
