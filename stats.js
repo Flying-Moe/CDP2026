@@ -1183,48 +1183,46 @@ scores.forEach(s => {
   set("stat-beh-chaos", "—");
 
 /* ============================
-   CROWD INDEX + OVERLAP (AUTHORITATIVE)
-   – SINGLE SOURCE OF TRUTH
+   CROWD INDEX (AUTHORITATIVE – EXCEL MATCH)
 ============================ */
 
-const playerPicks = {};
+// Build global frequency per celebrity
+const personFreq = {};
 scores.forEach(s => {
-  playerPicks[s.name] = new Set(
-    s.picks
-      .filter(p => p.status === "approved")
-      .map(p => p.personId || p.normalizedName)
-  );
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+    const pid = pick.personId || pick.normalizedName;
+    if (!pid) return;
+    personFreq[pid] = (personFreq[pid] || 0) + 1;
+  });
 });
 
+// Crowd Index per player (Σ (freq − 1) per pick)
 const crowd = {};
-const overlapLinks = [];
-const playerNames = Object.keys(playerPicks);
+const playerPicks = {};
 
-/* Pairwise overlap */
-for (let i = 0; i < playerNames.length; i++) {
-  for (let j = i + 1; j < playerNames.length; j++) {
-    const a = playerNames[i];
-    const b = playerNames[j];
+scores.forEach(s => {
+  const set = new Set();
+  let total = 0;
 
-    let shared = 0;
-    playerPicks[a].forEach(pid => {
-      if (playerPicks[b].has(pid)) shared++;
-    });
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+    const pid = pick.personId || pick.normalizedName;
+    if (!pid) return;
 
-    if (shared > 0) {
-      crowd[a] = (crowd[a] || 0) + shared;
-      crowd[b] = (crowd[b] || 0) + shared;
+    set.add(pid);
 
-      overlapLinks.push({
-        source: a,
-        target: b,
-        weight: shared
-      });
+    const freq = personFreq[pid] || 0;
+    if (freq > 1) {
+      total += (freq - 1);
     }
-  }
-}
+  });
 
-/* Render Crowd Index list */
+  crowd[s.name] = total;
+  playerPicks[s.name] = set;
+});
+
+// Render Crowd Index list
 const crowdUl = document.getElementById("stat-beh-crowd");
 if (crowdUl) {
   crowdUl.innerHTML = "";
@@ -1238,9 +1236,35 @@ if (crowdUl) {
     });
 }
 
-/* Render Overlap Network – SAME DATA */
+/* ============================
+   OVERLAP NETWORK (DERIVED – VISUAL ONLY)
+============================ */
+
+const overlapLinks = [];
+const names = Object.keys(playerPicks);
+
+for (let i = 0; i < names.length; i++) {
+  for (let j = i + 1; j < names.length; j++) {
+    const a = names[i];
+    const b = names[j];
+
+    let shared = 0;
+    playerPicks[a].forEach(pid => {
+      if (playerPicks[b].has(pid)) shared++;
+    });
+
+    if (shared > 0) {
+      overlapLinks.push({
+        source: a,
+        target: b,
+        weight: shared
+      });
+    }
+  }
+}
+
 renderOverlapNetwork({
-  nodes: playerNames.map(name => ({
+  nodes: names.map(name => ({
     id: name,
     size: playerPicks[name].size
   })),
