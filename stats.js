@@ -513,9 +513,10 @@ document.querySelectorAll("#badge-tabs button").forEach(btn => {
   });
 });
 
-renderBadges(badgeContext, storedPlayer);
+renderOverallStats();
 renderDeathStatsFromPlayers(players, peopleMap);
 renderFunStats(players, peopleMap);
+renderBadges(context);
 
 });
 
