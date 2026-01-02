@@ -1391,7 +1391,7 @@ Object.entries(playerData).forEach(([playerName, data]) => {
   row.appendChild(nameCell);
 
   ageBuckets.forEach(([min, max]) => {
-    const count = data.ages.filter(a => a >= min && a <= max).length;
+    const count = data.ages.filter(a => a >= min && a < (max + 1)).length;
 
     const cell = document.createElement("td");
     if (count > 0) {
