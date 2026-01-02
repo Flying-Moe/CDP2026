@@ -582,6 +582,46 @@ async function renderOverallStats() {
 function renderFunStats(players, peopleMap) {
   const scores = buildScoreTable(players, "2026");
 
+     /* ===============================
+     GLOBAL STAT: YOUNGEST PICK
+     =============================== */
+
+  const now = new Date();
+  let youngestAge = null;
+  let youngestPicks = [];
+
+  scores.forEach(player => {
+    player.picks.forEach(pick => {
+      if (pick.status !== "approved") return;
+      if (!pick.birthDate) return;
+
+      const age =
+        (now - new Date(pick.birthDate)) /
+        (365.25 * 24 * 60 * 60 * 1000);
+
+      if (youngestAge === null || age < youngestAge) {
+        youngestAge = age;
+        youngestPicks = [{
+          player: player.name,
+          person:
+            (pick.personId && peopleMap[pick.personId]?.name) ||
+            pick.normalizedName ||
+            "Unknown",
+          age: age
+        }];
+      } else if (Math.abs(age - youngestAge) < 0.01) {
+        youngestPicks.push({
+          player: player.name,
+          person:
+            (pick.personId && peopleMap[pick.personId]?.name) ||
+            pick.normalizedName ||
+            "Unknown",
+          age: age
+        });
+      }
+    });
+  });
+
   const set = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -645,6 +685,18 @@ function renderFunStats(players, peopleMap) {
       ? penaltyPlayers.map(p => `${p.name} (${p.penalty})`).join(", ")
       : "—"
   );
+
+     if (youngestPicks.length) {
+    const label = youngestPicks
+      .map(p =>
+        `${p.player} – ${p.person} (${p.age.toFixed(1)})`
+      )
+      .join(", ");
+
+    set("stat-fun-unlucky", label);
+  } else {
+    set("stat-fun-unlucky", "—");
+  }
 
   /* Placeholder stats (not implemented yet) */
   set("stat-fun-controversial", "—");
