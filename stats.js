@@ -1186,17 +1186,17 @@ function renderBehaviorStats(players, peopleMap) {
 
   /* ---------- FORCE SIMULATION ---------- */
 
-  const simulation = d3.forceSimulation(graph.nodes)
-    .force(
-      "link",
-      d3.forceLink(graph.links)
-        .id(d => d.id)
-        .distance(d => 120 - Math.min(d.weight * 5, 60))
-        .strength(d => 0.15)
-    )
-    .force("charge", d3.forceManyBody().strength(-900))
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(36));
+const simulation = d3.forceSimulation(graph.nodes)
+  .force(
+    "link",
+    d3.forceLink(graph.links)
+      .id(d => d.id)
+      .distance(d => 180 - Math.min(d.weight * 6, 90))
+      .strength(d => 0.12)
+  )
+  .force("charge", d3.forceManyBody().strength(-600))
+  .force("center", d3.forceCenter(width * 0.35, height / 2));
+  .force("collision", d3.forceCollide().radius(36));
 
   /* ---------- LINKS ---------- */
 
@@ -1208,6 +1208,19 @@ function renderBehaviorStats(players, peopleMap) {
     .enter()
     .append("line")
     .attr("stroke-width", d => Math.sqrt(d.weight));
+      
+  /* ---------- LABELS ---------- */
+      
+     const labels = svg.append("g")
+  .selectAll("text")
+  .data(graph.nodes)
+  .enter()
+  .append("text")
+  .text(d => d.id)
+  .attr("font-size", "11px")
+  .attr("dx", 10)
+  .attr("dy", 4);
+ 
 
   /* ---------- NODES ---------- */
 
@@ -1255,6 +1268,10 @@ function renderBehaviorStats(players, peopleMap) {
       .attr("y1", d => d.source.y)
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y);
+    labels
+      .attr("x", d => d.x)
+      .attr("y", d => d.y);
+
 
     nodeGroup
       .attr("transform", d => `translate(${d.x}, ${d.y})`);
