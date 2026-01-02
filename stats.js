@@ -1216,11 +1216,12 @@ scores.forEach(s => {
     unique.add(pid);
   });
 
-  // 2) læg pickedBy til ÉN gang pr celebrity
-  unique.forEach(pid => {
-    const freq = personFreq[pid] || 0;
+unique.forEach(pid => {
+  const freq = personFreq[pid] || 0;
+  if (freq > 1) {
     total += freq;
-  });
+  }
+});
 
   crowd[s.name] = total;
   playerPicks[s.name] = unique;
