@@ -673,11 +673,11 @@ function renderAgeAndPickStats(players, peopleMap) {
 
     player.picks.forEach(pick => {
       if (pick.status !== "approved") return;
-      const birthDate =
+const birth =
   pick.birthDate ||
   (pick.personId && peopleMap[pick.personId]?.birthDate);
 
-const bd = toDateAny(birthDate);
+const bd = toDateAny(birth);
 if (!bd) return;
 
 const age = computeAgeDecimal(birth, now);
@@ -687,7 +687,7 @@ if (age === null) return;
       allAges.push(age);
 
       const pp = Math.round(
-        calculateHitPoints(birthDate, now.toISOString())
+        calculateHitPoints(birth, now.toISOString())
       );
 
       const personName =
