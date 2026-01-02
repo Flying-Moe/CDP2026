@@ -37,6 +37,31 @@ function avg(arr) {
   return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 }
 
+function toDateAny(v) {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+
+  // Firestore Timestamp (web SDK) har ofte toDate()
+  if (typeof v.toDate === "function") return v.toDate();
+
+  // Firestore Timestamp-lignende objekt
+  if (typeof v.seconds === "number") return new Date(v.seconds * 1000);
+
+  if (typeof v === "string") {
+    // ISO: YYYY-MM-DD
+    const iso = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00`);
+
+    // DK/UK: DD/MM/YYYY eller DD-MM-YYYY
+    const dmy = v.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    if (dmy) return new Date(`${dmy[3]}-${dmy[2]}-${dmy[1]}T00:00:00`);
+  }
+
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+
 /* =====================================================
    TAB SYSTEM (FIXED)
 ===================================================== */
@@ -642,11 +667,12 @@ function renderAgeAndPickStats(players, peopleMap) {
   pick.birthDate ||
   (pick.personId && peopleMap[pick.personId]?.birthDate);
 
-if (!birthDate) return;
+const bd = toDateAny(birthDate);
+if (!bd) return;
 
-      const age =
-        (now - new Date(birthDate)) /
-        (365.25 * 24 * 60 * 60 * 1000);
+const age =
+  (now - bd) /
+  (365.25 * 24 * 60 * 60 * 1000);
 
       ages.push(age);
       allAges.push(age);
@@ -1034,11 +1060,13 @@ function renderBehaviorStats(players, peopleMap) {
         pick.birthDate ||
         (pick.personId && peopleMap[pick.personId]?.birthDate);
 
-      if (!birth) return;
+      const bd = toDateAny(birth);
+      if (!bd) return;
 
       const age =
-        (now - new Date(birth)) /
+        (now - bd) /
         (365.25 * 24 * 60 * 60 * 1000);
+
 
       playerData[s.name].ages.push(age);
 
