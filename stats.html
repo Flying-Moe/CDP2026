@@ -172,6 +172,8 @@
     <li class="muted">—</li>
   </ul>
 
+ <svg id="overlap-network" width="700" height="500"></svg>
+
   <h3>Age heatmap</h3>
   <p class="muted">Distribution of picks across age buckets.</p>
   <div id="stat-beh-heatmap"></div>
@@ -343,10 +345,8 @@
 
 <script src="common.js"></script>
 <script type="module" src="stats.js"></script>
-<script type="module">
-  import { initAnalytics } from "./analytics.js";
-  initAnalytics();
-</script>
+<script type="module">import { initAnalytics } from "./analytics.js";initAnalytics();</script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 
 </body>
 </html>
