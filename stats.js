@@ -854,3 +854,4 @@ function renderFunStats(players, peopleMap) {
       ? penaltyPlayers.map(p => `${p.name} (${p.penalty})`).join(", ")
       : "—"
   );
+}
