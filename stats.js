@@ -557,6 +557,7 @@ renderDeathStatsFromPlayers(players, peopleMap);
 renderFunStats(players, peopleMap);
 renderAgeAndPickStats(players, peopleMap);
 renderBadges(badgeContext);
+renderBehaviorStats(players, peopleMap);
 
 });
 
@@ -984,4 +985,200 @@ function renderFunStats(players, peopleMap) {
       ? penaltyPlayers.map(p => `${p.name} (${p.penalty})`).join(", ")
       : "—"
   );
+}
+
+
+function renderBehaviorStats(players, peopleMap) {
+  const scores = buildScoreTable(players, "2026");
+  const now = new Date();
+
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  /* ============================
+     PREP MAPS
+  ============================ */
+
+  const personFreq = {};
+  const playerData = {};
+  const overlap = {};
+  const ageBuckets = [
+    [40,49], [50,59], [60,69], [70,79], [80,89], [90,200]
+  ];
+
+  scores.forEach(s => {
+    playerData[s.name] = {
+      approved: 0,
+      unique: 0,
+      under60: 0,
+      over80: 0,
+      ages: []
+    };
+
+    const seen = new Set();
+
+    s.picks.forEach(pick => {
+      if (pick.status !== "approved") return;
+
+      const pid = pick.personId || pick.normalizedName;
+      if (!pid) return;
+
+      playerData[s.name].approved++;
+      seen.add(pid);
+
+      personFreq[pid] = (personFreq[pid] || 0) + 1;
+
+      const birth =
+        pick.birthDate ||
+        (pick.personId && peopleMap[pick.personId]?.birthDate);
+
+      if (!birth) return;
+
+      const age =
+        (now - new Date(birth)) /
+        (365.25 * 24 * 60 * 60 * 1000);
+
+      playerData[s.name].ages.push(age);
+
+      if (age < 60) playerData[s.name].under60++;
+      if (age >= 80) playerData[s.name].over80++;
+    });
+
+    seen.forEach(pid => {
+      if (personFreq[pid] === 1) {
+        playerData[s.name].unique++;
+      }
+    });
+  });
+
+  /* ============================
+     UNIQUENESS / COPYCAT
+  ============================ */
+
+  const uniqScores = Object.entries(playerData)
+    .map(([name, d]) => ({
+      name,
+      unique: d.unique,
+      approved: d.approved,
+      pct: d.approved ? d.unique / d.approved : 0
+    }))
+    .sort((a, b) => b.pct - a.pct);
+
+  const topU = uniqScores[0];
+  const lowU = uniqScores.at(-1);
+
+  set(
+    "stat-beh-unique",
+    `${topU.name} (${topU.unique}/${topU.approved} · ${(topU.pct*100).toFixed(0)}%)`
+  );
+
+  set(
+    "stat-beh-copycat",
+    `${lowU.name} (${lowU.approved-lowU.unique}/${lowU.approved} · ${(100 - lowU.pct*100).toFixed(0)}%)`
+  );
+
+  /* ============================
+     YOLO / COWARD
+  ============================ */
+
+  const yoloRank = Object.entries(playerData)
+    .map(([n,d]) => ({
+      name: n,
+      raw: d.under60,
+      pct: d.approved ? d.under60/d.approved : 0
+    }))
+    .sort((a,b) => b.pct - a.pct)[0];
+
+  const cowardRank = Object.entries(playerData)
+    .map(([n,d]) => ({
+      name: n,
+      raw: d.over80,
+      pct: d.approved ? d.over80/d.approved : 0
+    }))
+    .sort((a,b) => b.pct - a.pct)[0];
+
+  set(
+    "stat-beh-yolo",
+    `${yoloRank.name} (${yoloRank.raw} · ${(yoloRank.pct*100).toFixed(0)}%)`
+  );
+
+  set(
+    "stat-beh-coward",
+    `${cowardRank.name} (${cowardRank.raw} · ${(cowardRank.pct*100).toFixed(0)}%)`
+  );
+
+  set("stat-beh-chaos", "—");
+
+  /* ============================
+     CROWD INDEX (LIGHT)
+  ============================ */
+
+  const names = Object.keys(playerData);
+
+  names.forEach(a => {
+    names.forEach(b => {
+      if (a >= b) return;
+      const aSet = new Set(
+        scores.find(s => s.name===a).picks
+          .filter(p=>p.status==="approved")
+          .map(p=>p.personId||p.normalizedName)
+      );
+      const bSet = new Set(
+        scores.find(s => s.name===b).picks
+          .filter(p=>p.status==="approved")
+          .map(p=>p.personId||p.normalizedName)
+      );
+      let c = 0;
+      aSet.forEach(x => bSet.has(x) && c++);
+      if (c>0) overlap[`${a}|${b}`]=c;
+    });
+  });
+
+  const crowd = {};
+  Object.entries(overlap).forEach(([k,v])=>{
+    const [a,b]=k.split("|");
+    crowd[a]=(crowd[a]||0)+v;
+    crowd[b]=(crowd[b]||0)+v;
+  });
+
+  const ul = document.getElementById("stat-beh-crowd");
+  ul.innerHTML = "";
+
+  Object.entries(crowd)
+    .sort((a,b)=>b[1]-a[1])
+    .forEach(([n,v])=>{
+      const li=document.createElement("li");
+      li.textContent=`${n} (${v})`;
+      ul.appendChild(li);
+    });
+
+  /* ============================
+     AGE HEATMAP (HTML)
+  ============================ */
+
+  const heat = document.getElementById("stat-beh-heatmap");
+  heat.innerHTML="";
+
+  const table=document.createElement("table");
+  table.className="heatmap";
+
+  const head=document.createElement("tr");
+  head.innerHTML="<th>Player</th>"+ageBuckets.map(
+    b=>`<th>${b[0]}–${b[1]}</th>`
+  ).join("");
+  table.appendChild(head);
+
+  Object.entries(playerData).forEach(([n,d])=>{
+    const row=document.createElement("tr");
+    row.innerHTML=`<td>${n}</td>`;
+    ageBuckets.forEach(([min,max])=>{
+      const count=d.ages.filter(a=>a>=min&&a<=max).length;
+      row.innerHTML+=`<td>${count||""}</td>`;
+    });
+    table.appendChild(row);
+  });
+
+  heat.appendChild(table);
 }
