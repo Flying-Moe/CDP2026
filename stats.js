@@ -195,46 +195,88 @@ function renderTieredBadge(badge, selectedPlayerId) {
   const wrapper = document.createElement("div");
   wrapper.className = "badge-card";
 
-  // Title
+  // ---------- IMAGE ----------
+  const img = document.createElement("img");
+  img.className = "badge-image";
+
+  let unlocked = false;
+  let highestTier = null;
+
+  if (badge.type === "single") {
+    unlocked = badge.players && badge.players.length > 0;
+  } else if (badge.type === "tiered") {
+    const tierOrder = ["bronze", "silver", "gold", "prestige"];
+    tierOrder.forEach(tierId => {
+      const tier = badge.tiers?.[tierId];
+      if (!tier) return;
+
+      const hasPlayer =
+        (tier.players || []).some(p =>
+          selectedPlayerId === "all" || p.id === selectedPlayerId
+        );
+
+      if (hasPlayer) highestTier = tierId;
+    });
+    unlocked = !!highestTier;
+  }
+
+  // asset-path
+  if (badge.type === "single") {
+    img.src = `assets/badges/${badge.id}.png`;
+  } else {
+    const tierMap = {
+      bronze: 1,
+      silver: 2,
+      gold: 3,
+      prestige: 4
+    };
+    const tierNum = highestTier ? tierMap[highestTier] : 1;
+    img.src = `assets/badges/${badge.id}_${tierNum}.png`;
+  }
+
+  if (!unlocked) {
+    img.classList.add("locked");
+  }
+
+  wrapper.appendChild(img);
+
+  // ---------- TITLE ----------
   const title = document.createElement("h3");
   title.textContent = badge.name;
   wrapper.appendChild(title);
 
-  // Description
+  // ---------- DESCRIPTION / PLACEHOLDER ----------
+  if (!unlocked) {
+    const placeholder = document.createElement("p");
+    placeholder.className = "badge-placeholder";
+    placeholder.textContent = "Not yet unlocked";
+    wrapper.appendChild(placeholder);
+    return wrapper;
+  }
+
   const desc = document.createElement("p");
   desc.className = "badge-description";
-  desc.textContent = badge.description || "—";
+  desc.textContent = badge.description || "";
   wrapper.appendChild(desc);
 
-  // SINGLE BADGE
+  // ---------- PLAYER LIST ----------
   if (badge.type === "single") {
-    const earnedPlayers =
-      badge.players?.filter(p =>
-        selectedPlayerId === "all" || p.id === selectedPlayerId
-      ) || [];
-
-    if (earnedPlayers.length === 0) {
-      const placeholder = document.createElement("p");
-      placeholder.className = "badge-placeholder";
-      placeholder.textContent = "Not yet claimed";
-      wrapper.appendChild(placeholder);
-      return wrapper;
-    }
-
     const list = document.createElement("ul");
-    earnedPlayers.forEach(p => {
-      const li = document.createElement("li");
-      li.textContent = p.name;
-      list.appendChild(li);
-    });
-
+    badge.players
+      .filter(p =>
+        selectedPlayerId === "all" || p.id === selectedPlayerId
+      )
+      .forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = p.name;
+        list.appendChild(li);
+      });
     wrapper.appendChild(list);
     return wrapper;
   }
 
-  // TIERED BADGE
+  // ---------- TIERS ----------
   const tierOrder = ["bronze", "silver", "gold", "prestige"];
-
   tierOrder.forEach(tierId => {
     const tier = badge.tiers?.[tierId];
     if (!tier) return;
@@ -242,24 +284,20 @@ function renderTieredBadge(badge, selectedPlayerId) {
     const tierDiv = document.createElement("div");
     tierDiv.className = "badge-tier";
 
-    if (!tier.players || tier.players.length === 0) {
-      tierDiv.classList.add("locked");
-    }
-
     const tierTitle = document.createElement("strong");
     tierTitle.textContent = tierId.toUpperCase();
     tierDiv.appendChild(tierTitle);
 
-    const players =
-      (tier.players || []).filter(p =>
-        selectedPlayerId === "all" || p.id === selectedPlayerId
-      );
+    const players = (tier.players || []).filter(p =>
+      selectedPlayerId === "all" || p.id === selectedPlayerId
+    );
 
-    if (players.length === 0) {
-      const placeholder = document.createElement("p");
-      placeholder.className = "badge-placeholder";
-      placeholder.textContent = "Not unlocked yet";
-      tierDiv.appendChild(placeholder);
+    if (!players.length) {
+      tierDiv.classList.add("locked");
+      const p = document.createElement("p");
+      p.className = "badge-placeholder";
+      p.textContent = "Locked";
+      tierDiv.appendChild(p);
     } else {
       const ul = document.createElement("ul");
       players.forEach(p => {
