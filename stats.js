@@ -516,7 +516,7 @@ document.querySelectorAll("#badge-tabs button").forEach(btn => {
 renderOverallStats();
 renderDeathStatsFromPlayers(players, peopleMap);
 renderFunStats(players, peopleMap);
-renderBadges(context);
+renderBadges(badgeContext);
 
 });
 
