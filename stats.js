@@ -1072,7 +1072,8 @@ function renderBehaviorStats(players, peopleMap) {
       const bd = toDateAny(birth);
       if (!bd) return;
 
-const age = computeAgeDecimal(birthDate, now);
+const age = computeAgeDecimal(birth, now);
+
 if (age === null) return;
 
       playerData[s.name].ages.push(age);
@@ -1146,64 +1147,9 @@ if (age === null) return;
 
   set("stat-beh-chaos", "—");
 
- /* ============================
-     CROWD INDEX (LIGHT)
-============================ */
-
-const names = Object.keys(playerData);
-
-names.forEach(a => {
-  names.forEach(b => {
-    if (a >= b) return;
-    const aSet = new Set(
-      scores.find(s => s.name===a).picks
-        .filter(p=>p.status==="approved")
-        .map(p=>p.personId||p.normalizedName)
-    );
-    const bSet = new Set(
-      scores.find(s => s.name===b).picks
-        .filter(p=>p.status==="approved")
-        .map(p=>p.personId||p.normalizedName)
-    );
-    let c = 0;
-    aSet.forEach(x => bSet.has(x) && c++);
-    if (c>0) overlap[`${a}|${b}`]=c;
-  });
-});
-
-const crowd = {};
-Object.entries(overlap).forEach(([k,v])=>{
-  const [a,b]=k.split("|");
-  crowd[a]=(crowd[a]||0)+v;
-  crowd[b]=(crowd[b]||0)+v;
-});
-
-const ul = document.getElementById("stat-beh-crowd");
-ul.innerHTML = "";
-
-Object.entries(crowd)
-  .sort((a,b)=>b[1]-a[1])
-  .forEach(([n,v])=>{
-    const li=document.createElement("li");
-    li.textContent=`${n} (${v})`;
-    ul.appendChild(li);
-  });
-
-const overlapGraph = {
-  nodes: Object.keys(playerData).map(name => ({
-    id: name,
-    size: playerData[name].approved
-  })),
-  links: Object.entries(overlap).map(([key, weight]) => {
-    const [a, b] = key.split("|");
-    return { source: a, target: b, weight };
-  })
-};
-
-renderOverlapNetwork(overlapGraph);
-
-   /* ============================
+/* ============================
    CROWD INDEX + OVERLAP (AUTHORITATIVE)
+   – SINGLE SOURCE OF TRUTH
 ============================ */
 
 const playerPicks = {};
@@ -1217,12 +1163,13 @@ scores.forEach(s => {
 
 const crowd = {};
 const overlapLinks = [];
-const players = Object.keys(playerPicks);
+const playerNames = Object.keys(playerPicks);
 
-for (let i = 0; i < players.length; i++) {
-  for (let j = i + 1; j < players.length; j++) {
-    const a = players[i];
-    const b = players[j];
+/* Pairwise overlap */
+for (let i = 0; i < playerNames.length; i++) {
+  for (let j = i + 1; j < playerNames.length; j++) {
+    const a = playerNames[i];
+    const b = playerNames[j];
 
     let shared = 0;
     playerPicks[a].forEach(pid => {
@@ -1243,20 +1190,22 @@ for (let i = 0; i < players.length; i++) {
 }
 
 /* Render Crowd Index list */
-const ul = document.getElementById("stat-beh-crowd");
-ul.innerHTML = "";
+const crowdUl = document.getElementById("stat-beh-crowd");
+if (crowdUl) {
+  crowdUl.innerHTML = "";
 
-Object.entries(crowd)
-  .sort((a, b) => b[1] - a[1])
-  .forEach(([name, value]) => {
-    const li = document.createElement("li");
-    li.textContent = `${name} (${value})`;
-    ul.appendChild(li);
-  });
+  Object.entries(crowd)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([name, value]) => {
+      const li = document.createElement("li");
+      li.textContent = `${name} (${value})`;
+      crowdUl.appendChild(li);
+    });
+}
 
-/* Render Overlap Network (same data) */
+/* Render Overlap Network – SAME DATA */
 renderOverlapNetwork({
-  nodes: players.map(name => ({
+  nodes: playerNames.map(name => ({
     id: name,
     size: playerPicks[name].size
   })),
