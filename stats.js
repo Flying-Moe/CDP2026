@@ -777,8 +777,8 @@ if (!birthDate) return;
       const li = document.createElement("li");
       li.innerHTML = `
         <strong>${p.name}</strong> –
-        Avg: ${p.avg.toFixed(1)},
-        Median: ${p.median.toFixed(1)}
+        Avg: ${p.avg.toFixed(1)} 
+       ( Median: ${p.median.toFixed(1)})
       `;
       ul.appendChild(li);
     });
