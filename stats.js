@@ -71,6 +71,21 @@ function computeAgeDecimal(birthDate, refDate = new Date()) {
   return (rd - bd) / (365.25 * 24 * 60 * 60 * 1000);
 }
 
+/* =====================================================
+   AGE BUCKETS (GLOBAL, AUTHORITATIVE)
+===================================================== */
+
+const ageBuckets = [
+  [20, 29],
+  [30, 39],
+  [40, 49],
+  [50, 59],
+  [60, 69],
+  [70, 79],
+  [80, 89],
+  [90, 200]
+];
+
 
 /* =====================================================
    TAB SYSTEM (FIXED)
@@ -1183,10 +1198,9 @@ scores.forEach(s => {
   set("stat-beh-chaos", "—");
 
 /* ============================
-   CROWD INDEX (AUTHORITATIVE – EXCEL MATCH)
+   CROWD INDEX (EXCEL-ALIGNED)
 ============================ */
 
-// Crowd Index per player (Σ (freq − 1) per pick)
 const crowd = {};
 const playerPicks = {};
 
@@ -1196,15 +1210,14 @@ scores.forEach(s => {
 
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
+
     const pid = pick.personId || pick.normalizedName;
     if (!pid) return;
 
     set.add(pid);
 
     const freq = personFreq[pid] || 0;
-    if (freq > 1) {
-      total += (freq - 1);
-    }
+    total += freq; // ← VIGTIGT: ingen -1, ingen filter
   });
 
   crowd[s.name] = total;
