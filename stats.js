@@ -1316,16 +1316,7 @@ node.on("click", (event, d) => {
 
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
   });
-
-   const link = svg.append("g")
-  .attr("stroke", "#999")
-  .attr("stroke-opacity", 0.55)
-  .selectAll("line")
-  .data(links)
-  .enter()
-  .append("line")
-  .attr("stroke-width", d => Math.max(1, Math.sqrt(d.weight)));
-   
+  
 // Tooltip på links: viser præcist overlap
 link.append("title")
   .text(d => `${d.source.id} ↔ ${d.target.id}: ${d.weight} shared picks`);
