@@ -1200,6 +1200,13 @@ ul > li {
    Overlap Network
 ========================= */
 
+#overlap-network {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 900px;
+}
+
 .overlap-wrapper {
   max-width: 900px;
   margin-left: 0;
