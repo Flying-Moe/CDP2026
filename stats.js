@@ -680,7 +680,7 @@ function renderAgeAndPickStats(players, peopleMap) {
 const bd = toDateAny(birthDate);
 if (!bd) return;
 
-const age = computeAgeDecimal(birthDate, now);
+const age = computeAgeDecimal(birth, now);
 if (age === null) return;
 
       ages.push(age);
@@ -1146,50 +1146,50 @@ if (age === null) return;
 
   set("stat-beh-chaos", "—");
 
-  /* ============================
+ /* ============================
      CROWD INDEX (LIGHT)
-  ============================ */
+============================ */
 
-  const names = Object.keys(playerData);
+const names = Object.keys(playerData);
 
-  names.forEach(a => {
-    names.forEach(b => {
-      if (a >= b) return;
-      const aSet = new Set(
-        scores.find(s => s.name===a).picks
-          .filter(p=>p.status==="approved")
-          .map(p=>p.personId||p.normalizedName)
-      );
-      const bSet = new Set(
-        scores.find(s => s.name===b).picks
-          .filter(p=>p.status==="approved")
-          .map(p=>p.personId||p.normalizedName)
-      );
-      let c = 0;
-      aSet.forEach(x => bSet.has(x) && c++);
-      if (c>0) overlap[`${a}|${b}`]=c;
-    });
+names.forEach(a => {
+  names.forEach(b => {
+    if (a >= b) return;
+    const aSet = new Set(
+      scores.find(s => s.name===a).picks
+        .filter(p=>p.status==="approved")
+        .map(p=>p.personId||p.normalizedName)
+    );
+    const bSet = new Set(
+      scores.find(s => s.name===b).picks
+        .filter(p=>p.status==="approved")
+        .map(p=>p.personId||p.normalizedName)
+    );
+    let c = 0;
+    aSet.forEach(x => bSet.has(x) && c++);
+    if (c>0) overlap[`${a}|${b}`]=c;
+  });
+});
+
+const crowd = {};
+Object.entries(overlap).forEach(([k,v])=>{
+  const [a,b]=k.split("|");
+  crowd[a]=(crowd[a]||0)+v;
+  crowd[b]=(crowd[b]||0)+v;
+});
+
+const ul = document.getElementById("stat-beh-crowd");
+ul.innerHTML = "";
+
+Object.entries(crowd)
+  .sort((a,b)=>b[1]-a[1])
+  .forEach(([n,v])=>{
+    const li=document.createElement("li");
+    li.textContent=`${n} (${v})`;
+    ul.appendChild(li);
   });
 
-  const crowd = {};
-  Object.entries(overlap).forEach(([k,v])=>{
-    const [a,b]=k.split("|");
-    crowd[a]=(crowd[a]||0)+v;
-    crowd[b]=(crowd[b]||0)+v;
-  });
-
-  const ul = document.getElementById("stat-beh-crowd");
-  ul.innerHTML = "";
-
-  Object.entries(crowd)
-    .sort((a,b)=>b[1]-a[1])
-    .forEach(([n,v])=>{
-      const li=document.createElement("li");
-      li.textContent=`${n} (${v})`;
-      ul.appendChild(li);
-    });
-
-   const overlapGraph = {
+const overlapGraph = {
   nodes: Object.keys(playerData).map(name => ({
     id: name,
     size: playerData[name].approved
@@ -1200,7 +1200,68 @@ if (age === null) return;
   })
 };
 
-   renderOverlapNetwork(overlapGraph);
+renderOverlapNetwork(overlapGraph);
+
+   /* ============================
+   CROWD INDEX + OVERLAP (AUTHORITATIVE)
+============================ */
+
+const playerPicks = {};
+scores.forEach(s => {
+  playerPicks[s.name] = new Set(
+    s.picks
+      .filter(p => p.status === "approved")
+      .map(p => p.personId || p.normalizedName)
+  );
+});
+
+const crowd = {};
+const overlapLinks = [];
+const players = Object.keys(playerPicks);
+
+for (let i = 0; i < players.length; i++) {
+  for (let j = i + 1; j < players.length; j++) {
+    const a = players[i];
+    const b = players[j];
+
+    let shared = 0;
+    playerPicks[a].forEach(pid => {
+      if (playerPicks[b].has(pid)) shared++;
+    });
+
+    if (shared > 0) {
+      crowd[a] = (crowd[a] || 0) + shared;
+      crowd[b] = (crowd[b] || 0) + shared;
+
+      overlapLinks.push({
+        source: a,
+        target: b,
+        weight: shared
+      });
+    }
+  }
+}
+
+/* Render Crowd Index list */
+const ul = document.getElementById("stat-beh-crowd");
+ul.innerHTML = "";
+
+Object.entries(crowd)
+  .sort((a, b) => b[1] - a[1])
+  .forEach(([name, value]) => {
+    const li = document.createElement("li");
+    li.textContent = `${name} (${value})`;
+    ul.appendChild(li);
+  });
+
+/* Render Overlap Network (same data) */
+renderOverlapNetwork({
+  nodes: players.map(name => ({
+    id: name,
+    size: playerPicks[name].size
+  })),
+  links: overlapLinks
+});
 
   /* ============================
      OVERLAP NETWORK (HTML)
