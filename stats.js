@@ -1240,27 +1240,65 @@ function renderBehaviorStats(players, peopleMap) {
      AGE HEATMAP (HTML)
   ============================ */
 
-  const heat = document.getElementById("stat-beh-heatmap");
-  heat.innerHTML="";
+const heat = document.getElementById("stat-beh-heatmap");
+heat.innerHTML = "";
 
-  const table=document.createElement("table");
-  table.className="heatmap";
+/* ============================
+   HEATMAP – GLOBAL SCALE
+============================ */
 
-  const head=document.createElement("tr");
-  head.innerHTML="<th>Player</th>"+ageBuckets.map(
-    b=>`<th>${b[0]}–${b[1]}</th>`
-  ).join("");
-  table.appendChild(head);
+const table = document.createElement("table");
+table.className = "heatmap";
 
-  Object.entries(playerData).forEach(([n,d])=>{
-    const row=document.createElement("tr");
-    row.innerHTML=`<td>${n}</td>`;
-    ageBuckets.forEach(([min,max])=>{
-      const count=d.ages.filter(a=>a>=min&&a<=max).length;
-      row.innerHTML+=`<td>${count||""}</td>`;
-    });
-    table.appendChild(row);
+/* Header */
+const head = document.createElement("tr");
+head.innerHTML =
+  "<th>Player</th>" +
+  ageBuckets
+    .map(([min, max]) =>
+      `<th>${max >= 200 ? `${min}+` : `${min}–${max}`}</th>`
+    )
+    .join("");
+table.appendChild(head);
+
+/* Først: find GLOBAL max (til farveskala) */
+let globalMax = 0;
+
+Object.values(playerData).forEach(d => {
+  ageBuckets.forEach(([min, max]) => {
+    const count = d.ages.filter(a => a >= min && a <= max).length;
+    if (count > globalMax) globalMax = count;
+  });
+});
+
+/* Fallback hvis alt er 0 */
+if (globalMax === 0) globalMax = 1;
+
+/* Rows */
+Object.entries(playerData).forEach(([playerName, data]) => {
+  const row = document.createElement("tr");
+
+  const nameCell = document.createElement("td");
+  nameCell.textContent = playerName;
+  row.appendChild(nameCell);
+
+  ageBuckets.forEach(([min, max]) => {
+    const count = data.ages.filter(a => a >= min && a <= max).length;
+
+    const cell = document.createElement("td");
+    if (count > 0) {
+      const intensity = count / globalMax; // 0 → 1
+      cell.style.backgroundColor = `rgba(139, 0, 0, ${intensity})`;
+      cell.textContent = count;
+    } else {
+      cell.textContent = "";
+    }
+
+    row.appendChild(cell);
   });
 
-  heat.appendChild(table);
+  table.appendChild(row);
+});
+
+heat.appendChild(table);
 }
