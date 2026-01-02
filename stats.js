@@ -1165,7 +1165,8 @@ function renderBehaviorStats(players, peopleMap) {
   })
 };
 
-   
+   renderOverlapNetwork(overlapGraph);
+
   /* ============================
      OVERLAP NETWORK (HTML)
   ============================ */
