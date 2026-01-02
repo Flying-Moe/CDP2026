@@ -1198,31 +1198,34 @@ scores.forEach(s => {
   set("stat-beh-chaos", "—");
 
 /* ============================
-   CROWD INDEX (EXCEL-ALIGNED)
+   CROWD INDEX (EXCEL-ALIGNED – UNIQUE PER PLAYER)
 ============================ */
 
 const crowd = {};
 const playerPicks = {};
 
 scores.forEach(s => {
-  const set = new Set();
+  const unique = new Set();
   let total = 0;
 
+  // 1) find unikke celebrities
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
-
     const pid = pick.personId || pick.normalizedName;
     if (!pid) return;
+    unique.add(pid);
+  });
 
-    set.add(pid);
-
+  // 2) læg pickedBy til ÉN gang pr celebrity
+  unique.forEach(pid => {
     const freq = personFreq[pid] || 0;
-    total += freq; // ← VIGTIGT: ingen -1, ingen filter
+    total += freq;
   });
 
   crowd[s.name] = total;
-  playerPicks[s.name] = set;
+  playerPicks[s.name] = unique;
 });
+
 
 // Render Crowd Index list
 const crowdUl = document.getElementById("stat-beh-crowd");
