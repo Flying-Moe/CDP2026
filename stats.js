@@ -555,6 +555,7 @@ document.querySelectorAll("#badge-tabs button").forEach(btn => {
 renderOverallStats();
 renderDeathStatsFromPlayers(players, peopleMap);
 renderFunStats(players, peopleMap);
+renderAgeAndPickStats(players, peopleMap);
 renderBadges(badgeContext);
 
 });
@@ -661,6 +662,170 @@ function renderFunStats(players, peopleMap) {
       }
     });
   });
+
+   /* =====================================================
+   RENDER AGE & PICKS STATS
+===================================================== */
+
+function renderAgeAndPickStats(players, peopleMap) {
+  const scores = buildScoreTable(players, "2026");
+  const now = new Date();
+
+  const allAges = [];
+  const perPlayer = [];
+
+  let youngestAge = null;
+  let youngestPicks = [];
+  let oldestAge = null;
+  let oldestPicks = [];
+
+  scores.forEach(player => {
+    const ages = [];
+
+    player.picks.forEach(pick => {
+      if (pick.status !== "approved") return;
+      if (!pick.birthDate) return;
+
+      const age =
+        (now - new Date(pick.birthDate)) /
+        (365.25 * 24 * 60 * 60 * 1000);
+
+      ages.push(age);
+      allAges.push(age);
+
+      const pp = Math.round(
+        calculateHitPoints(pick.birthDate, now.toISOString())
+      );
+
+      const personName =
+        (pick.personId && peopleMap[pick.personId]?.name) ||
+        pick.normalizedName ||
+        "Unknown";
+
+      // Youngest
+      if (youngestAge === null || age < youngestAge) {
+        youngestAge = age;
+        youngestPicks = [{
+          person: personName,
+          age,
+          pp,
+          player: player.name
+        }];
+      } else if (Math.abs(age - youngestAge) < 0.01) {
+        youngestPicks.push({
+          person: personName,
+          age,
+          pp,
+          player: player.name
+        });
+      }
+
+      // Oldest
+      if (oldestAge === null || age > oldestAge) {
+        oldestAge = age;
+        oldestPicks = [{
+          person: personName,
+          age,
+          pp,
+          player: player.name
+        }];
+      } else if (Math.abs(age - oldestAge) < 0.01) {
+        oldestPicks.push({
+          person: personName,
+          age,
+          pp,
+          player: player.name
+        });
+      }
+    });
+
+    if (ages.length) {
+      const avgAge = avg(ages);
+      const sorted = [...ages].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      const medianAge =
+        sorted.length % 2
+          ? sorted[mid]
+          : (sorted[mid - 1] + sorted[mid]) / 2;
+
+      perPlayer.push({
+        name: player.name,
+        avg: avgAge,
+        median: medianAge
+      });
+    }
+  });
+
+  /* ---------- GLOBAL AVG / MEDIAN ---------- */
+
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  if (allAges.length) {
+    const sorted = [...allAges].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const globalMedian =
+      sorted.length % 2
+        ? sorted[mid]
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+
+    set("stat-avg-age-global", avg(allAges).toFixed(1));
+    set("stat-median-age-global", globalMedian.toFixed(1));
+  }
+
+  /* ---------- YOUNGEST / OLDEST OUTPUT ---------- */
+
+  function formatPickedBy(list) {
+    const names = [...new Set(list.map(p => p.player))];
+    if (names.length <= 1) return `Picked by ${names[0]}`;
+    return `Picked by ${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  }
+
+  if (youngestPicks.length) {
+    const p = youngestPicks[0];
+    set(
+      "stat-youngest-pick",
+      `${p.person} (Age: ${p.age.toFixed(1)} · PP: ${p.pp})`
+    );
+    set(
+      "stat-youngest-picked-by",
+      formatPickedBy(youngestPicks)
+    );
+  }
+
+  if (oldestPicks.length) {
+    const p = oldestPicks[0];
+    set(
+      "stat-oldest-pick",
+      `${p.person} (Age: ${p.age.toFixed(1)} · PP: ${p.pp})`
+    );
+    set(
+      "stat-oldest-picked-by",
+      formatPickedBy(oldestPicks)
+    );
+  }
+
+  /* ---------- PER PLAYER LIST ---------- */
+
+  const ul = document.getElementById("stat-age-per-player");
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  perPlayer
+    .sort((a, b) => a.avg - b.avg)
+    .forEach(p => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <strong>${p.name}</strong> –
+        Avg: ${p.avg.toFixed(1)},
+        Median: ${p.median.toFixed(1)}
+      `;
+      ul.appendChild(li);
+    });
+}
 
      /* ===============================
      GLOBAL STAT: OLDEST PICK
