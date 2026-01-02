@@ -854,32 +854,3 @@ function renderFunStats(players, peopleMap) {
       ? penaltyPlayers.map(p => `${p.name} (${p.penalty})`).join(", ")
       : "—"
   );
-
-     if (youngestPicks.length) {
-    const label = youngestPicks
-      .map(p =>
-        `${p.player} – ${p.person} (${p.age.toFixed(1)})`
-      )
-      .join(", ");
-
-    set("stat-fun-unlucky", label);
-  } else {
-    set("stat-fun-unlucky", "—");
-  }
-
-  // Oldest pick
-  if (oldestPicks.length) {
-    set(
-      "stat-oldest-pick",
-      oldestPicks
-        .map(p => `${p.player} – ${p.person} (${p.age.toFixed(1)})`)
-        .join(", ")
-    );
-  } else {
-    ;
-  }
-
-  // Fun-only placeholders
-  set("stat-fun-controversial", "—");
-
-}
