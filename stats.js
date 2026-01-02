@@ -1064,58 +1064,65 @@ function renderBehaviorStats(players, peopleMap) {
      PREP MAPS
   ============================ */
 
-  const personFreq = {};
-  const playerData = {};
-  const overlap = {};
-  const ageBuckets = [
-    [20,29], [30,39], [40,49], [50,59], [60,69], [70,79], [80,89], [90,200]
-  ];
+const personFreq = {};
+const playerData = {};
 
-  scores.forEach(s => {
-    playerData[s.name] = {
-      approved: 0,
-      unique: 0,
-      under60: 0,
-      over80: 0,
-      ages: []
-    };
+/* ---------- FIRST PASS: global frequency ---------- */
+scores.forEach(s => {
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
 
-    const seen = new Set();
+    const pid = pick.personId || pick.normalizedName;
+    if (!pid) return;
 
-    s.picks.forEach(pick => {
-      if (pick.status !== "approved") return;
-
-      const pid = pick.personId || pick.normalizedName;
-      if (!pid) return;
-
-      playerData[s.name].approved++;
-      seen.add(pid);
-
-      personFreq[pid] = (personFreq[pid] || 0) + 1;
-
-      const birth =
-        pick.birthDate ||
-        (pick.personId && peopleMap[pick.personId]?.birthDate);
-
-      const bd = toDateAny(birth);
-      if (!bd) return;
-
-const age = computeAgeDecimal(birth, now);
-
-if (age === null) return;
-
-      playerData[s.name].ages.push(age);
-
-      if (age < 60) playerData[s.name].under60++;
-      if (age >= 80) playerData[s.name].over80++;
-    });
-
-    seen.forEach(pid => {
-      if (personFreq[pid] === 1) {
-        playerData[s.name].unique++;
-      }
-    });
+    personFreq[pid] = (personFreq[pid] || 0) + 1;
   });
+});
+
+/* ---------- SECOND PASS: per player stats ---------- */
+scores.forEach(s => {
+  playerData[s.name] = {
+    approved: 0,
+    unique: 0,
+    under60: 0,
+    over80: 0,
+    ages: []
+  };
+
+  const seen = new Set();
+
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+
+    const pid = pick.personId || pick.normalizedName;
+    if (!pid) return;
+
+    playerData[s.name].approved++;
+    seen.add(pid);
+
+    const birth =
+      pick.birthDate ||
+      (pick.personId && peopleMap[pick.personId]?.birthDate);
+
+    const bd = toDateAny(birth);
+    if (!bd) return;
+
+    const age = computeAgeDecimal(birth, now);
+    if (age === null) return;
+
+    playerData[s.name].ages.push(age);
+
+    if (age < 60) playerData[s.name].under60++;
+    if (age >= 80) playerData[s.name].over80++;
+  });
+
+  /* global uniqueness check */
+  seen.forEach(pid => {
+    if (personFreq[pid] === 1) {
+      playerData[s.name].unique++;
+    }
+  });
+});
 
   /* ============================
      UNIQUENESS / COPYCAT
