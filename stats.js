@@ -193,90 +193,49 @@ function renderBadges(context, selectedPlayerId = "all") {
 
 function renderTieredBadge(badge, selectedPlayerId) {
   const wrapper = document.createElement("div");
-  wrapper.className = "badge-card";
+  wrapper.className = "badge-block";
 
-  // ---------- IMAGE ----------
-  const img = document.createElement("img");
-  img.className = "badge-image";
+  /* ---------- HEADER ---------- */
+  const header = document.createElement("div");
+  header.className = "badge-header";
 
-  let unlocked = false;
-  let highestTier = null;
+  const title = document.createElement("div");
+  title.className = "badge-title";
+  title.textContent = badge.name;
+  header.appendChild(title);
 
-  if (badge.type === "single") {
-    unlocked = badge.players && badge.players.length > 0;
-  } else if (badge.type === "tiered") {
-    const tierOrder = ["bronze", "silver", "gold", "prestige"];
-    tierOrder.forEach(tierId => {
-      const tier = badge.tiers?.[tierId];
-      if (!tier) return;
-
-      const hasPlayer =
-        (tier.players || []).some(p =>
-          selectedPlayerId === "all" || p.id === selectedPlayerId
+  const unlocked =
+    badge.type === "single"
+      ? badge.players?.length > 0
+      : Object.values(badge.tiers || {}).some(
+          t => (t.players || []).length > 0
         );
 
-      if (hasPlayer) highestTier = tierId;
-    });
-    unlocked = !!highestTier;
-  }
+  const desc = document.createElement("div");
+  desc.className = unlocked ? "badge-description" : "badge-placeholder";
+  desc.textContent = unlocked
+    ? badge.description || ""
+    : "Not yet unlocked";
+  header.appendChild(desc);
 
-  // asset-path
+  wrapper.appendChild(header);
+
+  /* ---------- SINGLE ---------- */
   if (badge.type === "single") {
+    const img = document.createElement("img");
     img.src = `assets/badges/${badge.id}.png`;
-  } else {
-    const tierMap = {
-      bronze: 1,
-      silver: 2,
-      gold: 3,
-      prestige: 4
-    };
-    const tierNum = highestTier ? tierMap[highestTier] : 1;
-    img.src = `assets/badges/${badge.id}_${tierNum}.png`;
-  }
-
-  if (!unlocked) {
-    img.classList.add("locked");
-  }
-
-  wrapper.appendChild(img);
-
-  // ---------- TITLE ----------
-  const title = document.createElement("h3");
-  title.textContent = badge.name;
-  wrapper.appendChild(title);
-
-  // ---------- DESCRIPTION / PLACEHOLDER ----------
-  if (!unlocked) {
-    const placeholder = document.createElement("p");
-    placeholder.className = "badge-placeholder";
-    placeholder.textContent = "Not yet unlocked";
-    wrapper.appendChild(placeholder);
+    if (!unlocked) img.style.opacity = "0.35";
+    wrapper.appendChild(img);
     return wrapper;
   }
 
-  const desc = document.createElement("p");
-  desc.className = "badge-description";
-  desc.textContent = badge.description || "";
-  wrapper.appendChild(desc);
+  /* ---------- TIERED ---------- */
+  const tierGrid = document.createElement("div");
+  tierGrid.className = "badge-tiers";
 
-  // ---------- PLAYER LIST ----------
-  if (badge.type === "single") {
-    const list = document.createElement("ul");
-    badge.players
-      .filter(p =>
-        selectedPlayerId === "all" || p.id === selectedPlayerId
-      )
-      .forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.name;
-        list.appendChild(li);
-      });
-    wrapper.appendChild(list);
-    return wrapper;
-  }
-
-  // ---------- TIERS ----------
   const tierOrder = ["bronze", "silver", "gold", "prestige"];
+  const tierMap = { bronze: 1, silver: 2, gold: 3, prestige: 4 };
+
   tierOrder.forEach(tierId => {
     const tier = badge.tiers?.[tierId];
     if (!tier) return;
@@ -284,9 +243,8 @@ function renderTieredBadge(badge, selectedPlayerId) {
     const tierDiv = document.createElement("div");
     tierDiv.className = "badge-tier";
 
-    const tierTitle = document.createElement("strong");
-    tierTitle.textContent = tierId.toUpperCase();
-    tierDiv.appendChild(tierTitle);
+    const img = document.createElement("img");
+    img.src = `assets/badges/${badge.id}_${tierMap[tierId]}.png`;
 
     const players = (tier.players || []).filter(p =>
       selectedPlayerId === "all" || p.id === selectedPlayerId
@@ -294,23 +252,32 @@ function renderTieredBadge(badge, selectedPlayerId) {
 
     if (!players.length) {
       tierDiv.classList.add("locked");
-      const p = document.createElement("p");
-      p.className = "badge-placeholder";
-      p.textContent = "Locked";
-      tierDiv.appendChild(p);
-    } else {
-      const ul = document.createElement("ul");
-      players.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.name;
-        ul.appendChild(li);
-      });
-      tierDiv.appendChild(ul);
     }
 
-    wrapper.appendChild(tierDiv);
+    tierDiv.appendChild(img);
+
+    const list = document.createElement("div");
+    list.className = "badge-tier-players";
+
+    if (players.length) {
+      players.forEach(p => {
+        const span = document.createElement("div");
+        span.className = "badge-player";
+        span.textContent = p.name;
+        list.appendChild(span);
+      });
+    } else {
+      const span = document.createElement("div");
+      span.className = "badge-placeholder";
+      span.textContent = "Locked";
+      list.appendChild(span);
+    }
+
+    tierDiv.appendChild(list);
+    tierGrid.appendChild(tierDiv);
   });
 
+  wrapper.appendChild(tierGrid);
   return wrapper;
 }
 
