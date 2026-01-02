@@ -863,10 +863,6 @@ function renderAgeAndPickStats(players, peopleMap) {
     set("stat-fun-unlucky", "—");
   }
 
- else {
-    set("stat-youngest-pick", "—");
-  }
-
   // Oldest pick
   if (oldestPicks.length) {
     set(
