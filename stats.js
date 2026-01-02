@@ -616,13 +616,6 @@ async function renderOverallStats() {
   set("stat-prize-pool", prizePool);
 }
 
-/* =====================================================
-   RENDER FUN STATS
-===================================================== */
-
-function renderFunStats(players, peopleMap) {
-  const scores = buildScoreTable(players, "2026");
-
    /* =====================================================
    RENDER AGE & PICKS STATS
 ===================================================== */
@@ -787,6 +780,13 @@ function renderAgeAndPickStats(players, peopleMap) {
     });
 }
 
+/* =====================================================
+   RENDER FUN STATS
+===================================================== */
+
+function renderFunStats(players, peopleMap) {
+  const scores = buildScoreTable(players, "2026");
+
   const set = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
@@ -872,7 +872,7 @@ function renderAgeAndPickStats(players, peopleMap) {
         .join(", ")
     );
   } else {
-    set("stat-oldest-pick", "—");
+    ;
   }
 
   // Fun-only placeholders
