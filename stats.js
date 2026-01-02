@@ -1194,9 +1194,9 @@ function renderBehaviorStats(players, peopleMap) {
         .distance(d => 120 - Math.min(d.weight * 5, 60))
         .strength(d => 0.15)
     )
-    .force("charge", d3.forceManyBody().strength(-600))
+    .force("charge", d3.forceManyBody().strength(-900))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(30));
+    .force("collision", d3.forceCollide().radius(36));
 
   /* ---------- LINKS ---------- */
 
