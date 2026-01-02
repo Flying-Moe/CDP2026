@@ -1171,62 +1171,60 @@ function renderBehaviorStats(players, peopleMap) {
      OVERLAP NETWORK (HTML)
   ============================ */
    
-   function renderOverlapNetwork(graph) {
+function renderOverlapNetwork(graph) {
   const svg = d3.select("#overlap-network");
   if (svg.empty()) return;
 
-  const width = 900;
-  const height = 600;
+  // Stop tidligere simulation (ellers kan du få “spøgelses-ticks” og mærkelig dobbelt-render)
+  const prevSim = svg.node().__sim;
+  if (prevSim) prevSim.stop();
+
+  // Responsiv bredde (mobilvenlig) – ingen side-scroll
+  const container = svg.node().parentElement || document.body;
+  const width = Math.max(320, Math.min(900, container.clientWidth || 900));
+  const height = Math.max(420, Math.round(width * 0.70));
 
   svg
     .attr("width", width)
-    .attr("height", height);
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMinYMid meet");
 
   svg.selectAll("*").remove();
 
-  /* ---------- FORCE SIMULATION ---------- */
+  // Kopiér data så D3 ikke muterer dit graph-objekt på tværs af renders
+  const nodes = graph.nodes.map(n => ({ ...n }));
+  const links = graph.links.map(l => ({ ...l }));
 
-const simulation = d3.forceSimulation(graph.nodes)
-  .force(
-    "link",
-    d3.forceLink(graph.links)
-      .id(d => d.id)
-      .distance(d => 180 - Math.min(d.weight * 6, 90))
-      .strength(d => 0.12)
-  )
-  .force("charge", d3.forceManyBody().strength(-600))
-  .force("center", d3.forceCenter(width * 0.35, height / 2))
-  .force("collision", d3.forceCollide().radius(36));
+  const simulation = d3.forceSimulation(nodes)
+    .force(
+      "link",
+      d3.forceLink(links)
+        .id(d => d.id)
+        // mere spredning + lidt kortere afstand når weight er høj
+        .distance(d => Math.max(80, 200 - Math.min(d.weight * 7, 120)))
+        .strength(0.12)
+    )
+    .force("charge", d3.forceManyBody().strength(-900))
+    // venstre-justér visuelt: center ligger til venstre for midten
+    .force("center", d3.forceCenter(width * 0.35, height / 2))
+    .force("collision", d3.forceCollide().radius(36));
 
-  /* ---------- LINKS ---------- */
+  // Gem simulation så vi kan stoppe den ved næste render
+  svg.node().__sim = simulation;
 
   const link = svg.append("g")
     .attr("stroke", "#999")
-    .attr("stroke-opacity", 0.6)
+    .attr("stroke-opacity", 0.55)
     .selectAll("line")
-    .data(graph.links)
+    .data(links)
     .enter()
     .append("line")
-    .attr("stroke-width", d => Math.sqrt(d.weight));
-      
-  /* ---------- LABELS ---------- */
-      
-     const labels = svg.append("g")
-  .selectAll("text")
-  .data(graph.nodes)
-  .enter()
-  .append("text")
-  .text(d => d.id)
-  .attr("font-size", "11px")
-  .attr("dx", 10)
-  .attr("dy", 4);
- 
-
-  /* ---------- NODES ---------- */
+    .attr("stroke-width", d => Math.max(1, Math.sqrt(d.weight)));
 
   const nodeGroup = svg.append("g")
     .selectAll("g")
-    .data(graph.nodes)
+    .data(nodes)
     .enter()
     .append("g")
     .call(
@@ -1237,30 +1235,23 @@ const simulation = d3.forceSimulation(graph.nodes)
     );
 
   const node = nodeGroup.append("circle")
-    .attr("r", d => 8 + d.size * 0.4)
+    .attr("r", d => 8 + d.size * 0.35)
     .attr("fill", "#8b0000");
 
-  /* ---------- LABELS ---------- */
-
-  const label = nodeGroup.append("text")
+  // Labels (én gang, ikke dobbelt)
+  nodeGroup.append("text")
     .text(d => d.id)
     .attr("x", 12)
     .attr("y", 4)
     .style("font-size", "11px")
     .style("pointer-events", "none");
 
-  /* ---------- TOOLTIP ---------- */
-
-  node.append("title")
-    .text(d => {
-      const connections = graph.links.filter(
-        l => l.source.id === d.id || l.target.id === d.id
-      );
-      const total = connections.reduce((s, l) => s + l.weight, 0);
-      return `${d.id}\nShared picks: ${total}`;
-    });
-
-  /* ---------- TICK ---------- */
+  // Tooltip på node (sum af weights = Crowd Index)
+  node.append("title").text(d => {
+    const connected = links.filter(l => l.source.id === d.id || l.target.id === d.id);
+    const total = connected.reduce((s, l) => s + l.weight, 0);
+    return `${d.id}\nCrowd Index: ${total}`;
+  });
 
   simulation.on("tick", () => {
     link
@@ -1268,28 +1259,19 @@ const simulation = d3.forceSimulation(graph.nodes)
       .attr("y1", d => d.source.y)
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y);
-    labels
-      .attr("x", d => d.x)
-      .attr("y", d => d.y);
 
-
-    nodeGroup
-      .attr("transform", d => `translate(${d.x}, ${d.y})`);
+    nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
   });
-
-  /* ---------- DRAG ---------- */
 
   function dragstarted(event, d) {
     if (!event.active) simulation.alphaTarget(0.4).restart();
     d.fx = d.x;
     d.fy = d.y;
   }
-
   function dragged(event, d) {
     d.fx = event.x;
     d.fy = event.y;
   }
-
   function dragended(event, d) {
     if (!event.active) simulation.alphaTarget(0);
     d.fx = null;
@@ -1297,10 +1279,9 @@ const simulation = d3.forceSimulation(graph.nodes)
   }
 }
 
-
-  /* ============================
-     AGE HEATMAP (HTML)
-  ============================ */
+/* ============================
+   AGE HEATMAP (HTML)
+============================ */
 
 const heat = document.getElementById("stat-beh-heatmap");
 heat.innerHTML = "";
