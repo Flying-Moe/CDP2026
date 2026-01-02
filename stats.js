@@ -1165,6 +1165,77 @@ function renderBehaviorStats(players, peopleMap) {
   })
 };
 
+   
+  /* ============================
+     OVERLAP NETWORK (HTML)
+  ============================ */
+   
+   function renderOverlapNetwork(graph) {
+  const svg = d3.select("#overlap-network");
+  if (svg.empty()) return;
+
+  const width = +svg.attr("width");
+  const height = +svg.attr("height");
+
+  svg.selectAll("*").remove();
+
+  const simulation = d3.forceSimulation(graph.nodes)
+    .force("link", d3.forceLink(graph.links)
+      .id(d => d.id)
+      .strength(d => d.weight * 0.08)
+    )
+    .force("charge", d3.forceManyBody().strength(-300))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+  const link = svg.append("g")
+    .selectAll("line")
+    .data(graph.links)
+    .enter()
+    .append("line")
+    .attr("stroke-width", d => d.weight)
+    .attr("stroke", "#999");
+
+  const node = svg.append("g")
+    .selectAll("circle")
+    .data(graph.nodes)
+    .enter()
+    .append("circle")
+    .attr("r", d => 5 + d.size * 0.3)
+    .attr("fill", "#8b0000")
+    .call(d3.drag()
+      .on("start", dragstarted)
+      .on("drag", dragged)
+      .on("end", dragended)
+    );
+
+  simulation.on("tick", () => {
+    link
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y);
+
+    node
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y);
+  });
+
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+}
+
   /* ============================
      AGE HEATMAP (HTML)
   ============================ */
