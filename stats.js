@@ -863,15 +863,7 @@ function renderAgeAndPickStats(players, peopleMap) {
     set("stat-fun-unlucky", "—");
   }
 
-  // Youngest pick
-  if (youngestPicks.length) {
-    set(
-      "stat-youngest-pick",
-      youngestPicks
-        .map(p => `${p.player} – ${p.person} (${p.age.toFixed(1)})`)
-        .join(", ")
-    );
-  } else {
+ else {
     set("stat-youngest-pick", "—");
   }
 
