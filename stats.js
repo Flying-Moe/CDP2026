@@ -365,7 +365,8 @@ function renderDeathStatsFromPlayers(players, peopleMap) {
     if (el) el.textContent = value;
   };
 
-  const deathMap = new Map();
+  const deaths = [];
+  const playerCount = players.length;
 
   players.forEach(player => {
     const entry = player.entries?.["2026"];
@@ -374,67 +375,94 @@ function renderDeathStatsFromPlayers(players, peopleMap) {
     (entry.picks || []).forEach(pick => {
       if (!pick.deathDate) return;
 
-      const key = pick.personId || pick.normalizedName;
-      if (!key) return;
+      const birth =
+        pick.birthDate ||
+        (pick.personId && peopleMap[pick.personId]?.birthDate);
 
-      if (!deathMap.has(key)) {
-deathMap.set(key, {
-  name:
-    (pick.personId && peopleMap[pick.personId]?.name) ||
-    pick.normalizedName ||
-    "Unknown",
-  birthDate: pick.birthDate,
-  deathDate: pick.deathDate,
-  players: new Set()
-});
+      if (!birth) return;
 
-      }
+      const age = calculateAgeAtDeath(birth, pick.deathDate);
+      if (age == null) return;
 
-      deathMap.get(key).players.add(player.name);
+      deaths.push({
+        personId: pick.personId || pick.normalizedName,
+        name:
+          (pick.personId && peopleMap[pick.personId]?.name) ||
+          pick.normalizedName ||
+          "Unknown",
+        deathDate: pick.deathDate,
+        age,
+        player: player.name
+      });
     });
   });
 
-  const deaths = Array.from(deathMap.values());
+  // 1. Confirmed deaths
+  set("stat-deaths-count", deaths.length || "0");
 
   if (deaths.length === 0) {
-    set("stat-deaths-count", "0");
-    set("stat-deaths-average-age", "—");
+    set("stat-deaths-first-blood", "—");
     set("stat-deaths-youngest", "—");
     set("stat-deaths-oldest", "—");
-    set("stat-deaths-first-blood", "—");
+    set("stat-deaths-average-age", "—");
+    set("stat-deaths-clean-kills", "—");
+    set("stat-deaths-mass-casualty", "—");
     return;
   }
 
-  const deathsWithAge = deaths
-    .map(d => {
-      const age = calculateAgeAtDeath(d.birthDate, d.deathDate);
-      return age != null ? { ...d, age } : null;
-    })
-    .filter(Boolean);
+  // Group by death date
+  const byDate = {};
+  deaths.forEach(d => {
+    byDate[d.deathDate] ??= [];
+    byDate[d.deathDate].push(d);
+  });
 
-  set("stat-deaths-count", deathsWithAge.length);
-
-  const avgAge = (
-    deathsWithAge.reduce((sum, d) => sum + d.age, 0) /
-    deathsWithAge.length
-  ).toFixed(1);
-
-  set("stat-deaths-average-age", avgAge);
-
-  const youngest = deathsWithAge.reduce((a, b) => a.age < b.age ? a : b);
-  const oldest   = deathsWithAge.reduce((a, b) => a.age > b.age ? a : b);
-
-  set("stat-deaths-youngest", `${youngest.name} (${youngest.age})`);
-  set("stat-deaths-oldest", `${oldest.name} (${oldest.age})`);
-
-  const first = deathsWithAge.reduce((a, b) =>
-    new Date(a.deathDate) < new Date(b.deathDate) ? a : b
-  );
-
+  // 2. First Blood
+  const firstDate = Object.keys(byDate).sort()[0];
+  const firstBlood = byDate[firstDate];
   set(
     "stat-deaths-first-blood",
-    `${first.name} – ${first.deathDate} (${[...first.players].join(", ")})`
+    `${firstBlood[0].name} (${firstBlood.map(d => d.player).join(", ")})`
   );
+
+  // 3. Youngest death
+  const youngest = deaths.reduce((a, b) => (a.age < b.age ? a : b));
+  set(
+    "stat-deaths-youngest",
+    `${youngest.name} (${youngest.age.toFixed(2)})`
+  );
+
+  // 4. Oldest death
+  const oldest = deaths.reduce((a, b) => (a.age > b.age ? a : b));
+  set(
+    "stat-deaths-oldest",
+    `${oldest.name} (${oldest.age.toFixed(2)})`
+  );
+
+  // 5. Average age at death
+  const avgAge =
+    deaths.reduce((sum, d) => sum + d.age, 0) / deaths.length;
+  set("stat-deaths-average-age", avgAge.toFixed(2));
+
+  // 6. Clean kills
+  const perPerson = {};
+  deaths.forEach(d => {
+    perPerson[d.personId] ??= new Set();
+    perPerson[d.personId].add(d.player);
+  });
+
+  const cleanKills = Object.values(perPerson).filter(
+    players => players.size === 1
+  ).length;
+
+  set("stat-deaths-clean-kills", cleanKills.toString());
+
+  // 7. Mass casualty events (≥ 50% of players)
+  const massCasualties = Object.values(byDate).filter(
+    list => list.length / playerCount >= 0.5
+  ).length;
+
+  set("stat-deaths-mass-casualty", massCasualties.toString());
 }
 
 /* =====================================================
