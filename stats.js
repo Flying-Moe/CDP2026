@@ -1367,7 +1367,7 @@ let globalMax = 0;
 
 Object.values(playerData).forEach(d => {
   ageBuckets.forEach(([min, max]) => {
-    const count = d.ages.filter(a => a >= min && a <= max).length;
+    const count = d.ages.filter(a => a >= min && a < (max + 1)).length;
     if (count > globalMax) globalMax = count;
   });
 });
