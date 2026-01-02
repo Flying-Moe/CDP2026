@@ -1186,17 +1186,6 @@ scores.forEach(s => {
    CROWD INDEX (AUTHORITATIVE – EXCEL MATCH)
 ============================ */
 
-// Build global frequency per celebrity
-const personFreq = {};
-scores.forEach(s => {
-  s.picks.forEach(pick => {
-    if (pick.status !== "approved") return;
-    const pid = pick.personId || pick.normalizedName;
-    if (!pid) return;
-    personFreq[pid] = (personFreq[pid] || 0) + 1;
-  });
-});
-
 // Crowd Index per player (Σ (freq − 1) per pick)
 const crowd = {};
 const playerPicks = {};
