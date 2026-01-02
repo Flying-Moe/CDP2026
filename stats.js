@@ -1195,7 +1195,7 @@ const simulation = d3.forceSimulation(graph.nodes)
       .strength(d => 0.12)
   )
   .force("charge", d3.forceManyBody().strength(-600))
-  .force("center", d3.forceCenter(width * 0.35, height / 2));
+  .force("center", d3.forceCenter(width * 0.35, height / 2))
   .force("collision", d3.forceCollide().radius(36));
 
   /* ---------- LINKS ---------- */
