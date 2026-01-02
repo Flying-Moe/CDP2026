@@ -1220,6 +1220,11 @@ function renderOverlapNetwork(graph) {
 
   svg.selectAll("*").remove();
 
+   svg.on("click", () => {
+  nodeGroup.transition().style("opacity", 1);
+  link.transition().style("opacity", 0.55);
+});
+
   // Kopiér data så D3 ikke muterer dit graph-objekt på tværs af renders
   const nodes = graph.nodes.map(n => ({ ...n }));
   const links = graph.links.map(l => ({ ...l }));
@@ -1280,6 +1285,27 @@ function renderOverlapNetwork(graph) {
     const total = connected.reduce((s, l) => s + l.weight, 0);
     return `${d.id}\nCrowd Index: ${total}`;
   });
+   
+node.on("click", (event, d) => {
+  const connected = new Set();
+
+  graph.links.forEach(l => {
+    if (l.source.id === d.id) connected.add(l.target.id);
+    if (l.target.id === d.id) connected.add(l.source.id);
+  });
+
+  connected.add(d.id);
+
+  nodeGroup
+    .transition()
+    .style("opacity", n => connected.has(n.id) ? 1 : 0.15);
+
+  link
+    .transition()
+    .style("opacity", l =>
+      l.source.id === d.id || l.target.id === d.id ? 0.9 : 0.08
+    );
+});
 
   simulation.on("tick", () => {
     link
@@ -1290,6 +1316,8 @@ function renderOverlapNetwork(graph) {
 
     nodeGroup.attr("transform", d => `translate(${d.x}, ${d.y})`);
   });
+
+   
 
   function dragstarted(event, d) {
     if (!event.active) simulation.alphaTarget(0.4).restart();
