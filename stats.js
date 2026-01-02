@@ -1005,7 +1005,7 @@ function renderBehaviorStats(players, peopleMap) {
   const playerData = {};
   const overlap = {};
   const ageBuckets = [
-    [20,29], [30,39] [40,49], [50,59], [60,69], [70,79], [80,89], [90,200]
+    [20,29], [30,39], [40,49], [50,59], [60,69], [70,79], [80,89], [90,200]
   ];
 
   scores.forEach(s => {
