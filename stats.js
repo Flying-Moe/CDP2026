@@ -738,7 +738,31 @@ function renderFunStats(players, peopleMap) {
     set("stat-fun-unlucky", "—");
   }
 
-  /* Placeholder stats (not implemented yet) */
+  // Youngest pick
+  if (youngestPicks.length) {
+    set(
+      "stat-youngest-pick",
+      youngestPicks
+        .map(p => `${p.player} – ${p.person} (${p.age.toFixed(1)})`)
+        .join(", ")
+    );
+  } else {
+    set("stat-youngest-pick", "—");
+  }
+
+  // Oldest pick
+  if (oldestPicks.length) {
+    set(
+      "stat-oldest-pick",
+      oldestPicks
+        .map(p => `${p.player} – ${p.person} (${p.age.toFixed(1)})`)
+        .join(", ")
+    );
+  } else {
+    set("stat-oldest-pick", "—");
+  }
+
+  // Fun-only placeholders
   set("stat-fun-controversial", "—");
-  set("stat-fun-unlucky", "—");
+
 }
