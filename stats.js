@@ -644,7 +644,7 @@ function renderAgeAndPickStats(players, peopleMap) {
 if (!birthDate) return;
 
       const age =
-        (now - new Date(pick.birthDate)) /
+        (now - new Date(birthDate)) /
         (365.25 * 24 * 60 * 60 * 1000);
 
       ages.push(age);
