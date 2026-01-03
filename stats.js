@@ -893,6 +893,8 @@ perPlayer
 function renderFunStats(players, peopleMap) {
   const scores = buildScoreTable(players, "2026");
 
+  const nameToId = buildNameToIdMap(peopleMap); // ← DEN MANGLEDE LINJE
+
   const set = (id, value) => {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
