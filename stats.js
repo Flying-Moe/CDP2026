@@ -332,13 +332,42 @@ function renderTieredBadge(badge, selectedPlayerId) {
   wrapper.appendChild(header);
 
   /* ---------- SINGLE ---------- */
-  if (badge.type === "single") {
-    const img = document.createElement("img");
-    img.src = `assets/badges/${badge.id}.png`;
-    if (!unlocked) img.style.opacity = "0.35";
-    wrapper.appendChild(img);
-    return wrapper;
+if (badge.type === "single") {
+  const row = document.createElement("div");
+  row.className = "badge-tier";
+
+  const img = document.createElement("img");
+  img.src = `assets/badges/${badge.id}.png`;
+  if (!unlocked) img.style.opacity = "0.35";
+
+  const list = document.createElement("div");
+  list.className = "badge-tier-players";
+
+  const players = (badge.players || []).filter(p =>
+    selectedPlayerId === "all" || p.id === selectedPlayerId
+  );
+
+  if (players.length) {
+    players.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "badge-player";
+      div.textContent = p.name;
+      list.appendChild(div);
+    });
+  } else {
+    const div = document.createElement("div");
+    div.className = "badge-placeholder";
+    div.textContent = "—";
+    list.appendChild(div);
   }
+
+  row.appendChild(img);
+  row.appendChild(list);
+  wrapper.appendChild(row);
+
+  return wrapper;
+}
+
 
   /* ---------- TIERED ---------- */
   const tierGrid = document.createElement("div");
