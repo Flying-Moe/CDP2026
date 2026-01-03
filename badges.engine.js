@@ -1048,7 +1048,7 @@ evaluate({ players }) {
       else if (maxStreak >= 2) this.tiers.bronze.players.push(player.id);
     });
   }
-}
+},
   
 /* ============ POINT HOARDER ========================= */
 
@@ -1076,10 +1076,10 @@ evaluate({ players }) {
       else if (totalPP >= 50) this.tiers.bronze.players.push(player.id);
     });
   }
-}
+},
   
 /* ============ YOLO ================================= */
-/* ============ YOLO ================================= */
+
 {
   id: "yolo",
   name: "YOLO",
