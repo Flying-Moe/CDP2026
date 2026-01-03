@@ -760,26 +760,14 @@ evaluate({ players }) {
   name: "The Stabilizer",
   type: "tiered",
   order: 16,
-  tiers: {
-    bronze:   { players: [] },
-    silver:   { players: [] },
-    gold:     { players: [] },
-    prestige: { players: [] }
-  },
-  evaluate(context) {
-    context.players.forEach(player => {
-      let stable = 0;
-
-      player.picks.forEach(pk => {
-        const age = calculateAge(pk.birthDate);
-        if (age != null && age >= 50 && age <= 75) stable++;
-      });
-
-      if (stable >= 18) this.tiers.prestige.players.push(player.id);
-      else if (stable >= 16) this.tiers.gold.players.push(player.id);
-      else if (stable >= 13) this.tiers.silver.players.push(player.id);
-      else if (stable >= 10) this.tiers.bronze.players.push(player.id);
-    });
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
 },
 
@@ -932,31 +920,14 @@ evaluate({ players }) {
   name: "Momentum",
   type: "tiered",
   order: 12,
-  tiers: {
-    bronze:   { players: [] },
-    silver:   { players: [] },
-    gold:     { players: [] },
-    prestige: { players: [] }
-  },
-  evaluate(context) {
-    context.players.forEach(player => {
-      const deaths = player.picks
-        .filter(p => p.deathDate)
-        .sort((a, b) => new Date(a.deathDate) - new Date(b.deathDate));
-
-      let maxStreak = 0;
-      let streak = 0;
-
-      deaths.forEach(() => {
-        streak++;
-        maxStreak = Math.max(maxStreak, streak);
-      });
-
-      if (maxStreak >= 5) this.tiers.prestige.players.push(player.id);
-      else if (maxStreak >= 4) this.tiers.gold.players.push(player.id);
-      else if (maxStreak >= 3) this.tiers.silver.players.push(player.id);
-      else if (maxStreak >= 2) this.tiers.bronze.players.push(player.id);
-    });
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
 },
   
@@ -967,24 +938,14 @@ evaluate({ players }) {
   name: "Point Hoarder",
   type: "tiered",
   order: 13,
-  tiers: {
-    bronze:   { players: [] },
-    silver:   { players: [] },
-    gold:     { players: [] },
-    prestige: { players: [] }
-  },
-  evaluate(context) {
-    context.players.forEach(player => {
-      const totalPP = player.picks.reduce(
-        (sum, p) => sum + (p.potentialPoints || 0),
-        0
-      );
-
-      if (totalPP >= 150) this.tiers.prestige.players.push(player.id);
-      else if (totalPP >= 100) this.tiers.gold.players.push(player.id);
-      else if (totalPP >= 80) this.tiers.silver.players.push(player.id);
-      else if (totalPP >= 50) this.tiers.bronze.players.push(player.id);
-    });
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
 },
   
@@ -1303,37 +1264,14 @@ evaluate({ players }) {
   name: "Lone Wolf",
   type: "tiered",
   order: 14,
-  tiers: {
-    bronze:   { players: [] },
-    silver:   { players: [] },
-    gold:     { players: [] },
-    prestige: { players: [] }
-  },
-  evaluate(context) {
-    const freq = {};
-    context.players.forEach(p =>
-      p.picks.forEach(pk => {
-        const id = pk.personId || pk.normalizedName;
-        if (id) freq[id] = (freq[id] || 0) + 1;
-      })
-    );
-
-    context.players.forEach(player => {
-      const total = player.picks.length;
-      if (!total) return;
-
-      const unique = player.picks.filter(pk => {
-        const id = pk.personId || pk.normalizedName;
-        return id && freq[id] === 1;
-      }).length;
-
-      const ratio = unique / total;
-
-      if (ratio === 1) this.tiers.prestige.players.push(player.id);
-      else if (ratio >= 0.90) this.tiers.gold.players.push(player.id);
-      else if (ratio >= 0.75) this.tiers.silver.players.push(player.id);
-      else if (ratio >= 0.60) this.tiers.bronze.players.push(player.id);
-    });
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
 },
 
