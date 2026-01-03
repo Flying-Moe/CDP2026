@@ -367,50 +367,76 @@ if (badge.type === "single") {
 
   return wrapper;
 }
+   
+  /* ---------- TIERED (PROGRESSIVE – 2x2 WITH HISTORY) ---------- */
 
-
-  /* ---------- TIERED ---------- */
   const tierGrid = document.createElement("div");
-  tierGrid.className = "badge-tiers";
+  tierGrid.className = "badge-tier-grid";
 
   const tierOrder = ["bronze", "silver", "gold", "prestige"];
-  const tierMap = { bronze: 1, silver: 2, gold: 3, prestige: 4 };
+  const tierIndex = { bronze: 0, silver: 1, gold: 2, prestige: 3 };
+
+  // Find højeste tier pr spiller
+  const highestTierByPlayer = {};
 
   tierOrder.forEach(tierId => {
     const tier = badge.tiers?.[tierId];
-    if (!tier) return;
+    (tier?.players || []).forEach(p => {
+      const idx = tierIndex[tierId];
+      if (
+        highestTierByPlayer[p.id] === undefined ||
+        idx > highestTierByPlayer[p.id]
+      ) {
+        highestTierByPlayer[p.id] = idx;
+      }
+    });
+  });
+
+  tierOrder.forEach(tierId => {
+    const tier = badge.tiers?.[tierId];
+    const idx = tierIndex[tierId];
 
     const tierDiv = document.createElement("div");
     tierDiv.className = "badge-tier";
 
     const img = document.createElement("img");
-    img.src = `assets/badges/${badge.id}_${tierMap[tierId]}.png`;
-
-    const players = (tier.players || []).filter(p =>
-      selectedPlayerId === "all" || p.id === selectedPlayerId
-    );
-
-    if (!players.length) {
-      tierDiv.classList.add("locked");
-    }
+    img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
+    img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
 
     const list = document.createElement("div");
     list.className = "badge-tier-players";
 
-    if (players.length) {
-      players.forEach(p => {
-        const span = document.createElement("div");
-        span.className = "badge-player";
-        span.textContent = p.name;
-        list.appendChild(span);
-      });
-    } else {
+    const active = [];
+    const greyed = [];
+
+    Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
+      if (maxIdx === idx) active.push(pid);
+      else if (maxIdx > idx) greyed.push(pid);
+    });
+
+    if (!active.length && !greyed.length) {
       const span = document.createElement("div");
       span.className = "badge-placeholder";
-      span.textContent = "Locked";
+      span.textContent = "Not yet unlocked";
       list.appendChild(span);
+    } else {
+      active.forEach(pid => {
+        if (selectedPlayerId !== "all" && pid !== selectedPlayerId) return;
+        const div = document.createElement("div");
+        div.className = "badge-player";
+        div.textContent = getPlayerName(pid);
+        list.appendChild(div);
+      });
+
+      greyed.forEach(pid => {
+        if (selectedPlayerId !== "all" && pid !== selectedPlayerId) return;
+        const div = document.createElement("div");
+        div.className = "badge-player greyed";
+        div.textContent = getPlayerName(pid);
+        list.appendChild(div);
+      });
     }
 
     tierDiv.appendChild(list);
