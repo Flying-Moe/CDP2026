@@ -1079,17 +1079,25 @@ function renderBehaviorStats(players, peopleMap) {
      PREP MAPS
   ============================ */
 
+/* ---------- FIRST PASS: global frequency (UNIQUE PER PLAYER) ---------- */
+
 const personFreq = {};
 const playerData = {};
-
-/* ---------- FIRST PASS: global frequency ---------- */
+   
 scores.forEach(s => {
+  const seen = new Set();
+
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
 
     const pid = pick.personId || pick.normalizedName;
     if (!pid) return;
 
+    seen.add(pid);
+  });
+
+  // Tæl kun én gang pr spiller
+  seen.forEach(pid => {
     personFreq[pid] = (personFreq[pid] || 0) + 1;
   });
 });
