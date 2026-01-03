@@ -820,55 +820,50 @@ evaluate({ players }) {
   },
 
 /* ============ THE VULTURE ========================= */
-/* ====== ⚠ check grænser   ========================== */
-  {
-    id: "the_vulture",
-    name: "The Vulture",
-    description: "Low average age across approved picks",
-    order: 3,
-    type: "tiered",
 
-    evaluate({ players }) {
-      const tiers = buildEmptyTiers();
-      let globalUnlocked = false;
+{
+  id: "vulture",
+  name: "Vulture",
+  description: "Low average age across picks",
+  type: "tiered",
+  tiers: [
+    { id: "bronze", label: "Bronze", threshold: 70 },
+    { id: "silver", label: "Silver", threshold: 65 },
+    { id: "gold", label: "Gold", threshold: 60 },
+    { id: "prestige", label: "Prestige", threshold: 55 }
+  ],
 
-      players.forEach(player => {
-        if (!player.avgPickAge) return;
+  evaluate({ players }) {
+    const progress = {};
+    const ref = new Date("2026-01-01");
 
-        const avg = player.avgPickAge;
-        const achievedAt = "9999-12-31";
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
 
-        const thresholds = {
-          bronze: 70,
-          silver: 65,
-          gold: 60,
-          prestige: 55
-        };
+      const ages = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.birthDate)
+        .map(p => (ref - new Date(p.birthDate)) / (1000 * 60 * 60 * 24 * 365.25));
 
-        Object.entries(thresholds).forEach(([tierId, maxAge]) => {
-          if (avg <= maxAge) {
-            tiers[tierId].players.push({
-              id: player.id,
-              name: player.name,
-              value: avg,
-              achievedAt,
-              leaderboardScore: player.totalScore
-            });
-          }
-        });
-      });
+      if (!ages.length) {
+        progress[player.id] = Infinity;
+        return;
+      }
 
-      Object.values(tiers).forEach(tier => {
-        if (tier.players.length) {
-          tier.unlocked = true;
-          globalUnlocked = true;
-          tier.players.sort(sortPlayers);
-        }
-      });
+      const avg = ages.reduce((a, b) => a + b, 0) / ages.length;
+      progress[player.id] = avg;
+    });
 
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
-    }
-  },
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      tiers: this.tiers,
+      progress
+    };
+  }
+},
 
 /* ============ PENSION SNIPER ========================= */
 /* ====== ⚠ check grænser   ========================== */
@@ -1024,8 +1019,50 @@ evaluate({ players }) {
 },
   
 /* ============ HIGH-RISK PICKER (80+) ================================ */
-/* ======   =================== */
+{
+  id: "high_risk_picker",
+  name: "High-Risk Picker",
+  description: "Picked very old celebrities (80+)",
+  type: "tiered",
+  tiers: [
+    { id: "bronze", label: "Bronze", threshold: 0.25 },
+    { id: "silver", label: "Silver", threshold: 0.40 },
+    { id: "gold", label: "Gold", threshold: 0.60 },
+    { id: "prestige", label: "Prestige", threshold: 0.80 }
+  ],
 
+  evaluate({ players }) {
+    const progress = {};
+    const ref = new Date("2026-01-01");
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const picks = (entry.picks || []).filter(p => p.status === "approved" && p.birthDate);
+      if (!picks.length) {
+        progress[player.id] = 0;
+        return;
+      }
+
+      const risky = picks.filter(p => {
+        const age = (ref - new Date(p.birthDate)) / (1000 * 60 * 60 * 24 * 365.25);
+        return age >= 80;
+      }).length;
+
+      progress[player.id] = risky / picks.length;
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      tiers: this.tiers,
+      progress
+    };
+  }
+},
   
 /* ============ COWARD ================================ */
 /* ====== ⚠ semantisk modsat YOLO  =================== */
@@ -1088,9 +1125,46 @@ evaluate({ players }) {
 },
 
 /* ============ EARLY GAME PREDATOR ==================== */
-/* ====== ⚠ Q1-logik  ================================= */
+{
+  id: "early_game_predator",
+  name: "Early Game Predator",
+  description: "Kills scored in Q1",
+  type: "tiered",
+  tiers: [
+    { id: "bronze", label: "Bronze", threshold: 1 },
+    { id: "silver", label: "Silver", threshold: 2 },
+    { id: "gold", label: "Gold", threshold: 3 },
+    { id: "prestige", label: "Prestige", threshold: 4 }
+  ],
 
+  evaluate({ players }) {
+    const progress = {};
+    const q1Start = new Date("2026-01-01");
+    const q1End = new Date("2026-03-31T23:59:59");
 
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const kills = (entry.picks || []).filter(p => {
+        if (p.status !== "approved" || !p.deathDate) return false;
+        const d = new Date(p.deathDate);
+        return d >= q1Start && d <= q1End;
+      }).length;
+
+      progress[player.id] = kills;
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      tiers: this.tiers,
+      progress
+    };
+  }
+},
 
 /* ============ LATE GAME REAPER ====================== */
 /* ====== ⚠ Q4-logik  ================================= */
