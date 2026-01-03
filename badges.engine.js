@@ -891,30 +891,17 @@ evaluate({ players }) {
   
 {
   id: "pension_sniper",
+  name: "Pension Sniper",
   type: "tiered",
-  tiers: [75, 80, 85, 90],
-  evaluate({ players }) {
-    return players.map(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry) return null;
-
-      const ages = (entry.picks || [])
-        .filter(p => p.status === "approved" && p.birthDate)
-        .map(p => {
-          const birth = new Date(p.birthDate);
-          const now = new Date();
-          return (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
-        });
-
-      if (!ages.length) return null;
-
-      const avg = ages.reduce((a, b) => a + b, 0) / ages.length;
-
-      return {
-        playerId: player.id,
-        value: avg
-      };
-    }).filter(Boolean);
+  order: 5,
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
 }
 
@@ -922,25 +909,21 @@ evaluate({ players }) {
 /* ============ BODY COUNT =========================== */
   
 {
-  id: "body_count",
+  id: "pension_sniper",
+  name: "Pension Sniper",
   type: "tiered",
-  tiers: [1, 3, 5, 8],
-  evaluate({ players }) {
-    return players.map(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry) return null;
-
-      const hits = (entry.picks || []).filter(
-        p => p.status === "approved" && p.deathDate
-      ).length;
-
-      return {
-        playerId: player.id,
-        value: hits
-      };
-    }).filter(Boolean);
+  order: 5,
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
-},
+}
+
   
 /* ============ MOMENTUM ============================== */
 
@@ -1518,28 +1501,19 @@ evaluate({ players }) {
 
 {
   id: "zombie_index",
+  name: "Zombie Index",
   type: "tiered",
-  tiers: [1, 2, 3, 5],
-  evaluate({ players }) {
-    return players.map(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry) return null;
-
-      const count = (entry.picks || []).filter(p => {
-        if (!p.birthDate) return false;
-        const birth = new Date(p.birthDate);
-        const now = new Date();
-        const age = (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
-        return age >= 90;
-      }).length;
-
-      return {
-        playerId: player.id,
-        value: count
-      };
-    }).filter(Boolean);
+  order: 10,
+  evaluate() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      globalUnlocked: false,
+      tiers: buildEmptyTiers()
+    };
   }
-},
+}
 
 ];
 
