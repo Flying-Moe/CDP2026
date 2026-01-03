@@ -1038,36 +1038,83 @@ evaluate({ players }) {
 
   
 /* ============ YOLO ================================= */
+/* ============ YOLO ================================= */
 {
   id: "yolo",
   name: "YOLO",
-  description: "Picked dangerously young celebrities",
+  description: "Picked very young celebrities (<60)",
+  order: 6,
   type: "tiered",
 
-  tiers: [
-    { label: "Bronze", threshold: 1 },
-    { label: "Silver", threshold: 2 },
-    { label: "Gold", threshold: 3 },
-    { label: "Prestige", threshold: 5 }
-  ],
-
   evaluate({ players }) {
-    const progress = {};
+    const tiers = buildEmptyTiers();
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
+    const thresholds = {
+      bronze: 1,
+      silver: 2,
+      gold: 3,
+      prestige: 5
+    };
 
-      const count = (entry.picks || []).filter(p =>
-        p.status === "approved" &&
-        p.birthDate &&
-        calculateAge(p.birthDate) < 60
-      ).length;
+    const achieved = {
+      bronze: [],
+      silver: [],
+      gold: [],
+      prestige: []
+    };
 
-      if (count > 0) progress[player.id] = count;
+    players.forEach(p => {
+      const entry = p.entries?.["2026"];
+      const picks = (entry?.picks || []).filter(x => x?.status === "approved");
+
+      const ages = picks
+        .map(x => calculateAge(x.birthDate))
+        .filter(a => a != null);
+
+      const total = ages.length;
+      if (!total) return;
+
+      const under60 = ages.filter(a => a < 60).length;
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (under60 >= min) {
+          const pct = Math.round((under60 / total) * 100);
+          achieved[tierId].push({
+            id: p.id,
+            name: p.name,
+            achievedAt: "9999-12-31",
+            leaderboardScore: p.totalScore ?? 0,
+            value: `${under60}/${total} · ${pct}%`
+          });
+        }
+      });
     });
 
-    return { progress };
+    Object.keys(achieved).forEach(tierId => {
+      achieved[tierId].sort((a, b) => {
+        // higher count first, then name
+        const ac = parseInt(String(a.value).split("/")[0]) || 0;
+        const bc = parseInt(String(b.value).split("/")[0]) || 0;
+        if (bc !== ac) return bc - ac;
+        return a.name.localeCompare(b.name);
+      });
+
+      tiers[tierId].players = achieved[tierId].map(x => ({
+        id: x.id,
+        name: x.name,
+        value: x.value
+      }));
+      tiers[tierId].unlocked = tiers[tierId].players.length > 0;
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      order: this.order,
+      tiers
+    };
   }
 },
   
@@ -1117,86 +1164,184 @@ evaluate({ players }) {
   }
 },
   
-/* ============ COWARD ================================ */
+/* ============ COWARD (safe picks) ======================== */
 {
   id: "coward",
   name: "Coward",
-  description: "Played it safe with very old picks",
+  description: "Played it safe (many 80+ picks)",
+  order: 7,
   type: "tiered",
 
-  tiers: [
-    { label: "Bronze", threshold: 0.25 },
-    { label: "Silver", threshold: 0.4 },
-    { label: "Gold", threshold: 0.6 },
-    { label: "Prestige", threshold: 0.8 }
-  ],
-
   evaluate({ players }) {
-    const progress = {};
+    const tiers = buildEmptyTiers();
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
+    const pctThresholds = {
+      bronze: 30,
+      silver: 50,
+      gold: 70,
+      prestige: 90
+    };
 
-      const approved = (entry.picks || []).filter(p => p.status === "approved" && p.birthDate);
-      if (!approved.length) return;
+    const achieved = {
+      bronze: [],
+      silver: [],
+      gold: [],
+      prestige: []
+    };
 
-      const count = approved.filter(p => calculateAge(p.birthDate) >= 80).length;
-      const ratio = count / approved.length;
+    players.forEach(p => {
+      const entry = p.entries?.["2026"];
+      const picks = (entry?.picks || []).filter(x => x?.status === "approved");
 
-      if (ratio > 0) progress[player.id] = ratio;
+      const ages = picks
+        .map(x => calculateAge(x.birthDate))
+        .filter(a => a != null);
+
+      const total = ages.length;
+      if (!total) return;
+
+      const over80 = ages.filter(a => a >= 80).length;
+      const pct = (over80 / total) * 100;
+
+      Object.entries(pctThresholds).forEach(([tierId, minPct]) => {
+        if (pct >= minPct) {
+          achieved[tierId].push({
+            id: p.id,
+            name: p.name,
+            achievedAt: "9999-12-31",
+            leaderboardScore: p.totalScore ?? 0,
+            value: `${over80}/${total} · ${Math.round(pct)}%`
+          });
+        }
+      });
     });
 
-    return { progress };
+    Object.keys(achieved).forEach(tierId => {
+      achieved[tierId].sort((a, b) => {
+        const ap = parseInt(String(a.value).split("·")[1]) || 0;
+        const bp = parseInt(String(b.value).split("·")[1]) || 0;
+        if (bp !== ap) return bp - ap;
+        return a.name.localeCompare(b.name);
+      });
+
+      tiers[tierId].players = achieved[tierId].map(x => ({
+        id: x.id,
+        name: x.name,
+        value: x.value
+      }));
+      tiers[tierId].unlocked = tiers[tierId].players.length > 0;
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      order: this.order,
+      tiers
+    };
   }
 },
   
-/* ============ COPYCAT =============================== */
-  
+/* ============ COPYCAT ======================== */
 {
   id: "copycat",
   name: "Copycat",
-  description: "Frequently shared picks with others",
+  description: "Shared lots of picks with a single other player",
+  order: 8,
   type: "tiered",
 
-  tiers: [
-    { label: "Bronze", threshold: 5 },
-    { label: "Silver", threshold: 10 },
-    { label: "Gold", threshold: 15 },
-    { label: "Prestige", threshold: 25 }
-  ],
-
   evaluate({ players }) {
-    const freq = {};
-    const progress = {};
+    const tiers = buildEmptyTiers();
 
-    // count global frequency
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      (entry?.picks || []).forEach(p => {
-        if (p.status !== "approved") return;
-        const id = p.personId || p.normalizedName;
-        if (!id) return;
-        freq[id] = (freq[id] || 0) + 1;
+    const thresholds = {
+      bronze: 5,
+      silver: 10,
+      gold: 15,
+      prestige: 25
+    };
+
+    // Build sets per player
+    const sets = {};
+    players.forEach(p => {
+      const entry = p.entries?.["2026"];
+      const picks = (entry?.picks || []).filter(x => x?.status === "approved");
+      const s = new Set();
+
+      picks.forEach(x => {
+        const pid = x.personId || x.normalizedName;
+        if (pid) s.add(pid);
+      });
+
+      sets[p.id] = s;
+    });
+
+    const maxOverlap = {}; // playerId -> max shared with someone
+
+    players.forEach(a => {
+      let best = 0;
+
+      players.forEach(b => {
+        if (a.id === b.id) return;
+        const sa = sets[a.id] || new Set();
+        const sb = sets[b.id] || new Set();
+
+        let shared = 0;
+        sa.forEach(pid => {
+          if (sb.has(pid)) shared++;
+        });
+
+        if (shared > best) best = shared;
+      });
+
+      maxOverlap[a.id] = best;
+    });
+
+    const achieved = {
+      bronze: [],
+      silver: [],
+      gold: [],
+      prestige: []
+    };
+
+    players.forEach(p => {
+      const best = maxOverlap[p.id] || 0;
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (best >= min) {
+          achieved[tierId].push({
+            id: p.id,
+            name: p.name,
+            achievedAt: "9999-12-31",
+            leaderboardScore: p.totalScore ?? 0,
+            value: best
+          });
+        }
       });
     });
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
-
-      let shared = 0;
-
-      (entry.picks || []).forEach(p => {
-        if (p.status !== "approved") return;
-        const id = p.personId || p.normalizedName;
-        if (freq[id] > 1) shared++;
+    Object.keys(achieved).forEach(tierId => {
+      achieved[tierId].sort((a, b) => {
+        if (b.value !== a.value) return b.value - a.value;
+        return a.name.localeCompare(b.name);
       });
 
-      if (shared > 0) progress[player.id] = shared;
+      tiers[tierId].players = achieved[tierId].map(x => ({
+        id: x.id,
+        name: x.name,
+        value: x.value
+      }));
+      tiers[tierId].unlocked = tiers[tierId].players.length > 0;
     });
 
-    return { progress };
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      order: this.order,
+      tiers
+    };
   }
 },
 
@@ -1245,35 +1390,69 @@ evaluate({ players }) {
   }
 },
 
-/* ============ EARLY GAME PREDATOR ==================== */
+/* ============ EARLY GAME PREDATOR ======================== */
+  
 {
   id: "early_game_predator",
   name: "Early Game Predator",
-  description: "Kills scored in Q1",
+  description: "Confirmed kills during Q1 (Jan–Mar)",
+  order: 2,
   type: "tiered",
-  tiers: [
-    { id: "bronze", label: "Bronze", threshold: 1 },
-    { id: "silver", label: "Silver", threshold: 2 },
-    { id: "gold", label: "Gold", threshold: 3 },
-    { id: "prestige", label: "Prestige", threshold: 4 }
-  ],
 
-  evaluate({ players }) {
-    const progress = {};
-    const q1Start = new Date("2026-01-01");
-    const q1End = new Date("2026-03-31T23:59:59");
+  evaluate({ players, deaths }) {
+    const tiers = buildEmptyTiers();
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
+    const thresholds = {
+      bronze: 1,
+      silver: 2,
+      gold: 3,
+      prestige: 4
+    };
 
-      const kills = (entry.picks || []).filter(p => {
-        if (p.status !== "approved" || !p.deathDate) return false;
-        const d = new Date(p.deathDate);
-        return d >= q1Start && d <= q1End;
-      }).length;
+    const achieved = {
+      bronze: [],
+      silver: [],
+      gold: [],
+      prestige: []
+    };
 
-      progress[player.id] = kills;
+    players.forEach(p => {
+      const dates = (deaths?.[p.id] || [])
+        .filter(Boolean)
+        .map(d => toISODate(d))
+        .filter(Boolean)
+        .sort(sortISOAsc);
+
+      // Q1 = Jan(0), Feb(1), Mar(2)
+      const q1 = dates.filter(d => {
+        const m = monthOf(d);
+        return m === 0 || m === 1 || m === 2;
+      });
+
+      const count = q1.length;
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (count >= min) {
+          achieved[tierId].push({
+            id: p.id,
+            name: p.name,
+            achievedAt: q1[min - 1] || q1[0] || "9999-12-31",
+            leaderboardScore: p.totalScore ?? 0,
+            value: count
+          });
+        }
+      });
+    });
+
+    Object.keys(achieved).forEach(tierId => {
+      achieved[tierId].sort(sortPlayers);
+      tiers[tierId].players = achieved[tierId].map(x => ({
+        id: x.id,
+        name: x.name,
+        achievedAt: x.achievedAt,
+        value: x.value
+      }));
+      tiers[tierId].unlocked = tiers[tierId].players.length > 0;
     });
 
     return {
@@ -1281,8 +1460,8 @@ evaluate({ players }) {
       name: this.name,
       description: this.description,
       type: "tiered",
-      tiers: this.tiers,
-      progress
+      order: this.order,
+      tiers
     };
   }
 },
@@ -1290,6 +1469,85 @@ evaluate({ players }) {
 /* ============ LATE GAME REAPER ====================== */
 /* ====== ⚠ Q4-logik  ================================= */
 
+  /* ============ HIGH-RISK PICKER (80+) ======================== */
+{
+  id: "high_risk_picker",
+  name: "High-risk Picker",
+  description: "Picked a lot of 80+ celebrities",
+  order: 3,
+  type: "tiered",
+
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+
+    const pctThresholds = {
+      bronze: 25,
+      silver: 40,
+      gold: 60,
+      prestige: 80
+    };
+
+    const achieved = {
+      bronze: [],
+      silver: [],
+      gold: [],
+      prestige: []
+    };
+
+    players.forEach(p => {
+      const entry = p.entries?.["2026"];
+      const picks = (entry?.picks || []).filter(x => x?.status === "approved");
+
+      const ages = picks
+        .map(x => calculateAge(x.birthDate))
+        .filter(a => a != null);
+
+      const total = ages.length;
+      if (!total) return;
+
+      const over80 = ages.filter(a => a >= 80).length;
+      const pct = (over80 / total) * 100;
+
+      Object.entries(pctThresholds).forEach(([tierId, minPct]) => {
+        if (pct >= minPct) {
+          achieved[tierId].push({
+            id: p.id,
+            name: p.name,
+            achievedAt: "9999-12-31",
+            leaderboardScore: p.totalScore ?? 0,
+            value: `${over80}/${total} · ${Math.round(pct)}%`
+          });
+        }
+      });
+    });
+
+    Object.keys(achieved).forEach(tierId => {
+      achieved[tierId].sort((a, b) => {
+        // higher % first, then name
+        const ap = parseInt(String(a.value).split("·")[1]) || 0;
+        const bp = parseInt(String(b.value).split("·")[1]) || 0;
+        if (bp !== ap) return bp - ap;
+        return a.name.localeCompare(b.name);
+      });
+
+      tiers[tierId].players = achieved[tierId].map(x => ({
+        id: x.id,
+        name: x.name,
+        value: x.value
+      }));
+      tiers[tierId].unlocked = tiers[tierId].players.length > 0;
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      order: this.order,
+      tiers
+    };
+  }
+},
 
 
 /* ============ ZOMBIE INDEX ========================== */
