@@ -1016,14 +1016,67 @@ evaluate({ players }) {
 },
   
 /* ============ MOMENTUM ============================== */
-/* ====== ⚠ kræver tidslogik  ========================= */
 
+{
+  id: "momentum",
+  name: "Momentum",
+  type: "tiered",
+  order: 12,
+  tiers: {
+    bronze:   { players: [] },
+    silver:   { players: [] },
+    gold:     { players: [] },
+    prestige: { players: [] }
+  },
+  evaluate(context) {
+    context.players.forEach(player => {
+      const deaths = player.picks
+        .filter(p => p.deathDate)
+        .sort((a, b) => new Date(a.deathDate) - new Date(b.deathDate));
 
+      let maxStreak = 0;
+      let streak = 0;
+
+      deaths.forEach(() => {
+        streak++;
+        maxStreak = Math.max(maxStreak, streak);
+      });
+
+      if (maxStreak >= 5) this.tiers.prestige.players.push(player.id);
+      else if (maxStreak >= 4) this.tiers.gold.players.push(player.id);
+      else if (maxStreak >= 3) this.tiers.silver.players.push(player.id);
+      else if (maxStreak >= 2) this.tiers.bronze.players.push(player.id);
+    });
+  }
+}
   
 /* ============ POINT HOARDER ========================= */
-/* ====== ⚠ afhænger af score-skala  ================== */
 
+{
+  id: "point_hoarder",
+  name: "Point Hoarder",
+  type: "tiered",
+  order: 13,
+  tiers: {
+    bronze:   { players: [] },
+    silver:   { players: [] },
+    gold:     { players: [] },
+    prestige: { players: [] }
+  },
+  evaluate(context) {
+    context.players.forEach(player => {
+      const totalPP = player.picks.reduce(
+        (sum, p) => sum + (p.potentialPoints || 0),
+        0
+      );
 
+      if (totalPP >= 150 this.tiers.prestige.players.push(player.id);
+      else if (totalPP >= 100) this.tiers.gold.players.push(player.id);
+      else if (totalPP >= 80) this.tiers.silver.players.push(player.id);
+      else if (totalPP >= 50) this.tiers.bronze.players.push(player.id);
+    });
+  }
+}
   
 /* ============ YOLO ================================= */
 /* ============ YOLO ================================= */
