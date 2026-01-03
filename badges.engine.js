@@ -166,21 +166,35 @@ evaluate({ players }) {
 },
   
 /* ============ DEAD WEIGHT ================= */
-  {
-  id: "dead_weight",
+{
+  id: "dead-weight",
   name: "Dead Weight",
-  description: "Death of the oldest pick",
-  order: 3,
+  description: "Suffered a death on your oldest pick",
   type: "single",
 
   evaluate({ players }) {
-    let oldest = null;
+    const winners = [];
 
-    players.forEach(p => {
-      (p.deaths || []).forEach(d => {
-        if (!oldest || d.age > oldest.age) {
-          oldest = { playerId: p.id, name: p.name, age: d.age };
-        }
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const picks = (entry.picks || []).filter(
+        p => p.status === "approved" && p.birthDate
+      );
+
+      if (!picks.length) return;
+
+      // find oldest pick by birthDate (earliest birthdate)
+      const oldestPick = picks.reduce((a, b) =>
+        new Date(a.birthDate) < new Date(b.birthDate) ? a : b
+      );
+
+      if (!oldestPick.deathDate) return;
+
+      winners.push({
+        id: player.id,
+        name: player.name
       });
     });
 
@@ -189,8 +203,8 @@ evaluate({ players }) {
       name: this.name,
       description: this.description,
       type: "single",
-      unlocked: !!oldest,
-      players: oldest ? [{ id: oldest.playerId, name: oldest.name }] : []
+      unlocked: winners.length > 0,
+      players: winners
     };
   }
 },
