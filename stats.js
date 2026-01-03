@@ -71,6 +71,29 @@ function computeAgeDecimal(birthDate, refDate = new Date()) {
   return (rd - bd) / (365.25 * 24 * 60 * 60 * 1000);
 }
 
+function buildNameToIdMap(peopleMap) {
+  const map = {};
+  Object.entries(peopleMap || {}).forEach(([id, p]) => {
+    const name = (p?.name || "").trim().toLowerCase();
+    if (name) map[name] = id;
+  });
+  return map;
+}
+
+// Canonical person key: ALWAYS prefer personId.
+// If missing, try map normalizedName -> personId via peopleMap.
+// Final fallback: normalizedName normalized to lowercase.
+function getPersonKey(pick, peopleMap, nameToId) {
+  if (!pick) return null;
+  if (pick.personId) return pick.personId;
+
+  const raw = (pick.normalizedName || "").trim();
+  if (!raw) return null;
+
+  const key = raw.toLowerCase();
+  return (nameToId && nameToId[key]) ? nameToId[key] : key;
+}
+
 /* =====================================================
    AGE BUCKETS (GLOBAL, AUTHORITATIVE)
 ===================================================== */
@@ -897,7 +920,7 @@ function renderFunStats(players, peopleMap) {
     s.picks.forEach(pick => {
       if (pick.status !== "approved") return;
 
-      const pid = pick.personId || pick.normalizedName;
+      const pid = getPersonKey(pick, peopleMap, nameToId);
       if (!pid) return;
 
       playerApprovedCount[s.name]++;
@@ -1007,7 +1030,7 @@ function renderFunStats(players, peopleMap) {
   scores.forEach(s => {
     s.picks.forEach(pick => {
       if (!pick.deathDate) return;
-      const pid = pick.personId || pick.normalizedName;
+      const pid = getPersonKey(pick, peopleMap, nameToId);
       if (pid && personPlayers[pid]?.length === 1) {
         cleanKills[s.name]++;
       }
@@ -1069,6 +1092,7 @@ function renderFunStats(players, peopleMap) {
 function renderBehaviorStats(players, peopleMap) {
   const scores = buildScoreTable(players, "2026");
   const now = new Date();
+  const nameToId = buildNameToIdMap(peopleMap);
 
   const set = (id, value) => {
     const el = document.getElementById(id);
@@ -1090,7 +1114,7 @@ scores.forEach(s => {
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
 
-    const pid = pick.personId || pick.normalizedName;
+    const pid = getPersonKey(pick, peopleMap, nameToId);
     if (!pid) return;
 
     seen.add(pid);
@@ -1117,7 +1141,7 @@ scores.forEach(s => {
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
 
-    const pid = pick.personId || pick.normalizedName;
+    const pid = getPersonKey(pick, peopleMap, nameToId);
     if (!pid) return;
 
     playerData[s.name].approved++;
@@ -1219,7 +1243,7 @@ scores.forEach(s => {
   // 1) find unikke celebrities
   s.picks.forEach(pick => {
     if (pick.status !== "approved") return;
-    const pid = pick.personId || pick.normalizedName;
+    const pid = getPersonKey(pick, peopleMap, nameToId);
     if (!pid) return;
     unique.add(pid);
   });
