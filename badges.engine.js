@@ -68,18 +68,6 @@ function toISODate(value) {
   return `${y}-${m}-${day}`;
 }
 
-function calculateAge(birthDate, refDate = new Date()) {
-  const b = toDate(birthDate);
-  const r = toDate(refDate);
-  if (!b || !r) return null;
-
-  const ms = r.getTime() - b.getTime();
-  if (ms < 0) return null;
-
-  // Stats-standard: /365.25
-  return ms / (1000 * 60 * 60 * 24) / 365.25;
-}
-
 function monthOf(dateStr) {
   const d = toDate(dateStr);
   return d ? d.getMonth() : null; // 0=Jan
