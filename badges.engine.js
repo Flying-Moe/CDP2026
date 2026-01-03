@@ -104,7 +104,6 @@ return {
   unlocked: winners.length > 0,
   players: winners.map(w => ({ id: w.id, name: w.name }))
 };
-
 }
 },
 
@@ -150,17 +149,28 @@ evaluate({ players }) {
 {
   id: "july_sweep",
   name: "July Sweep",
-  description: "Performed a full July Sweep reset",
-  order: 7,
+  description: "Performed a July Sweep reset",
   type: "single",
 
-  evaluate() {
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      if (entry.julySweepUsed === true) {
+        winners.push({ id: player.id, name: player.name });
+      }
+    });
+
     return {
       id: this.id,
       name: this.name,
       description: this.description,
       type: "single",
-      players: []
+      unlocked: winners.length > 0,
+      players: winners
     };
   }
 },
@@ -309,16 +319,49 @@ evaluate({ players }) {
   }
 },
 
-/* ============ Placeholder Singles ================= */
+/* ============ LAST LAUGH ================= */
 
 {
   id: "last_laugh",
   name: "Last Laugh",
-  description: "Final confirmed death of the season",
-  order: 10,
+  description: "Scored the last death of the year",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    let lastDate = null;
+    const lastPlayers = new Set();
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      (entry.picks || []).forEach(pick => {
+        if (pick.status !== "approved") return;
+        if (!pick.deathDate) return;
+
+        const d = new Date(pick.deathDate);
+        if (!lastDate || d > lastDate) {
+          lastDate = d;
+          lastPlayers.clear();
+          lastPlayers.add(player.id);
+        } else if (+d === +lastDate) {
+          lastPlayers.add(player.id);
+        }
+      });
+    });
+
+    const winners = players
+      .filter(p => lastPlayers.has(p.id))
+      .map(p => ({ id: p.id, name: p.name }));
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
 
@@ -401,14 +444,43 @@ evaluate({ players }) {
   }
 },
 
+    /* ============ SILENT NIGHT ================= */
+  
 {
   id: "silent_night",
   name: "Silent Night",
-  description: "Death during Christmas",
-  order: 14,
+  description: "A death occurred between December 24 and 26",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hit = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.deathDate) return false;
+
+        const d = new Date(pick.deathDate);
+        const m = d.getMonth(); // 0-based
+        const day = d.getDate();
+
+        return m === 11 && day >= 24 && day <= 26;
+      });
+
+      if (hit) winners.push({ id: player.id, name: player.name });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
 
@@ -521,16 +593,45 @@ evaluate({ players }) {
     };
   }
 },
-
-
+  
+    /* ============ ZOMBIE ALERT ================= */
+  
 {
   id: "zombie_alert",
   name: "Zombie Alert",
-  description: "First 90+ year old pick",
-  order: 19,
+  description: "Picked a celebrity aged 90 or older",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hit = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.birthDate) return false;
+
+        const today = new Date("2026-01-01"); // reference start
+        const age =
+          (today - new Date(pick.birthDate)) /
+          (1000 * 60 * 60 * 24 * 365.25);
+
+        return age >= 90;
+      });
+
+      if (hit) winners.push({ id: player.id, name: player.name });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
 
