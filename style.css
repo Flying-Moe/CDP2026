@@ -839,6 +839,40 @@ footer {
   opacity: 0.4;
 }
 
+.badge-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.badge-tier {
+  border: 1px solid #333;
+  padding: 8px;
+}
+
+.badge-tier-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.badge-tier-icon {
+  max-width: 256px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.badge-player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.badge-player-list .greyed {
+  opacity: 0.4;
+}
+
+
 /* =====================================================
    BADGE FILTER (dropdown)
 ===================================================== */
