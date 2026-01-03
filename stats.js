@@ -408,13 +408,21 @@ if (badge.type === "single") {
     const list = document.createElement("div");
     list.className = "badge-tier-players";
 
-    const active = [];
-    const greyed = [];
+const active = [];
+const greyed = [];
 
-    Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
-      if (maxIdx === idx) active.push(pid);
-      else if (maxIdx > idx) greyed.push(pid);
-    });
+Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
+  if (maxIdx === idx) active.push(pid);
+  else if (maxIdx > idx) greyed.push(pid);
+});
+
+// 🔒 LOCKED TIER hvis ingen data overhovedet
+const isLocked = active.length === 0 && greyed.length === 0;
+
+if (isLocked) {
+  tierDiv.classList.add("locked");
+  img.style.opacity = "0.35";
+}
 
     if (!active.length && !greyed.length) {
       const span = document.createElement("div");
