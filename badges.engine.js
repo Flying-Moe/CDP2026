@@ -1080,7 +1080,7 @@ evaluate({ players }) {
         0
       );
 
-      if (totalPP >= 150 this.tiers.prestige.players.push(player.id);
+      if (totalPP >= 150) this.tiers.prestige.players.push(player.id);
       else if (totalPP >= 100) this.tiers.gold.players.push(player.id);
       else if (totalPP >= 80) this.tiers.silver.players.push(player.id);
       else if (totalPP >= 50) this.tiers.bronze.players.push(player.id);
