@@ -30,6 +30,12 @@ import {
    HELPERS
 ===================================================== */
 
+let playerNameById = {};
+
+function getPlayerName(playerId) {
+  return playerNameById[playerId] || playerId;
+}
+
 const BADGE_PLAYER_STORAGE_KEY = "badgeSelectedPlayer";
 const STATS_TAB_STORAGE_KEY = "statsActiveTab";
 
