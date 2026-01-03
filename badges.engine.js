@@ -1019,10 +1019,9 @@ evaluate({ players }) {
   name: "Momentum",
   type: "tiered",
   order: 12,
-  tiers: ["bronze", "silver", "gold", "prestige"],
 
   evaluate({ players }) {
-    const results = [];
+    const tiers = buildEmptyTiers();
 
     players.forEach(player => {
       const entry = player.entries?.["2026"];
@@ -1033,40 +1032,53 @@ evaluate({ players }) {
         .map(p => new Date(p.deathDate))
         .sort((a, b) => a - b);
 
-      let bestTier = null;
+      if (dates.length < 2) return;
 
-      for (let i = 0; i < dates.length; i++) {
-        for (let j = i + 1; j < dates.length; j++) {
-          const diffDays = (dates[j] - dates[i]) / (1000 * 60 * 60 * 24);
+      let achieved = {
+        bronze: false,
+        silver: false,
+        gold: false,
+        prestige: false
+      };
 
-          if (diffDays <= 7) bestTier = "gold";
-          else if (diffDays <= 14) bestTier = "silver";
-          else if (diffDays <= 30) bestTier = "bronze";
-        }
+      // 2 deaths window
+      for (let i = 0; i < dates.length - 1; i++) {
+        const diffDays = (dates[i + 1] - dates[i]) / 86400000;
+
+        if (diffDays <= 30) achieved.bronze = true;
+        if (diffDays <= 14) achieved.silver = true;
+        if (diffDays <= 7)  achieved.gold = true;
       }
 
       // Prestige: 3 deaths within 14 days
       for (let i = 0; i < dates.length - 2; i++) {
-        const diffDays = (dates[i + 2] - dates[i]) / (1000 * 60 * 60 * 24);
-        if (diffDays <= 14) bestTier = "prestige";
+        const diffDays = (dates[i + 2] - dates[i]) / 86400000;
+        if (diffDays <= 14) achieved.prestige = true;
       }
 
-      if (bestTier) {
-        results.push({
-          playerId: player.id,
-          value: bestTier
+      Object.entries(achieved).forEach(([tierId, ok]) => {
+        if (!ok) return;
+
+        tiers[tierId].players.push({
+          id: player.id,
+          name: player.name,
+          value: tierId,
+          achievedAt: "9999-12-31",
+          leaderboardScore: player.totalScore ?? 0
         });
-      }
+      });
+    });
+
+    Object.values(tiers).forEach(tier => {
+      tier.unlocked = tier.players.length > 0;
+      tier.players.sort(sortPlayers);
     });
 
     return {
       id: "momentum",
       name: "Momentum",
       type: "tiered",
-      tiers: buildNamedTierResult(
-        ["bronze", "silver", "gold", "prestige"],
-        results
-      )
+      tiers
     };
   }
 },
