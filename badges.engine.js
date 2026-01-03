@@ -167,7 +167,7 @@ evaluate({ players }) {
   
 /* ============ DEAD WEIGHT ================= */
 {
-  id: "dead-weight",
+  id: "dead_weight",
   name: "Dead Weight",
   description: "Suffered a death on your oldest pick",
   type: "single",
