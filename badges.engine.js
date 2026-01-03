@@ -36,6 +36,18 @@ function sortPlayers(a, b) {
   return a.name.localeCompare(b.name);
 }
 
+function calculateAge(birthDate, refDate = "2026-01-01") {
+  if (!birthDate) return null;
+
+  const bd = new Date(birthDate);
+  if (isNaN(bd)) return null;
+
+  const rd = new Date(refDate);
+  if (isNaN(rd)) return null;
+
+  return (rd - bd) / (1000 * 60 * 60 * 24 * 365.25);
+}
+
 /* =====================================================
    BADGES
 ===================================================== */
