@@ -280,6 +280,12 @@ function renderBadges(context, selectedPlayerId = "all") {
     tabs.style.display = "none";
   }
 
+   // Build playerId → name lookup (én gang)
+playerNameById = {};
+context.players.forEach(p => {
+  playerNameById[p.id] = p.name;
+});
+
   // Render SINGLE
   singleBadges.forEach(badge => {
     singleHost.appendChild(renderTieredBadge(badge, selectedPlayerId));
