@@ -724,50 +724,42 @@ evaluate({ players }) {
 /* ============ THE UNDERTAKER ========================= */
 /* ========== OK?  ===================================== */
 
-  {
-    id: "undertaker",
-    name: "The Undertaker",
-    description: "Confirmed kills accumulated",
-    order: 1,
-    type: "tiered",
+ {
+  id: "undertaker",
+  name: "Undertaker",
+  description: "Confirmed kills accumulated",
+  type: "tiered",
+  tiers: [
+    { id: "bronze", label: "Bronze", threshold: 1 },
+    { id: "silver", label: "Silver", threshold: 3 },
+    { id: "gold", label: "Gold", threshold: 5 },
+    { id: "prestige", label: "Prestige", threshold: 8 }
+  ],
 
-    evaluate({ players, deaths }) {
-      const tiers = buildEmptyTiers();
-      let globalUnlocked = false;
+  evaluate({ players }) {
+    const progress = {};
 
-      players.forEach(player => {
-        const hits = player.hits || 0;
-        if (hits <= 0) return;
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
 
-        const deathDates = deaths[player.id] || [];
-        if (!deathDates.length) return;
+      const kills = (entry.picks || []).filter(
+        p => p.status === "approved" && !!p.deathDate
+      ).length;
 
-        const achievedAt = deathDates.sort()[0];
+      progress[player.id] = kills;
+    });
 
-        TIERS.forEach(t => {
-          if (hits >= t.min) {
-            tiers[t.id].players.push({
-              id: player.id,
-              name: player.name,
-              value: hits,
-              achievedAt,
-              leaderboardScore: player.totalScore
-            });
-          }
-        });
-      });
-
-      Object.values(tiers).forEach(tier => {
-        if (tier.players.length) {
-          tier.unlocked = true;
-          globalUnlocked = true;
-          tier.players.sort(sortPlayers);
-        }
-      });
-
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
-    }
-  },
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "tiered",
+      tiers: this.tiers,
+      progress
+    };
+  }
+},
 
 /* ============ GLASS CANNON ========================= */
 /* =========== OK?  ================================== */
