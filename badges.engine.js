@@ -961,7 +961,6 @@ evaluate({ players }) {
 
   
 /* ============ BODY COUNT =========================== */
-  
 {
   id: "body_count",
   name: "Body Count",
@@ -969,47 +968,48 @@ evaluate({ players }) {
   order: 11,
   tiers: [1, 3, 5, 8],
 
- evaluate({ players }) {
-  const tiers = buildEmptyTiers();
-  const thresholds = {
-    bronze: 1,
-    silver: 3,
-    gold: 5,
-    prestige: 8
-  };
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+    const thresholds = {
+      bronze: 1,
+      silver: 3,
+      gold: 5,
+      prestige: 8
+    };
 
-  players.forEach(player => {
-    const entry = player.entries?.["2026"];
-    if (!entry) return;
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
 
-    const hits = (entry.picks || []).filter(
-      p => p.status === "approved" && p.deathDate
-    ).length;
+      const hits = (entry.picks || []).filter(
+        p => p.status === "approved" && p.deathDate
+      ).length;
 
-    Object.entries(thresholds).forEach(([tierId, min]) => {
-      if (hits >= min) {
-        tiers[tierId].players.push({
-          id: player.id,
-          name: player.name,
-          value: hits,
-          achievedAt: "9999-12-31",
-          leaderboardScore: player.totalScore ?? 0
-        });
-      }
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (hits >= min) {
+          tiers[tierId].players.push({
+            id: player.id,
+            name: player.name,
+            value: hits,
+            achievedAt: "9999-12-31",
+            leaderboardScore: player.totalScore ?? 0
+          });
+        }
+      });
     });
-  });
 
-  Object.values(tiers).forEach(tier => {
-    tier.unlocked = tier.players.length > 0;
-    tier.players.sort(sortPlayers);
-  });
+    Object.values(tiers).forEach(tier => {
+      tier.unlocked = tier.players.length > 0;
+      tier.players.sort(sortPlayers);
+    });
 
-  return {
-    id: this.id,
-    name: this.name,
-    type: "tiered",
-    tiers
-  };
+    return {
+      id: this.id,
+      name: this.name,
+      type: "tiered",
+      tiers
+    };
+  }
 },
 
 /* ============ MOMENTUM ============================== */
