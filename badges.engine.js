@@ -116,27 +116,35 @@ return {
   order: 6,
   type: "single",
 
-  evaluate({ players }) {
-    const winners = players
-      .filter(p => p.approvedPicks === 20 && p.hits === 0)
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        achievedAt: "9999-12-31",
-        leaderboardScore: p.totalScore
-      }))
-      .sort(sortPlayers);
+evaluate({ players }) {
+  const winners = [];
 
-return {
-  id: this.id,
-  name: this.name,
-  description: this.description,
-  type: "single",
-  unlocked: winners.length > 0,
-  players: winners.map(w => ({ id: w.id, name: w.name }))
-};
-  }
-},
+  players.forEach(player => {
+    const entry = player.entries?.["2026"];
+    if (!entry || entry.active === false) return;
+
+    const picks = (entry.picks || []).filter(p => p.status === "approved");
+    if (picks.length !== 20) return;
+
+    const hasDeath = picks.some(p => !!p.deathDate);
+    if (hasDeath) return;
+
+    winners.push({
+      id: player.id,
+      name: player.name
+    });
+  });
+
+  return {
+    id: this.id,
+    name: this.name,
+    description: this.description,
+    type: "single",
+    unlocked: winners.length > 0,
+    players: winners
+  };
+}
+,
 
 /* ============ July Sweep ========================= */
 {
