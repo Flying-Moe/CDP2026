@@ -783,46 +783,6 @@ evaluate({ players }) {
   }
 },
 
-/* ============ THE UNDERTAKER ========================= */
-/* ========== OK?  ===================================== */
-
- {
-  id: "undertaker",
-  name: "Undertaker",
-  description: "Confirmed kills accumulated",
-  type: "tiered",
-  tiers: [
-    { id: "bronze", label: "Bronze", threshold: 1 },
-    { id: "silver", label: "Silver", threshold: 3 },
-    { id: "gold", label: "Gold", threshold: 5 },
-    { id: "prestige", label: "Prestige", threshold: 8 }
-  ],
-
-  evaluate({ players }) {
-    const progress = {};
-
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
-
-      const kills = (entry.picks || []).filter(
-        p => p.status === "approved" && !!p.deathDate
-      ).length;
-
-      progress[player.id] = kills;
-    });
-
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: "tiered",
-      tiers: this.tiers,
-      progress
-    };
-  }
-},
-
 /* ============ GLASS CANNON ========================= */
 /* =========== OK?  ================================== */
 
@@ -928,100 +888,57 @@ evaluate({ players }) {
 },
 
 /* ============ PENSION SNIPER ========================= */
-/* ====== ⚠ check grænser   ========================== */
-  {
-    id: "pension_sniper",
-    name: "Pension Sniper",
-    description: "High average age across approved picks",
-    order: 4,
-    type: "tiered",
+  
+{
+  id: "pension_sniper",
+  type: "tiered",
+  tiers: [75, 80, 85, 90],
+  evaluate({ players }) {
+    return players.map(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return null;
 
-    evaluate({ players }) {
-      const tiers = buildEmptyTiers();
-      let globalUnlocked = false;
-
-      players.forEach(player => {
-        if (!player.avgPickAge) return;
-
-        const avg = player.avgPickAge;
-        const achievedAt = "9999-12-31";
-
-        const thresholds = {
-          bronze: 75,
-          silver: 80,
-          gold: 85,
-          prestige: 90
-        };
-
-        Object.entries(thresholds).forEach(([tierId, minAge]) => {
-          if (avg >= minAge) {
-            tiers[tierId].players.push({
-              id: player.id,
-              name: player.name,
-              value: avg,
-              achievedAt,
-              leaderboardScore: player.totalScore
-            });
-          }
+      const ages = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.birthDate)
+        .map(p => {
+          const birth = new Date(p.birthDate);
+          const now = new Date();
+          return (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
         });
-      });
 
-      Object.values(tiers).forEach(tier => {
-        if (tier.players.length) {
-          tier.unlocked = true;
-          globalUnlocked = true;
-          tier.players.sort(sortPlayers);
-        }
-      });
+      if (!ages.length) return null;
 
-      return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
-    }
-  },
+      const avg = ages.reduce((a, b) => a + b, 0) / ages.length;
+
+      return {
+        playerId: player.id,
+        value: avg
+      };
+    }).filter(Boolean);
+  }
+}
+
   
 /* ============ BODY COUNT =========================== */
   
 {
   id: "body_count",
-  name: "Body Count",
-  description: "Confirmed kills accumulated",
-  order: 21,
   type: "tiered",
+  tiers: [1, 3, 5, 8],
+  evaluate({ players }) {
+    return players.map(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return null;
 
-  evaluate({ players, deaths }) {
-    const tiers = buildEmptyTiers();
-    let globalUnlocked = false;
+      const hits = (entry.picks || []).filter(
+        p => p.status === "approved" && p.deathDate
+      ).length;
 
-    players.forEach(player => {
-      const hits = player.hits || 0;
-      if (hits <= 0) return;
-
-      const deathDates = deaths[player.id] || [];
-      if (!deathDates.length) return;
-
-      const achievedAt = deathDates.sort()[0];
-
-      TIERS.forEach(t => {
-        if (hits >= t.min) {
-          tiers[t.id].players.push({
-            id: player.id,
-            name: player.name,
-            value: hits,
-            achievedAt,
-            leaderboardScore: player.totalScore
-          });
-        }
-      });
-    });
-
-    Object.values(tiers).forEach(tier => {
-      if (tier.players.length) {
-        tier.unlocked = true;
-        globalUnlocked = true;
-        tier.players.sort(sortPlayers);
-      }
-    });
-
-    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+      return {
+        playerId: player.id,
+        value: hits
+      };
+    }).filter(Boolean);
   }
 },
   
@@ -1598,52 +1515,29 @@ evaluate({ players }) {
 
 
 /* ============ ZOMBIE INDEX ========================== */
+
 {
   id: "zombie_index",
-  name: "Zombie Index",
-  description: "Picked celebrities who refuse to die",
-  order: 24,
   type: "tiered",
-
+  tiers: [1, 2, 3, 5],
   evaluate({ players }) {
-    const tiers = buildEmptyTiers();
-    let globalUnlocked = false;
+    return players.map(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return null;
 
-    players.forEach(player => {
-      const count = player.picksOver90 || 0;
-      if (count <= 0) return;
+      const count = (entry.picks || []).filter(p => {
+        if (!p.birthDate) return false;
+        const birth = new Date(p.birthDate);
+        const now = new Date();
+        const age = (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
+        return age >= 90;
+      }).length;
 
-      const achievedAt = "9999-12-31";
-
-      const thresholds = {
-        bronze: 1,
-        silver: 2,
-        gold: 3,
-        prestige: 5
+      return {
+        playerId: player.id,
+        value: count
       };
-
-      Object.entries(thresholds).forEach(([tierId, min]) => {
-        if (count >= min) {
-          tiers[tierId].players.push({
-            id: player.id,
-            name: player.name,
-            value: count,
-            achievedAt,
-            leaderboardScore: player.totalScore
-          });
-        }
-      });
-    });
-
-    Object.values(tiers).forEach(tier => {
-      if (tier.players.length) {
-        tier.unlocked = true;
-        globalUnlocked = true;
-        tier.players.sort(sortPlayers);
-      }
-    });
-
-    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+    }).filter(Boolean);
   }
 },
 
