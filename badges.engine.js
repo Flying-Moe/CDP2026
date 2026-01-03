@@ -822,7 +822,7 @@ evaluate({ players }) {
 /* ============ THE VULTURE ========================= */
 
 {
-  id: "vulture",
+  id: "the_vulture",
   name: "Vulture",
   description: "Low average age across picks",
   type: "tiered",
