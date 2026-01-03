@@ -829,6 +829,16 @@ footer {
   opacity: 0.45;
 }
 
+.badge-card {
+  border: 1px solid #333;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.badge-card.locked {
+  opacity: 0.4;
+}
+
 /* =====================================================
    BADGE FILTER (dropdown)
 ===================================================== */
