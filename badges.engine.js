@@ -211,20 +211,48 @@ evaluate({ players }) {
 
 /* ============ CLEAN KILL ================= */
 
-  {
+{
   id: "clean_kill",
   name: "Clean Kill",
-  description: "A death that only one player had picked",
-  order: 4,
+  description: "Killed a celebrity no one else had picked",
   type: "single",
 
-  evaluate({ deathsByPerson, players }) {
+  evaluate({ players }) {
     const winners = [];
 
-    Object.entries(deathsByPerson || {}).forEach(([pid, info]) => {
-      if (info.players.length === 1) {
-        const p = players.find(pl => pl.id === info.players[0]);
-        if (p) winners.push({ id: p.id, name: p.name });
+    // byg frekvens-map for deaths
+    const deathFreq = {};
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      (entry.picks || []).forEach(pick => {
+        if (pick.status !== "approved") return;
+        if (!pick.deathDate) return;
+
+        const pid = pick.personId || pick.normalizedName;
+        if (!pid) return;
+
+        deathFreq[pid] = (deathFreq[pid] || 0) + 1;
+      });
+    });
+
+    // find clean kills
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hasCleanKill = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.deathDate) return false;
+
+        const pid = pick.personId || pick.normalizedName;
+        return pid && deathFreq[pid] === 1;
+      });
+
+      if (hasCleanKill) {
+        winners.push({ id: player.id, name: player.name });
       }
     });
 
