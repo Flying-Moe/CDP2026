@@ -250,7 +250,6 @@ function getHighestTierIndex(tiers, playerId) {
 
 function renderBadges(context, selectedPlayerId = "all") {
   const allBadges = evaluateBadges(context);
-  renderSingleBadges(badges);
   const singleHost = document.getElementById("badges-single");
   const progHost = document.getElementById("badges-progressive");
   const tabs = document.getElementById("badge-tabs");
