@@ -754,23 +754,32 @@ evaluate({ players }) {
 },
 
 /* ============ THE STABILIZER ============================== */
-/* ====== ⚠ afhænger af Chaos-logik ========================== */
 
 {
   id: "the_stabilizer",
   name: "The Stabilizer",
-  description: "Maintained control in a chaotic world",
-  order: 9,
   type: "tiered",
+  order: 16,
+  tiers: {
+    bronze:   { players: [] },
+    silver:   { players: [] },
+    gold:     { players: [] },
+    prestige: { players: [] }
+  },
+  evaluate(context) {
+    context.players.forEach(player => {
+      let stable = 0;
 
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      globalUnlocked: true,   // synlig men låst
-      tiers: buildEmptyTiers()
-    };
+      player.picks.forEach(pk => {
+        const age = calculateAge(pk.birthDate);
+        if (age != null && age >= 50 && age <= 75) stable++;
+      });
+
+      if (stable >= 18) this.tiers.prestige.players.push(player.id);
+      else if (stable >= 16) this.tiers.gold.players.push(player.id);
+      else if (stable >= 13) this.tiers.silver.players.push(player.id);
+      else if (stable >= 10) this.tiers.bronze.players.push(player.id);
+    });
   }
 },
 
@@ -970,6 +979,7 @@ evaluate({ players }) {
   },
   
 /* ============ BODY COUNT =========================== */
+  
 {
   id: "body_count",
   name: "Body Count",
@@ -1387,47 +1397,43 @@ evaluate({ players }) {
 },
 
 /* ============ LONE WOLF ============================= */
+
 {
   id: "lone_wolf",
   name: "Lone Wolf",
-  description: "Picked celebrities no one else dared to",
   type: "tiered",
-
-  tiers: [
-    { label: "Bronze", threshold: 0.25 },
-    { label: "Silver", threshold: 0.5 },
-    { label: "Gold", threshold: 0.75 },
-    { label: "Prestige", threshold: 1.0 }
-  ],
-
-  evaluate({ players }) {
+  order: 14,
+  tiers: {
+    bronze:   { players: [] },
+    silver:   { players: [] },
+    gold:     { players: [] },
+    prestige: { players: [] }
+  },
+  evaluate(context) {
     const freq = {};
-    const progress = {};
+    context.players.forEach(p =>
+      p.picks.forEach(pk => {
+        const id = pk.personId || pk.normalizedName;
+        if (id) freq[id] = (freq[id] || 0) + 1;
+      })
+    );
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      (entry?.picks || []).forEach(p => {
-        if (p.status !== "approved") return;
-        const id = p.personId || p.normalizedName;
-        if (!id) return;
-        freq[id] = (freq[id] || 0) + 1;
-      });
+    context.players.forEach(player => {
+      const total = player.picks.length;
+      if (!total) return;
+
+      const unique = player.picks.filter(pk => {
+        const id = pk.personId || pk.normalizedName;
+        return id && freq[id] === 1;
+      }).length;
+
+      const ratio = unique / total;
+
+      if (ratio === 1) this.tiers.prestige.players.push(player.id);
+      else if (ratio >= 0.90) this.tiers.gold.players.push(player.id);
+      else if (ratio >= 0.75) this.tiers.silver.players.push(player.id);
+      else if (ratio >= 0.60) this.tiers.bronze.players.push(player.id);
     });
-
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
-
-      const approved = (entry.picks || []).filter(p => p.status === "approved");
-      if (!approved.length) return;
-
-      const unique = approved.filter(p => freq[p.personId || p.normalizedName] === 1).length;
-      const ratio = unique / approved.length;
-
-      if (ratio > 0) progress[player.id] = ratio;
-    });
-
-    return { progress };
   }
 },
 
