@@ -54,6 +54,30 @@ function buildSingleResult(meta, players = [], extra = {}) {
   };
 }
 
+function buildNamedTierResult(tierIds, results) {
+  const tiers = buildEmptyTiers();
+
+  results.forEach(r => {
+    const tierId = r.value;
+    if (!tiers[tierId]) return;
+
+    tiers[tierId].players.push({
+      id: r.playerId,
+      name: r.name ?? r.playerName ?? "",
+      value: r.value,
+      achievedAt: r.achievedAt ?? "9999-12-31",
+      leaderboardScore: r.leaderboardScore ?? 0
+    });
+  });
+
+  Object.values(tiers).forEach(tier => {
+    tier.unlocked = tier.players.length > 0;
+    tier.players.sort(sortPlayers);
+  });
+
+  return tiers;
+}
+
 /* =====================================================
    DATE + AGE HELPERS (ENGINE-ONLY)
 ===================================================== */
@@ -946,30 +970,47 @@ evaluate({ players }) {
   order: 11,
   tiers: [1, 3, 5, 8],
 
-  evaluate({ players }) {
-    const results = [];
+ evaluate({ players }) {
+  const tiers = buildEmptyTiers();
+  const thresholds = {
+    bronze: 1,
+    silver: 3,
+    gold: 5,
+    prestige: 8
+  };
 
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry) return;
+  players.forEach(player => {
+    const entry = player.entries?.["2026"];
+    if (!entry) return;
 
-      const hits = (entry.picks || []).filter(
-        p => p.status === "approved" && p.deathDate
-      ).length;
+    const hits = (entry.picks || []).filter(
+      p => p.status === "approved" && p.deathDate
+    ).length;
 
-      results.push({
-        playerId: player.id,
-        value: hits
-      });
+    Object.entries(thresholds).forEach(([tierId, min]) => {
+      if (hits >= min) {
+        tiers[tierId].players.push({
+          id: player.id,
+          name: player.name,
+          value: hits,
+          achievedAt: "9999-12-31",
+          leaderboardScore: player.totalScore ?? 0
+        });
+      }
     });
+  });
 
-    return {
-      id: "body_count",
-      name: "Body Count",
-      type: "tiered",
-      tiers: buildTierResult([1, 3, 5, 8], results)
-    };
-  }
+  Object.values(tiers).forEach(tier => {
+    tier.unlocked = tier.players.length > 0;
+    tier.players.sort(sortPlayers);
+  });
+
+  return {
+    id: this.id,
+    name: this.name,
+    type: "tiered",
+    tiers
+  };
 },
 
 /* ============ MOMENTUM ============================== */
@@ -1143,52 +1184,6 @@ evaluate({ players }) {
       type: "tiered",
       order: this.order,
       tiers
-    };
-  }
-},
-  
-/* ============ HIGH-RISK PICKER (80+) ================================ */
-{
-  id: "high_risk_picker",
-  name: "High-Risk Picker",
-  description: "Picked very old celebrities (80+)",
-  type: "tiered",
-  tiers: [
-    { id: "bronze", label: "Bronze", threshold: 0.25 },
-    { id: "silver", label: "Silver", threshold: 0.40 },
-    { id: "gold", label: "Gold", threshold: 0.60 },
-    { id: "prestige", label: "Prestige", threshold: 0.80 }
-  ],
-
-  evaluate({ players }) {
-    const progress = {};
-    const ref = new Date("2026-01-01");
-
-    players.forEach(player => {
-      const entry = player.entries?.["2026"];
-      if (!entry || entry.active === false) return;
-
-      const picks = (entry.picks || []).filter(p => p.status === "approved" && p.birthDate);
-      if (!picks.length) {
-        progress[player.id] = 0;
-        return;
-      }
-
-      const risky = picks.filter(p => {
-        const age = (ref - new Date(p.birthDate)) / (1000 * 60 * 60 * 24 * 365.25);
-        return age >= 80;
-      }).length;
-
-      progress[player.id] = risky / picks.length;
-    });
-
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: "tiered",
-      tiers: this.tiers,
-      progress
     };
   }
 },
