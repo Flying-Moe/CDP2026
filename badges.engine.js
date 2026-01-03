@@ -882,13 +882,38 @@ evaluate({ players }) {
   name: "Pension Sniper",
   type: "tiered",
   order: 5,
-  evaluate() {
+  tiers: [75, 80, 85, 90],
+
+  evaluate({ players }) {
+    const results = [];
+    const now = new Date();
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const ages = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.birthDate)
+        .map(p => {
+          const birth = new Date(p.birthDate);
+          return (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
+        });
+
+      if (!ages.length) return;
+
+      const avgAge = ages.reduce((a, b) => a + b, 0) / ages.length;
+
+      results.push({
+        playerId: player.id,
+        value: avgAge
+      });
+    });
+
     return {
-      id: this.id,
-      name: this.name,
+      id: "pension_sniper",
+      name: "Pension Sniper",
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers: buildTierResult([75, 80, 85, 90], results)
     };
   }
 },
@@ -897,22 +922,38 @@ evaluate({ players }) {
 /* ============ BODY COUNT =========================== */
   
 {
-  id: "pension_sniper",
-  name: "Pension Sniper",
+  id: "body_count",
+  name: "Body Count",
   type: "tiered",
-  order: 5,
-  evaluate() {
+  order: 11,
+  tiers: [1, 3, 5, 8],
+
+  evaluate({ players }) {
+    const results = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const hits = (entry.picks || []).filter(
+        p => p.status === "approved" && p.deathDate
+      ).length;
+
+      results.push({
+        playerId: player.id,
+        value: hits
+      });
+    });
+
     return {
-      id: this.id,
-      name: this.name,
+      id: "body_count",
+      name: "Body Count",
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers: buildTierResult([1, 3, 5, 8], results)
     };
   }
 },
 
-  
 /* ============ MOMENTUM ============================== */
 
 {
@@ -1442,13 +1483,34 @@ evaluate({ players }) {
   name: "Zombie Index",
   type: "tiered",
   order: 10,
-  evaluate() {
+  tiers: [1, 2, 3, 5],
+
+  evaluate({ players }) {
+    const results = [];
+    const now = new Date();
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const count = (entry.picks || []).filter(p => {
+        if (!p.birthDate) return false;
+        const birth = new Date(p.birthDate);
+        const age = (now - birth) / (365.25 * 24 * 60 * 60 * 1000);
+        return age >= 90;
+      }).length;
+
+      results.push({
+        playerId: player.id,
+        value: count
+      });
+    });
+
     return {
-      id: this.id,
-      name: this.name,
+      id: "zombie_index",
+      name: "Zombie Index",
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers: buildTierResult([1, 2, 3, 5], results)
     };
   }
 },
