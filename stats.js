@@ -250,7 +250,7 @@ function getHighestTierIndex(tiers, playerId) {
 
 function renderBadges(context, selectedPlayerId = "all") {
   const allBadges = evaluateBadges(context);
-
+  renderSingleBadges(badges);
   const singleHost = document.getElementById("badges-single");
   const progHost = document.getElementById("badges-progressive");
   const tabs = document.getElementById("badge-tabs");
@@ -391,6 +391,39 @@ function renderTieredBadge(badge, selectedPlayerId) {
 
   wrapper.appendChild(tierGrid);
   return wrapper;
+}
+
+function renderSingleBadges(badges) {
+  const container = document.getElementById("badges-single");
+  container.innerHTML = "";
+
+  badges
+    .filter(b => b.type === "single")
+    .forEach(badge => {
+      const div = document.createElement("div");
+      div.className = "badge-card" + (badge.unlocked ? "" : " locked");
+
+      const img = document.createElement("img");
+      img.src = `assets/badges/${badge.id}.png`;
+      img.style.maxWidth = "256px";
+
+      const title = document.createElement("h3");
+      title.textContent = badge.name;
+
+      const desc = document.createElement("p");
+      desc.textContent = badge.unlocked
+        ? badge.description
+        : "Not unlocked yet";
+
+      const players = document.createElement("p");
+      players.className = "muted";
+      players.textContent = badge.players.length
+        ? badge.players.map(p => p.name).join(", ")
+        : "—";
+
+      div.append(img, title, desc, players);
+      container.appendChild(div);
+    });
 }
 
 /* =====================================================
