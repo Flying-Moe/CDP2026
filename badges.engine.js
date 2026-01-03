@@ -36,6 +36,59 @@ function sortPlayers(a, b) {
   return a.name.localeCompare(b.name);
 }
 
+/* =====================================================
+   DATE + AGE HELPERS (ENGINE-ONLY)
+===================================================== */
+
+function toDate(value) {
+  if (!value) return null;
+
+  // Firestore Timestamp-ish
+  if (typeof value === "object" && value.seconds) {
+    return new Date(value.seconds * 1000);
+  }
+
+  if (value instanceof Date) return value;
+
+  if (typeof value === "string") {
+    // Expect YYYY-MM-DD (or something Date can parse)
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  return null;
+}
+
+function toISODate(value) {
+  const d = toDate(value);
+  if (!d) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function calculateAge(birthDate, refDate = new Date()) {
+  const b = toDate(birthDate);
+  const r = toDate(refDate);
+  if (!b || !r) return null;
+
+  const ms = r.getTime() - b.getTime();
+  if (ms < 0) return null;
+
+  // Stats-standard: /365.25
+  return ms / (1000 * 60 * 60 * 24) / 365.25;
+}
+
+function monthOf(dateStr) {
+  const d = toDate(dateStr);
+  return d ? d.getMonth() : null; // 0=Jan
+}
+
+function sortISOAsc(a, b) {
+  return String(a).localeCompare(String(b));
+}
+
 function calculateAge(birthDate, refDate = "2026-01-01") {
   if (!birthDate) return null;
 
