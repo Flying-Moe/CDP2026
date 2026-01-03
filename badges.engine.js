@@ -497,8 +497,7 @@ evaluate({ players }) {
       players: winners
     };
   }
-}
-,
+},
 
   /* ============ FRIDAY THE 13TH ================= */
   
