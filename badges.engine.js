@@ -143,8 +143,8 @@ evaluate({ players }) {
     unlocked: winners.length > 0,
     players: winners
   };
-}
-,
+ }
+},
 
 /* ============ July Sweep ========================= */
 {
