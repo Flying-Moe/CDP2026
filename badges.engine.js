@@ -36,6 +36,24 @@ function sortPlayers(a, b) {
   return a.name.localeCompare(b.name);
 }
 
+function buildTierResult(meta, tiers, extra = {}) {
+  return {
+    ...meta,
+    ...extra,
+    type: "tiered",
+    tiers: tiers || buildEmptyTiers()
+  };
+}
+
+function buildSingleResult(meta, players = [], extra = {}) {
+  return {
+    ...meta,
+    ...extra,
+    type: "single",
+    players: Array.isArray(players) ? players : []
+  };
+}
+
 /* =====================================================
    DATE + AGE HELPERS (ENGINE-ONLY)
 ===================================================== */
