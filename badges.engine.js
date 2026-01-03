@@ -322,17 +322,48 @@ evaluate({ players }) {
   }
 },
 
+/* ============ DEAD ON ARRIVAL ================= */
+  
 {
   id: "dead_on_arrival",
   name: "Dead on Arrival",
-  description: "Death within the first week of the season",
-  order: 12,
+  description: "A death occurred within 7 days of season start",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
-  }
-},
 
+  evaluate({ players }) {
+    const winners = [];
+    const seasonStart = new Date("2026-01-01");
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hit = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.deathDate) return false;
+
+        const d = new Date(pick.deathDate);
+        const days = (d - seasonStart) / (1000 * 60 * 60 * 24);
+        return days >= 0 && days <= 7;
+      });
+
+      if (hit) winners.push({ id: player.id, name: player.name });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
+  }
+}
+,
+
+  /* ============ FRIDAY THE 13TH ================= */
+  
 {
   id: "friday_13",
   name: "Friday the 13th",
@@ -381,25 +412,113 @@ evaluate({ players }) {
   }
 },
 
+    /* ============ MASS CASUALTY EVENT ================= */
+  
 {
   id: "mass_casualty",
   name: "Mass Casualty Event",
-  description: "One death affected half or more of the players",
-  order: 15,
+  description: "A single death affected at least half of all players",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+    const totalPlayers = players.length;
+
+    const deathFreq = {};
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      (entry.picks || []).forEach(pick => {
+        if (pick.status !== "approved") return;
+        if (!pick.deathDate) return;
+
+        const pid = pick.personId || pick.normalizedName;
+        if (!pid) return;
+
+        deathFreq[pid] = (deathFreq[pid] || new Set());
+        deathFreq[pid].add(player.id);
+      });
+    });
+
+    const massPids = Object.values(deathFreq)
+      .filter(set => set.size / totalPlayers >= 0.5);
+
+    if (massPids.length === 0) {
+      return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        type: "single",
+        unlocked: false,
+        players: []
+      };
+    }
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hit = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.deathDate) return false;
+
+        const pid = pick.personId || pick.normalizedName;
+        return pid && deathFreq[pid] && (deathFreq[pid].size / totalPlayers >= 0.5);
+      });
+
+      if (hit) winners.push({ id: player.id, name: player.name });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
-
+  
+    /* ============ DARK HORSE ================= */
+  
 {
   id: "dark_horse",
   name: "Dark Horse",
-  description: "Unexpected young death",
-  order: 16,
+  description: "A young celebrity died (under 60)",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hit = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.birthDate || !pick.deathDate) return false;
+
+        const age =
+          (new Date(pick.deathDate) - new Date(pick.birthDate)) /
+          (1000 * 60 * 60 * 24 * 365.25);
+
+        return age < 60;
+      });
+
+      if (hit) winners.push({ id: player.id, name: player.name });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
 
@@ -415,17 +534,45 @@ evaluate({ players }) {
   }
 },
 
+  /* ============ VIGILANTE WORK ================= */
+  
 {
   id: "vigilante_work",
   name: "Vigilante Work",
-  description: "Two deaths within seven days",
-  order: 20,
+  description: "Two deaths within 7 days",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const dates = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.deathDate)
+        .map(p => new Date(p.deathDate))
+        .sort((a, b) => a - b);
+
+      for (let i = 1; i < dates.length; i++) {
+        const diffDays = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 7) {
+          winners.push({ id: player.id, name: player.name });
+          break;
+        }
+      }
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
-
   
  /* ========================================================================
    BADGES – TIERED ACHIEVEMENTS
