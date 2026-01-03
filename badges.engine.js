@@ -267,6 +267,48 @@ evaluate({ players }) {
   }
 },
 
+  /* ============ TOO SOON ================= */
+
+  {
+  id: "too_soon",
+  name: "Too Soon",
+  description: "Lost a celebrity under the age of 60",
+  type: "single",
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hasTooSoon = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.birthDate || !pick.deathDate) return false;
+
+        const age =
+          (new Date(pick.deathDate) - new Date(pick.birthDate)) /
+          (1000 * 60 * 60 * 24 * 365.25);
+
+        return age < 60;
+      });
+
+      if (hasTooSoon) {
+        winners.push({ id: player.id, name: player.name });
+      }
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
+  }
+},
+
 /* ============ Placeholder Singles ================= */
 
 {
@@ -294,11 +336,37 @@ evaluate({ players }) {
 {
   id: "friday_13",
   name: "Friday the 13th",
-  description: "Death on Friday the 13th",
-  order: 13,
+  description: "A death occurred on Friday the 13th",
   type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
+
+  evaluate({ players }) {
+    const winners = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const hasFriday13 = (entry.picks || []).some(pick => {
+        if (pick.status !== "approved") return false;
+        if (!pick.deathDate) return false;
+
+        const d = new Date(pick.deathDate);
+        return d.getDay() === 5 && d.getDate() === 13; // fredag + 13.
+      });
+
+      if (hasFriday13) {
+        winners.push({ id: player.id, name: player.name });
+      }
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
   }
 },
 
@@ -335,16 +403,6 @@ evaluate({ players }) {
   }
 },
 
-{
-  id: "too_soon",
-  name: "Too Soon",
-  description: "Death under 60 years of age",
-  order: 17,
-  type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
-  }
-},
 
 {
   id: "zombie_alert",
