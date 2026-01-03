@@ -974,47 +974,35 @@ evaluate({ players }) {
   
 /* ============ YOLO ================================= */
 {
-  id: "body_count",
-  name: "Body Count",
-  description: "Confirmed kills accumulated",
-  order: 21,
+  id: "yolo",
+  name: "YOLO",
+  description: "Picked dangerously young celebrities",
   type: "tiered",
 
-  evaluate({ players, deaths }) {
-    const tiers = buildEmptyTiers();
-    let globalUnlocked = false;
+  tiers: [
+    { label: "Bronze", threshold: 1 },
+    { label: "Silver", threshold: 2 },
+    { label: "Gold", threshold: 3 },
+    { label: "Prestige", threshold: 5 }
+  ],
+
+  evaluate({ players }) {
+    const progress = {};
 
     players.forEach(player => {
-      const hits = player.hits || 0;
-      if (hits <= 0) return;
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
 
-      const deathDates = deaths[player.id] || [];
-      if (!deathDates.length) return;
+      const count = (entry.picks || []).filter(p =>
+        p.status === "approved" &&
+        p.birthDate &&
+        calculateAge(p.birthDate) < 60
+      ).length;
 
-      const achievedAt = deathDates.sort()[0];
-
-      TIERS.forEach(t => {
-        if (hits >= t.min) {
-          tiers[t.id].players.push({
-            id: player.id,
-            name: player.name,
-            value: hits,
-            achievedAt,
-            leaderboardScore: player.totalScore
-          });
-        }
-      });
+      if (count > 0) progress[player.id] = count;
     });
 
-    Object.values(tiers).forEach(tier => {
-      if (tier.players.length) {
-        tier.unlocked = true;
-        globalUnlocked = true;
-        tier.players.sort(sortPlayers);
-      }
-    });
-
-    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+    return { progress };
   }
 },
   
@@ -1065,62 +1053,130 @@ evaluate({ players }) {
 },
   
 /* ============ COWARD ================================ */
-/* ====== ⚠ semantisk modsat YOLO  =================== */
+{
+  id: "coward",
+  name: "Coward",
+  description: "Played it safe with very old picks",
+  type: "tiered",
 
+  tiers: [
+    { label: "Bronze", threshold: 0.25 },
+    { label: "Silver", threshold: 0.4 },
+    { label: "Gold", threshold: 0.6 },
+    { label: "Prestige", threshold: 0.8 }
+  ],
 
+  evaluate({ players }) {
+    const progress = {};
 
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const approved = (entry.picks || []).filter(p => p.status === "approved" && p.birthDate);
+      if (!approved.length) return;
+
+      const count = approved.filter(p => calculateAge(p.birthDate) >= 80).length;
+      const ratio = count / approved.length;
+
+      if (ratio > 0) progress[player.id] = ratio;
+    });
+
+    return { progress };
+  }
+},
+  
 /* ============ COPYCAT =============================== */
-/* ====== ⚠ kræver overlap-logik  ==================== */
+  
+{
+  id: "copycat",
+  name: "Copycat",
+  description: "Frequently shared picks with others",
+  type: "tiered",
 
+  tiers: [
+    { label: "Bronze", threshold: 5 },
+    { label: "Silver", threshold: 10 },
+    { label: "Gold", threshold: 15 },
+    { label: "Prestige", threshold: 25 }
+  ],
 
+  evaluate({ players }) {
+    const freq = {};
+    const progress = {};
+
+    // count global frequency
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      (entry?.picks || []).forEach(p => {
+        if (p.status !== "approved") return;
+        const id = p.personId || p.normalizedName;
+        if (!id) return;
+        freq[id] = (freq[id] || 0) + 1;
+      });
+    });
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      let shared = 0;
+
+      (entry.picks || []).forEach(p => {
+        if (p.status !== "approved") return;
+        const id = p.personId || p.normalizedName;
+        if (freq[id] > 1) shared++;
+      });
+
+      if (shared > 0) progress[player.id] = shared;
+    });
+
+    return { progress };
+  }
+},
 
 /* ============ LONE WOLF ============================= */
 {
   id: "lone_wolf",
   name: "Lone Wolf",
-  description: "Picked celebrities no one else dared to pick",
-  order: 23,
+  description: "Picked celebrities no one else dared to",
   type: "tiered",
 
+  tiers: [
+    { label: "Bronze", threshold: 0.25 },
+    { label: "Silver", threshold: 0.5 },
+    { label: "Gold", threshold: 0.75 },
+    { label: "Prestige", threshold: 1.0 }
+  ],
+
   evaluate({ players }) {
-    const tiers = buildEmptyTiers();
-    let globalUnlocked = false;
+    const freq = {};
+    const progress = {};
 
     players.forEach(player => {
-      const ratio = player.uniquePickRatio;
-      if (ratio == null) return;
-
-      const achievedAt = "9999-12-31";
-
-      const thresholds = {
-        bronze: 0.25,
-        silver: 0.5,
-        gold: 0.75,
-        prestige: 1
-      };
-
-      Object.entries(thresholds).forEach(([tierId, min]) => {
-        if (ratio >= min) {
-          tiers[tierId].players.push({
-            id: player.id,
-            name: player.name,
-            value: Math.round(ratio * 100),
-            achievedAt,
-            leaderboardScore: player.totalScore
-          });
-        }
+      const entry = player.entries?.["2026"];
+      (entry?.picks || []).forEach(p => {
+        if (p.status !== "approved") return;
+        const id = p.personId || p.normalizedName;
+        if (!id) return;
+        freq[id] = (freq[id] || 0) + 1;
       });
     });
 
-    Object.values(tiers).forEach(tier => {
-      if (tier.players.length) {
-        tier.unlocked = true;
-        globalUnlocked = true;
-        tier.players.sort(sortPlayers);
-      }
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
+
+      const approved = (entry.picks || []).filter(p => p.status === "approved");
+      if (!approved.length) return;
+
+      const unique = approved.filter(p => freq[p.personId || p.normalizedName] === 1).length;
+      const ratio = unique / approved.length;
+
+      if (ratio > 0) progress[player.id] = ratio;
     });
 
-    return { id: this.id, name: this.name, description: this.description, globalUnlocked, tiers };
+    return { progress };
   }
 },
 
