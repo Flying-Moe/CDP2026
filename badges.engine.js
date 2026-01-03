@@ -1068,7 +1068,8 @@ evaluate({ players }) {
         results
       )
     };
-  },
+  }
+},
   
 /* ============ POINT HOARDER ========================= */
 
