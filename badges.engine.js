@@ -96,13 +96,15 @@ evaluate({ deaths, players }) {
     }))
     .sort(sortPlayers);
 
-  return {
-    id: this.id,
-    name: this.name,
-    description: this.description,
-    type: "single",
-    players: winners
-  };
+return {
+  id: this.id,
+  name: this.name,
+  description: this.description,
+  type: "single",
+  unlocked: winners.length > 0,
+  players: winners.map(w => ({ id: w.id, name: w.name }))
+};
+
 }
 },
 
@@ -125,13 +127,14 @@ evaluate({ deaths, players }) {
       }))
       .sort(sortPlayers);
 
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      type: "single",
-      players: winners
-    };
+return {
+  id: this.id,
+  name: this.name,
+  description: this.description,
+  type: "single",
+  unlocked: winners.length > 0,
+  players: winners.map(w => ({ id: w.id, name: w.name }))
+};
   }
 },
 
@@ -153,6 +156,66 @@ evaluate({ deaths, players }) {
     };
   }
 },
+  
+/* ============ DEAD WEIGHT ================= */
+  {
+  id: "dead_weight",
+  name: "Dead Weight",
+  description: "Death of the oldest pick",
+  order: 3,
+  type: "single",
+
+  evaluate({ players }) {
+    let oldest = null;
+
+    players.forEach(p => {
+      (p.deaths || []).forEach(d => {
+        if (!oldest || d.age > oldest.age) {
+          oldest = { playerId: p.id, name: p.name, age: d.age };
+        }
+      });
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: !!oldest,
+      players: oldest ? [{ id: oldest.playerId, name: oldest.name }] : []
+    };
+  }
+},
+
+/* ============ CLEAN KILL ================= */
+
+  {
+  id: "clean_kill",
+  name: "Clean Kill",
+  description: "A death that only one player had picked",
+  order: 4,
+  type: "single",
+
+  evaluate({ deathsByPerson, players }) {
+    const winners = [];
+
+    Object.entries(deathsByPerson || {}).forEach(([pid, info]) => {
+      if (info.players.length === 1) {
+        const p = players.find(pl => pl.id === info.players[0]);
+        if (p) winners.push({ id: p.id, name: p.name });
+      }
+    });
+
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
+  }
+},
 
 /* ============ Placeholder Singles ================= */
 
@@ -161,17 +224,6 @@ evaluate({ deaths, players }) {
   name: "Last Laugh",
   description: "Final confirmed death of the season",
   order: 10,
-  type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
-  }
-},
-
-{
-  id: "clean_kill",
-  name: "Clean Kill",
-  description: "A death that only one player had picked",
-  order: 11,
   type: "single",
   evaluate() {
     return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
@@ -238,17 +290,6 @@ evaluate({ deaths, players }) {
   name: "Too Soon",
   description: "Death under 60 years of age",
   order: 17,
-  type: "single",
-  evaluate() {
-    return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
-  }
-},
-
-{
-  id: "dead_weight",
-  name: "Dead Weight",
-  description: "Death of the oldest pick",
-  order: 18,
   type: "single",
   evaluate() {
     return { id: this.id, name: this.name, description: this.description, type: "single", players: [] };
