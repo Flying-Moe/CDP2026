@@ -903,7 +903,7 @@ evaluate({ players }) {
       tiers: buildEmptyTiers()
     };
   }
-}
+},
 
   
 /* ============ BODY COUNT =========================== */
@@ -922,7 +922,7 @@ evaluate({ players }) {
       tiers: buildEmptyTiers()
     };
   }
-}
+},
 
   
 /* ============ MOMENTUM ============================== */
@@ -1513,7 +1513,7 @@ evaluate({ players }) {
       tiers: buildEmptyTiers()
     };
   }
-}
+},
 
 ];
 
