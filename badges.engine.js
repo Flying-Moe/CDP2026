@@ -961,13 +961,54 @@ evaluate({ players }) {
   name: "Momentum",
   type: "tiered",
   order: 12,
-  evaluate() {
+  tiers: ["bronze", "silver", "gold", "prestige"],
+
+  evaluate({ players }) {
+    const results = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const dates = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.deathDate)
+        .map(p => new Date(p.deathDate))
+        .sort((a, b) => a - b);
+
+      let bestTier = null;
+
+      for (let i = 0; i < dates.length; i++) {
+        for (let j = i + 1; j < dates.length; j++) {
+          const diffDays = (dates[j] - dates[i]) / (1000 * 60 * 60 * 24);
+
+          if (diffDays <= 7) bestTier = "gold";
+          else if (diffDays <= 14) bestTier = "silver";
+          else if (diffDays <= 30) bestTier = "bronze";
+        }
+      }
+
+      // Prestige: 3 deaths within 14 days
+      for (let i = 0; i < dates.length - 2; i++) {
+        const diffDays = (dates[i + 2] - dates[i]) / (1000 * 60 * 60 * 24);
+        if (diffDays <= 14) bestTier = "prestige";
+      }
+
+      if (bestTier) {
+        results.push({
+          playerId: player.id,
+          value: bestTier
+        });
+      }
+    });
+
     return {
-      id: this.id,
-      name: this.name,
+      id: "momentum",
+      name: "Momentum",
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers: buildNamedTierResult(
+        ["bronze", "silver", "gold", "prestige"],
+        results
+      )
     };
   }
 },
@@ -979,13 +1020,30 @@ evaluate({ players }) {
   name: "Point Hoarder",
   type: "tiered",
   order: 13,
-  evaluate() {
+  tiers: [50, 100, 150, 200],
+
+  evaluate({ players }) {
+    const results = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const totalScore = (entry.picks || [])
+        .filter(p => p.status === "approved" && p.deathDate)
+        .reduce((sum, p) => sum + (p.points || 0), 0);
+
+      results.push({
+        playerId: player.id,
+        value: totalScore
+      });
+    });
+
     return {
-      id: this.id,
-      name: this.name,
+      id: "point_hoarder",
+      name: "Point Hoarder",
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers: buildTierResult([50, 100, 150, 200], results)
     };
   }
 },
@@ -1393,7 +1451,42 @@ evaluate({ players }) {
 },
 
 /* ============ LATE GAME REAPER ====================== */
-/* ====== ⚠ Q4-logik  ================================= */
+  
+{
+  id: "late_game_reaper",
+  name: "Late Game Reaper",
+  type: "tiered",
+  order: 16,
+  tiers: [1, 2, 3, 5],
+
+  evaluate({ players }) {
+    const results = [];
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const q4Hits = (entry.picks || []).filter(p => {
+        if (p.status !== "approved" || !p.deathDate) return false;
+        const d = new Date(p.deathDate);
+        const m = d.getMonth(); // 0=Jan
+        return m >= 9 && m <= 11; // Oct–Dec
+      }).length;
+
+      results.push({
+        playerId: player.id,
+        value: q4Hits
+      });
+    });
+
+    return {
+      id: "late_game_reaper",
+      name: "Late Game Reaper",
+      type: "tiered",
+      tiers: buildTierResult([1, 2, 3, 5], results)
+    };
+  }
+},
 
   /* ============ HIGH-RISK PICKER (80+) ======================== */
 {
