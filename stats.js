@@ -369,8 +369,14 @@ if (badge.type === "single") {
   const row = document.createElement("div");
   row.className = "badge-tier";
 
-  const img = document.createElement("img");
-  img.src = `assets/badges/${badge.id}.png`;
+const img = document.createElement("img");
+img.src = `assets/badges/${badge.id}.png`;
+
+// optional custom overlay text
+if (badge.description) {
+  img.dataset.overlayText = badge.description;
+}
+
   if (!unlocked) img.style.opacity = "0.35";
 
   const list = document.createElement("div");
@@ -432,8 +438,15 @@ if (badge.type === "single") {
     const tierDiv = document.createElement("div");
     tierDiv.className = "badge-tier";
 
-    const img = document.createElement("img");
-    img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
+const img = document.createElement("img");
+img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
+
+// optional custom overlay text
+if (badge.metricUnit && tier?.threshold != null) {
+  img.dataset.overlayText =
+    `At least ${tier.threshold} ${badge.metricUnit}`;
+}
+
     img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
@@ -563,16 +576,16 @@ document.addEventListener("click", e => {
   if (overlay.style.display === "block") {
     close();
   } else {
-    img.src = src;
-    const badgeText = imgEl.dataset.badgeText || "";
-const badgeName = imgEl.dataset.badgeName || "";
+  img.src = src;
 
-text.textContent = badgeText
-  ? `${badgeName} — ${badgeText}`
-  : badgeName;
+  const customText = imgEl.dataset.overlayText || "";
 
-    overlay.style.display = "block";
-  }
+  text.textContent = customText
+    ? customText
+    : label;
+
+  overlay.style.display = "block";
+}
 });
 }
 
