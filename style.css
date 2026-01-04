@@ -1028,10 +1028,6 @@ td[title] {
   margin-bottom: 0.6rem;
 }
 
-#hof-tabs button {
-  margin-right: 0.4rem;
-}
-
 .hof-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1352,6 +1348,6 @@ ul > li {
 }
 
 #badge-tabs button {
-  margin-right: 0.4rem;
+  margin-right: 0.3rem;
 }
 
