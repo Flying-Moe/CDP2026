@@ -495,8 +495,9 @@ if (isLocked) {
   tierDiv.classList.add("locked");
   img.style.opacity = "0.35";
 }
+
      if (isLocked) {
-  img.dataset.noOverlay = "true";
+  img.dataset.overlayText = "Not yet unlocked";
 }
 
     if (!active.length && !greyed.length) {
