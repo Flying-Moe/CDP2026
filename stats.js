@@ -476,6 +476,9 @@ if (isLocked) {
   tierDiv.classList.add("locked");
   img.style.opacity = "0.35";
 }
+     if (isLocked) {
+  img.dataset.noOverlay = "true";
+}
 
     if (!active.length && !greyed.length) {
       const span = document.createElement("div");
@@ -569,8 +572,8 @@ function initBadgeOverlay() {
 
   // delegate badge clicks
 document.addEventListener("click", e => {
-  const imgEl = e.target.closest("#stats-badges img");
-  if (!imgEl) return;
+const imgEl = e.target.closest("#stats-badges img");
+if (!imgEl || imgEl.dataset.noOverlay === "true") return;
 
   const src = imgEl.src;
   const wrapper =
