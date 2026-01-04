@@ -1023,12 +1023,14 @@ td[title] {
    HALL OF FAME
    =============================== */
 
+/* Hall of Fame – year tabs (compact, consistent) */
 #hof-tabs {
-  margin: 1.0em 0 1.6em 0;
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
 #hof-tabs button {
-  margin-right: 0.6em;
+  margin-right: 0.4rem;
 }
 
 .hof-grid {
@@ -1337,3 +1339,24 @@ ul > li {
 #hof-tabs button {
   margin-top: 0.6rem;
 }
+
+/* =========================
+   SUB TABS – CONSISTENT SPACING
+========================= */
+
+/* Stats sub-tabs */
+#stats-sub-tabs {
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+/* Badge sub-tabs (match stats) */
+#badge-tabs {
+  margin-top: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+#badge-tabs button {
+  margin-right: 0.4rem;
+}
+
