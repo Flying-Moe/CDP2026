@@ -395,7 +395,8 @@ if (badge.type === "single") {
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}.png`;
 img.alt = badge.name;
-
+img.dataset.overlayText = unlocked ? (badge.description || badge.name) : "Not yet unlocked";
+   
 if (badge.description) {
   img.dataset.overlayText = badge.description;
 }
@@ -561,6 +562,15 @@ function renderSingleBadges(badges) {
 
       const img = document.createElement("img");
       img.src = `assets/badges/${badge.id}.png`;
+       // Per-tier overlay text:
+// - locked tiers: "Not yet unlocked"
+// - unlocked tiers: use engine overlayText(threshold)
+if (typeof badge.overlayText === "function" && Array.isArray(badge.tierThresholds)) {
+  const threshold = badge.tierThresholds[idx];
+  if (threshold !== undefined && threshold !== null) {
+    img.dataset.overlayText = badge.overlayText(threshold);
+  }
+}
       img.style.maxWidth = "256px";
 
       const title = document.createElement("h3");
