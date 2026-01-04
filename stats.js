@@ -564,7 +564,13 @@ document.addEventListener("click", e => {
     close();
   } else {
     img.src = src;
-    text.textContent = label;
+    const badgeText = imgEl.dataset.badgeText || "";
+const badgeName = imgEl.dataset.badgeName || "";
+
+text.textContent = badgeText
+  ? `${badgeName} — ${badgeText}`
+  : badgeName;
+
     overlay.style.display = "block";
   }
 });
