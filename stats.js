@@ -494,9 +494,13 @@ const active = [];
 const greyed = [];
 
 Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
-  if (maxIdx === idx) active.push(pid);
-  else if (maxIdx > idx) greyed.push(pid);
+  const entry = tier.players.find(p => p.id === pid);
+  if (!entry) return;
+
+  if (maxIdx === idx) active.push(entry);
+  else if (maxIdx > idx) greyed.push(entry);
 });
+
 
 // 🔒 LOCKED TIER hvis ingen data overhovedet
 const isLocked = active.length === 0 && greyed.length === 0;
