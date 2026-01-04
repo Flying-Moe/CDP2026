@@ -499,10 +499,12 @@ img.dataset.badgeName = badge.name;
 if (typeof badge.overlayText === "function") {
 let value = null;
 
-if ("threshold" in tier) value = tier.threshold;
-else if ("count" in tier) value = tier.count;
-else if ("min" in tier) value = tier.min;
-else if ("percentage" in tier) value = tier.percentage;
+if (tier && typeof tier === "object") {
+  if ("threshold" in tier) value = tier.threshold;
+  else if ("count" in tier) value = tier.count;
+  else if ("min" in tier) value = tier.min;
+  else if ("percentage" in tier) value = tier.percentage;
+}
 
 if (typeof badge.overlayText === "function") {
   img.dataset.overlayText =
