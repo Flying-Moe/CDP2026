@@ -955,7 +955,7 @@ td[title] {
 
 .stats-tab h2 {
   font-size: 1.35rem;
-  margin-top: 1.8em;
+  margin-top: 1.6em;
   margin-bottom: 0.4em;
 }
 
@@ -1329,10 +1329,6 @@ ul > li {
 /* Spacing between top-tabs and sub-tabs */
 
 #stats-sub-tabs {
-  margin-top: 0.6rem;
-}
-
-#badge-tabs button {
   margin-top: 0.6rem;
 }
 
