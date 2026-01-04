@@ -1282,3 +1282,30 @@ ul > li {
   height: auto;
   max-height: 70vh;
 }
+
+/* =========================
+   STATS – ACTIVE TABS (REAL DOM)
+========================= */
+
+/* Top tabs (Stats / Badges / Misses / HoF) */
+#top-tabs button {
+  font-weight: 400;
+}
+
+#top-tabs button.active {
+  font-weight: 700;
+}
+
+/* Sub tabs (Overall / Deaths / Age / Fun / Behavior) */
+#stats-sub-tabs button {
+  font-weight: 400;
+}
+
+#stats-sub-tabs button.active {
+  font-weight: 700;
+}
+
+/* Spacing between top-tabs and sub-tabs */
+#stats-sub-tabs {
+  margin-top: 0.6rem;
+}
