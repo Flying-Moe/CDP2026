@@ -442,9 +442,17 @@ const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
 // optional custom overlay text
-if (badge.metricUnit && tier?.threshold != null) {
-  img.dataset.overlayText =
-    `At least ${tier.threshold} ${badge.metricUnit}`;
+if (badge.metricUnit) {
+  const value =
+    tier?.threshold ??
+    tier?.min ??
+    badge.tiers?.[idx] ??
+    null;
+
+  if (value != null) {
+    img.dataset.overlayText =
+      `At least ${value} ${badge.metricUnit}`;
+  }
 }
 
     img.style.maxWidth = "256px";
