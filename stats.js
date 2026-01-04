@@ -547,14 +547,6 @@ if (!isUnlockedTier) {
   img.dataset.overlayText = "Not yet unlocked";
 }
 
-// If this tier is unlocked but no per-tier overlay text was produced, fall back to badge description/name.
-if (!isLocked && !img.dataset.overlayText) {
-  img.dataset.overlayText = badge.description || badge.name || "";
-}
-     if (isLocked) {
-  img.dataset.overlayText = "Not yet unlocked";
-}
-
     if (!active.length && !greyed.length) {
       const span = document.createElement("div");
       span.className = "badge-placeholder";
