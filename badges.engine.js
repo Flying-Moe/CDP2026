@@ -789,9 +789,9 @@ evaluate({ players }) {
   }
 },
   
- /* ========================================================================
+ /* ============================================================================================================
    BADGES – TIERED ACHIEVEMENTS
-============================================================================ */
+================================================================================================================ */
   
 /* ============ AGENT OF CHAOS ============================= */
 
@@ -800,7 +800,6 @@ evaluate({ players }) {
 
 
 /* ============ GLASS CANNON ========================= */
-/* =========== OK?  ================================== */
 
   {
     id: "glass_cannon",
@@ -808,6 +807,8 @@ evaluate({ players }) {
     description: "Accumulated minus points",
     order: 2,
     type: "tiered",
+    metricUnit: "minus points",
+
 
     evaluate({ players }) {
       const tiers = buildEmptyTiers();
@@ -864,6 +865,7 @@ evaluate({ players }) {
   name: "Vulture",
   description: "Low average age across picks",
   type: "tiered",
+  metricUnit: "average age or lower",
   tiers: [
     { id: "bronze", label: "Bronze", threshold: 70 },
     { id: "silver", label: "Silver", threshold: 65 },
@@ -910,7 +912,9 @@ evaluate({ players }) {
   name: "Pension Sniper",
   type: "tiered",
   order: 5,
+  metricUnit: "average age or higher",
   tiers: [75, 80, 85, 90],
+
 
   evaluate({ players }) {
     const results = [];
@@ -953,6 +957,7 @@ evaluate({ players }) {
   name: "Body Count",
   type: "tiered",
   order: 11,
+  metricUnit: "confirmed kills",
   tiers: [1, 3, 5, 8],
 
   evaluate({ players }) {
@@ -1006,6 +1011,7 @@ evaluate({ players }) {
   name: "Momentum",
   type: "tiered",
   order: 12,
+  metricUnit: "rapid death streaks",
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1077,6 +1083,7 @@ evaluate({ players }) {
   name: "Point Hoarder",
   type: "tiered",
   order: 13,
+  metricUnit: "total points",
   tiers: [50, 100, 150, 200],
 
   evaluate({ players }) {
@@ -1113,6 +1120,7 @@ evaluate({ players }) {
   description: "Picked very young celebrities (<60)",
   order: 6,
   type: "tiered",
+  metricUnit: "picks under 60",
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1187,12 +1195,14 @@ evaluate({ players }) {
 },
   
 /* ============ COWARD (safe picks) ======================== */
+  
 {
   id: "coward",
   name: "Coward",
   description: "Played it safe (many 80+ picks)",
   order: 7,
   type: "tiered",
+  metricUnit: "safe picks (80+)",
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1266,12 +1276,14 @@ evaluate({ players }) {
 },
   
 /* ============ COPYCAT ======================== */
+  
 {
   id: "copycat",
   name: "Copycat",
   description: "Shared lots of picks with a single other player",
   order: 8,
   type: "tiered",
+  metricUnit: "shared picks",
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1374,6 +1386,8 @@ evaluate({ players }) {
   name: "Lone Wolf",
   type: "tiered",
   order: 14,
+  metricUnit: "unique picks",
+
   evaluate() {
     return {
       id: this.id,
@@ -1393,6 +1407,7 @@ evaluate({ players }) {
   description: "Confirmed kills during Q1 (Jan–Mar)",
   order: 2,
   type: "tiered",
+  metricUnit: "Q1 kills",
 
   evaluate({ players, deaths }) {
     const tiers = buildEmptyTiers();
@@ -1468,6 +1483,7 @@ evaluate({ players }) {
   name: "Late Game Reaper",
   type: "tiered",
   order: 16,
+  metricUnit: "Q4 kills",
   tiers: [1, 2, 3, 5],
 
   evaluate({ players }) {
@@ -1506,6 +1522,7 @@ evaluate({ players }) {
   description: "Picked a lot of 80+ celebrities",
   order: 3,
   type: "tiered",
+  metricUnit: "80+ picks",
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1587,6 +1604,7 @@ evaluate({ players }) {
   name: "Zombie Index",
   type: "tiered",
   order: 10,
+  metricUnit: "90+ picks",
   tiers: [1, 2, 3, 5],
 
   evaluate({ players }) {
