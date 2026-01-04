@@ -637,43 +637,48 @@ function renderHall() {
 ===================================================== */
 
 function initHallOfFameTabs() {
-  const hofTab = document.querySelector('#stats-tabs button[data-tab="hof"]');
   const hofTabs = document.getElementById("hof-tabs");
   const yearButtons = document.querySelectorAll("#hof-tabs button");
   const yearSections = document.querySelectorAll(".hof-year");
 
-  if (!hofTab || !hofTabs) return;
+  if (!hofTabs || !yearButtons.length) return;
 
-  // Show year tabs only when Hall of Fame is active
-  hofTab.addEventListener("click", () => {
-    hofTabs.style.display = "block";
-
-    // Default to 2025
-    yearButtons.forEach(b => b.classList.remove("active"));
-    yearSections.forEach(s => s.style.display = "none");
-
-    const btn2025 = document.querySelector('#hof-tabs button[data-year="2025"]');
-    const sec2025 = document.getElementById("hof-2025");
-
-    if (btn2025 && sec2025) {
-      btn2025.classList.add("active");
-      sec2025.style.display = "block";
+  // Disable 2027 (future)
+  yearButtons.forEach(btn => {
+    if (btn.dataset.year === "2027") {
+      btn.disabled = true;
+      btn.style.opacity = "0.4";
+      btn.style.cursor = "not-allowed";
     }
   });
 
-  // Year switching
+  // Default = 2025
+  yearButtons.forEach(b => b.classList.remove("active"));
+  yearSections.forEach(s => (s.style.display = "none"));
+
+  const defaultBtn = document.querySelector('#hof-tabs button[data-year="2025"]');
+  const defaultSec = document.getElementById("hof-2025");
+
+  if (defaultBtn && defaultSec) {
+    defaultBtn.classList.add("active");
+    defaultSec.style.display = "block";
+  }
+
+  // Normal tab switching
   yearButtons.forEach(btn => {
     btn.addEventListener("click", () => {
+      if (btn.disabled) return;
+
       yearButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      yearSections.forEach(sec => sec.style.display = "none");
+      yearSections.forEach(sec => (sec.style.display = "none"));
+
       const target = document.getElementById(`hof-${btn.dataset.year}`);
       if (target) target.style.display = "block";
     });
   });
 }
-
 
 /* =====================================================
    INIT
