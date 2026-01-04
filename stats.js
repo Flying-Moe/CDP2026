@@ -264,6 +264,16 @@ if (activeTop === "badges") {
    RENDER BADGES - DROP DOWN MENU)
 ===================================================== */
 
+if (selectedPlayerId !== "all") {
+  const hasAnyTier = badge.tiers?.some(t =>
+    t.players?.some(p => p.id === selectedPlayerId)
+  );
+
+  if (!hasAnyTier) {
+    return;
+  }
+}
+
 function setupBadgePlayerDropdown(players, onChange) {
   const select = document.getElementById("badgePlayerSelect");
   if (!select) return;
@@ -358,6 +368,10 @@ context.players.forEach(p => {
 
   singleHost.style.display = "block";
   progHost.style.display = "none";
+}
+
+if (selectedPlayerId !== "all" && !unlocked) {
+  return;
 }
 
 /* =====================================================
@@ -479,18 +493,21 @@ img.dataset.badgeName = badge.name;
 
 // 🔑 ALWAYS set overlay text
 if (typeof badge.overlayText === "function") {
-const value =
-  tier?.threshold ??
-  tier?.percentage ??
-  tier?.required ??
-  tier?.min ??
-  tier?.value ??
-  tier?.count ??
-  null;
+let value = null;
 
-if (typeof badge.overlayText === "function" && value !== null) {
-  img.dataset.overlayText = badge.overlayText(value);
-} else {
+if ("threshold" in tier) value = tier.threshold;
+else if ("count" in tier) value = tier.count;
+else if ("min" in tier) value = tier.min;
+else if ("percentage" in tier) value = tier.percentage;
+
+if (typeof badge.overlayText === "function") {
+  img.dataset.overlayText =
+    value !== null
+      ? badge.overlayText(value)
+      : "Not yet unlocked";
+}
+
+else {
   img.dataset.overlayText = badge.description || badge.name;
 }
 }
