@@ -487,6 +487,8 @@ const value =
 
 if (typeof badge.overlayText === "function" && value !== null) {
   img.dataset.overlayText = badge.overlayText(value);
+} else {
+  img.dataset.overlayText = badge.description || badge.name;
 }
 }
 
