@@ -978,18 +978,23 @@ td[title] {
 }
 
 /* =========================
-   STATS – TABS (TOP + SUB)
+   STATS – ACTIVE TABS (ROBUST)
 ========================= */
 
-.stats-tabs button.active,
-.stats-subtabs button.active,
-.stats-tabs a.active,
-.stats-subtabs a.active {
+/* Top-level stats tabs */
+#stats button.active,
+#stats a.active {
   font-weight: 700;
 }
 
-/* Spacing mellem top-tabs og sub-tabs */
-.stats-subtabs {
+/* Sub-tabs inside stats */
+#stats [data-sub-tab].active,
+#stats [data-top-tab].active {
+  font-weight: 700;
+}
+
+/* Spacing between stats top-tabs and sub-tabs */
+#stats [data-sub-tab] {
   margin-top: 0.6rem;
 }
 
