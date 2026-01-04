@@ -264,16 +264,6 @@ if (activeTop === "badges") {
    RENDER BADGES - DROP DOWN MENU)
 ===================================================== */
 
-if (selectedPlayerId !== "all") {
-  const hasAnyTier = badge.tiers?.some(t =>
-    t.players?.some(p => p.id === selectedPlayerId)
-  );
-
-  if (!hasAnyTier) {
-    return;
-  }
-}
-
 function setupBadgePlayerDropdown(players, onChange) {
   const select = document.getElementById("badgePlayerSelect");
   if (!select) return;
@@ -379,6 +369,19 @@ if (selectedPlayerId !== "all" && !unlocked) {
 ===================================================== */
 
 function renderTieredBadge(badge, selectedPlayerId) {
+  // 🔍 Player filter: hide badges the selected player has not unlocked
+  if (selectedPlayerId !== "all") {
+    const unlocked =
+      badge.type === "single"
+        ? badge.players?.some(p => p.id === selectedPlayerId)
+        : Object.values(badge.tiers || {}).some(t =>
+            t.players?.some(p => p.id === selectedPlayerId)
+          );
+
+    if (!unlocked) {
+      return null;
+    }
+  }  
   const wrapper = document.createElement("div");
   wrapper.className = "badge-block";
 
