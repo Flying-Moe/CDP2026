@@ -198,20 +198,18 @@ function initTabs() {
   }
 
   // ---------- RESTORE STATE ----------
-  const savedTop = localStorage.getItem("topTab") || "stats";
-  const restoreTopBtn = document.querySelector(
-    `#top-tabs button[data-top-tab="${savedTop}"]`
-  );
+// ---------- RESTORE STATE ----------
 // Restore last active tab, but never allow "misses"
 const savedTopRaw = localStorage.getItem("topTab");
-const savedTop =
+const safeTop =
   savedTopRaw === "misses" || !savedTopRaw ? "stats" : savedTopRaw;
 
 const restoreTopBtn = document.querySelector(
-  `#top-tabs button[data-top-tab="${savedTop}"]`
+  `#top-tabs button[data-top-tab="${safeTop}"]`
 );
 
 if (restoreTopBtn) restoreTopBtn.click();
+
 }
 
 /* =====================================================
