@@ -457,16 +457,19 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
 img.dataset.badgeName = badge.name;
 
+// 🔑 ALWAYS set overlay text
 if (typeof badge.overlayText === "function") {
   const value =
     tier?.threshold ??
     tier?.min ??
-    badge.tiers?.[idx] ??
     null;
 
-  if (value != null) {
-    img.dataset.overlayText = badge.overlayText(value);
-  }
+  img.dataset.overlayText =
+    value != null
+      ? badge.overlayText(value)
+      : badge.description || badge.name;
+} else {
+  img.dataset.overlayText = badge.description || badge.name;
 }
 
     img.style.maxWidth = "256px";
