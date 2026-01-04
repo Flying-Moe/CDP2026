@@ -520,21 +520,26 @@ if (isLocked) {
       span.textContent = "Not yet unlocked";
       list.appendChild(span);
     } else {
-      active.forEach(pid => {
-        if (selectedPlayerId !== "all" && pid !== selectedPlayerId) return;
-        const div = document.createElement("div");
-        div.className = "badge-player";
-        div.textContent = getPlayerName(pid);
-        list.appendChild(div);
-      });
+// Aktive spillere (sort tekst)
+active.forEach(p => {
+  if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
 
-      greyed.forEach(pid => {
-        if (selectedPlayerId !== "all" && pid !== selectedPlayerId) return;
-        const div = document.createElement("div");
-        div.className = "badge-player greyed";
-        div.textContent = getPlayerName(pid);
-        list.appendChild(div);
-      });
+  const div = document.createElement("div");
+  div.className = "badge-player";
+  div.textContent = p.name;
+  list.appendChild(div);
+});
+
+// Demoted spillere (har højere tier – grå, nederst)
+greyed.forEach(p => {
+  if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
+
+  const div = document.createElement("div");
+  div.className = "badge-player demoted";
+  div.textContent = p.name;
+  list.appendChild(div);
+});
+
     }
 
     tierDiv.appendChild(list);
