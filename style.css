@@ -149,12 +149,12 @@ table.list-table td:not(:first-child) {
 }
 
 th.sorted-asc::after {
-  content: " ▲";
+  content: " ▼";
   font-size: 0.75em;
 }
 
 th.sorted-desc::after {
-  content: " ▼";
+  content: " ▲";
   font-size: 0.75em;
 }
 
