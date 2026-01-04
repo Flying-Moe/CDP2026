@@ -17,14 +17,6 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =====================================================
-   BADGES – LOGIC (LOCAL, DISABLED)
-   (legacy UI badges – intentionally disabled)
-===================================================== */
-
-function computeBadges() {
-  return {};
-}
 
 /* =====================================================
    LOAD + RENDER LISTS
@@ -111,8 +103,6 @@ async function renderLists() {
   players.sort((a, b) => a.name.localeCompare(b.name));
   players.forEach((p, i) => (p.rank = i + 1));
 
-  const badgesByPlayer = computeBadges(players);
-
   /* ---------- Picked-by counter ---------- */
 
   const pickCount = {};
@@ -179,8 +169,6 @@ rowData.forEach(r => {
         </tr>
       `;
     }
-
-const badgeIcons = "";
 
     container.insertAdjacentHTML(
       "beforeend",
