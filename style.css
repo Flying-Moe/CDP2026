@@ -1388,3 +1388,17 @@ ul > li {
   font-size: 0.9rem;
   color: #444;
 }
+
+@media (max-width: 768px) {
+  #badge-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  #badge-overlay img {
+    max-width: 90vw;
+    max-height: 70vh;
+  }
+}
+
