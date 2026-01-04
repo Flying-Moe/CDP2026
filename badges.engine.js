@@ -42,7 +42,10 @@ function buildTierResult(meta, tiers, extra = {}) {
     ...extra,
     type: "tiered",
     tiers: tiers || buildEmptyTiers()
-  };
+    tier,
+    unlocked: value >= tier.threshold,
+    label: `${tier.threshold}+`
+};
 }
 
 function buildSingleResult(meta, players = [], extra = {}) {
