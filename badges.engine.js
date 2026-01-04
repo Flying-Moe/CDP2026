@@ -224,6 +224,12 @@ return {
 
 /* ============ Optimist ========================= */
 {
+  const anyHits = players.some(p =>
+  (p.entries?.["2026"]?.picks || []).some(x => x.deathDate)
+);
+
+if (!anyHits) {
+  return {
   id: "optimist",
   name: "Optimist",
   description: "Held a full list with no confirmed kills",
