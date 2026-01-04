@@ -867,11 +867,6 @@ footer {
   margin-top: 10px;
 }
 
-.badge-tier-grid {
-  display: contents;
-  margin-top: 10px;
-}
-
 .badge-tier {
   border: 1px solid #333;
   padding: 8px;
@@ -1409,44 +1404,11 @@ ul > li {
   color: #444;
 }
 
-@media (max-width: 720px) {
-  .badge-tier-grid {
-    display: flex;
-    gap: 16px;
-  }
-
-  .badge-tier {
-    align-items: left;
-    text-align: left;
-  }
-  }
 
 /* =========================
    Badges - mobile layout
    Keep same left-image + right-text layout as desktop
 ========================= */
-
-@media (max-width: 700px) {
-  .badge-tier {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .badge-tier img {
-    margin: 0;            /* prevent auto-centering on mobile */
-    max-width: 140px;     /* smaller badge art on phones */
-    height: auto;
-  }
-
-  .badge-tier-players {
-    text-align: left;
-  }
-
-  /* Progressive badges: show tiers as a single column (no 2x2 grid) */
-  .badge-tier-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 @media (max-width: 720px) {
 .badge-tiers {
@@ -1471,9 +1433,4 @@ ul > li {
   }
 }
 
-@media (max-width: 720px) {
-  .badge-tiers {
-    grid-template-columns: 1fr !important;
-  }
-}
 
