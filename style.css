@@ -20,8 +20,14 @@ nav a {
 }
 
 nav a.active {
-  font-weight: bold;
-  text-decoration: underline;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+nav a:hover,
+.stats-tabs button:hover,
+.stats-subtabs button:hover {
+  opacity: 0.75;
 }
 
 /* =========================
@@ -969,6 +975,22 @@ td[title] {
 
 .stat-row {
   margin-bottom: 0.6em;
+}
+
+/* =========================
+   STATS – TABS (TOP + SUB)
+========================= */
+
+.stats-tabs button.active,
+.stats-subtabs button.active,
+.stats-tabs a.active,
+.stats-subtabs a.active {
+  font-weight: 700;
+}
+
+/* Spacing mellem top-tabs og sub-tabs */
+.stats-subtabs {
+  margin-top: 0.6rem;
 }
 
 /* =========================
