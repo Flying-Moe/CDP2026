@@ -128,12 +128,18 @@ function initTabs() {
 
   const contentTabs = document.querySelectorAll(".stats-tab");
 
-  function hideAllContent() {
-    contentTabs.forEach(t => t.style.display = "none");
-    if (statsSubTabs) statsSubTabs.style.display = "none";
-    if (badgeSubTabs) badgeSubTabs.style.display = "none";
-    if (hofTabs) hofTabs.style.display = "none";
-  }
+function hideAllContent() {
+  contentTabs.forEach(t => t.style.display = "none");
+
+  if (statsSubTabs) statsSubTabs.style.display = "none";
+  if (badgeSubTabs) badgeSubTabs.style.display = "none";
+  if (hofTabs) hofTabs.style.display = "none";
+
+  // 🔒 HARD RESET: no sub-tabs may survive a top-tab switch
+  document
+    .querySelectorAll("#stats-sub-tabs button, #badge-tabs button, #hof-tabs button")
+    .forEach(b => b.classList.remove("active"));
+}
 
   // ---------- TOP TABS ----------
   topButtons.forEach(btn => {
