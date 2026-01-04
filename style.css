@@ -1444,9 +1444,10 @@ ul > li {
 }
 
 @media (max-width: 720px) {
-  .badge-tiers {
-    grid-template-columns: 1fr !important;
-  }
+.badge-tiers {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+}
 
   .badge-tier {
     display: flex;
