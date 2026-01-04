@@ -398,7 +398,9 @@ if (badge.type === "single") {
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}.png`;
 img.alt = badge.name;
-img.dataset.overlayText = unlocked ? (badge.description || badge.name) : "Not yet unlocked";
+img.dataset.overlayText = unlocked
+  ? badge.description || badge.name
+  : "Not yet unlocked";
    
 if (badge.description) {
   img.dataset.overlayText = badge.description;
