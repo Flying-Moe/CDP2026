@@ -539,12 +539,11 @@ Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
 
 
 // 🔒 LOCKED TIER hvis ingen data overhovedet
-const isLocked = active.length === 0 && greyed.length === 0;
+const isUnlockedTier = active.length > 0 || greyed.length > 0;
 
-if (isLocked) {
+if (!isUnlockedTier) {
   tierDiv.classList.add("locked");
   img.style.opacity = "0.35";
-  // Locked tiers should still open overlay, but with a clear message.
   img.dataset.overlayText = "Not yet unlocked";
 }
 
@@ -552,7 +551,6 @@ if (isLocked) {
 if (!isLocked && !img.dataset.overlayText) {
   img.dataset.overlayText = badge.description || badge.name || "";
 }
-
      if (isLocked) {
   img.dataset.overlayText = "Not yet unlocked";
 }
