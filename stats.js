@@ -225,6 +225,22 @@ const restoreTopBtn = document.querySelector(
 
 if (restoreTopBtn) restoreTopBtn.click();
 
+   // 🔁 Sync sub-tabs on reload
+const activeTop =
+  document.querySelector("#top-tabs button.active")?.dataset.topTab;
+
+if (activeTop === "badges") {
+  badgeSubTabs.style.display = "flex";
+
+  const singleBtn = document.querySelector(
+    '#badge-tabs button[data-badge-tab="single"]'
+  );
+  if (singleBtn) singleBtn.classList.add("active");
+
+  document.getElementById("badges-single").style.display = "block";
+  document.getElementById("badges-progressive").style.display = "none";
+}
+
 }
 
 /* =====================================================
@@ -371,23 +387,13 @@ if (badge.type === "single") {
 
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}.png`;
-img.src = badge.image;
 img.alt = badge.name;
 
-// 🔑 VIGTIGT: bind overlay-tekst
-if (badge.overlayText) {
-  img.dataset.overlayText =
-    typeof badge.overlayText === "function"
-      ? badge.overlayText(badge.value ?? "")
-      : badge.overlayText;
-}
-
-img.dataset.badgeName = badge.name;
-   
-// optional custom overlay text
 if (badge.description) {
   img.dataset.overlayText = badge.description;
 }
+
+img.dataset.badgeName = badge.name;
 
   if (!unlocked) img.style.opacity = "0.35";
 
@@ -453,6 +459,8 @@ if (badge.description) {
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
+img.dataset.badgeName = badge.name;
+
 if (typeof badge.overlayText === "function") {
   const value =
     tier?.threshold ??
@@ -464,7 +472,6 @@ if (typeof badge.overlayText === "function") {
     img.dataset.overlayText = badge.overlayText(value);
   }
 }
-
 
     img.style.maxWidth = "256px";
 
