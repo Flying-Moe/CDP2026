@@ -544,7 +544,11 @@ const isUnlockedTier = active.length > 0 || greyed.length > 0;
 if (!isUnlockedTier) {
   tierDiv.classList.add("locked");
   img.style.opacity = "0.35";
-  img.dataset.overlayText = "Not yet unlocked";
+
+  // ❗️KUN sæt overlayText hvis det ikke allerede er sat
+  if (!img.dataset.overlayText) {
+    img.dataset.overlayText = "Not yet unlocked";
+  }
 }
 
     if (!active.length && !greyed.length) {
