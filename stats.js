@@ -337,9 +337,17 @@ context.players.forEach(p => {
 });
 
   // Render SINGLE
-  singleBadges.forEach(badge => {
-    singleHost.appendChild(renderTieredBadge(badge, selectedPlayerId));
-  });
+singleBadges.forEach(badge => {
+  const el = renderTieredBadge(badge, selectedPlayerId);
+  if (el) singleHost.appendChild(el);
+});
+
+// Render PROGRESSIVE
+tieredBadges.forEach(badge => {
+  const el = renderTieredBadge(badge, selectedPlayerId);
+  if (el) progHost.appendChild(el);
+});
+
 
   // Render PROGRESSIVE
   tieredBadges.forEach(badge => {
@@ -360,9 +368,6 @@ context.players.forEach(p => {
   progHost.style.display = "none";
 }
 
-if (selectedPlayerId !== "all" && !unlocked) {
-  return;
-}
 
 /* =====================================================
    RENDER BADGE (SINGLE + TIERED)
@@ -419,13 +424,9 @@ const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}.png`;
 img.alt = badge.name;
 img.dataset.overlayText = unlocked
-  ? badge.description || badge.name
+  ? (badge.description || badge.name)
   : "Not yet unlocked";
    
-if (badge.description) {
-  img.dataset.overlayText = badge.description;
-}
-
 img.dataset.badgeName = badge.name;
 
   if (!unlocked) img.style.opacity = "0.35";
