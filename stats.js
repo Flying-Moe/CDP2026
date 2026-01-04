@@ -551,24 +551,26 @@ function initBadgeOverlay() {
   });
 
   // delegate badge clicks
-  document.addEventListener("click", e => {
-    const badge = e.target.closest(".badge");
-    if (!badge) return;
+document.addEventListener("click", e => {
+  const imgEl = e.target.closest("#stats-badges img");
+  if (!imgEl) return;
 
-    const src = badge.querySelector("img")?.src;
-    const label = badge.getAttribute("title") || "";
+  const src = imgEl.src;
+  const wrapper =
+    imgEl.closest(".badge-block") ||
+    imgEl.closest(".badge-tier");
 
-    if (!src) return;
+  const label =
+    wrapper?.querySelector(".badge-title")?.textContent || "";
 
-    // toggle behavior
-    if (overlay.style.display === "block") {
-      close();
-    } else {
-      img.src = src;
-      text.textContent = label;
-      overlay.style.display = "block";
-    }
-  });
+  if (overlay.style.display === "block") {
+    close();
+  } else {
+    img.src = src;
+    text.textContent = label;
+    overlay.style.display = "block";
+  }
+});
 }
 
 /* =====================================================
