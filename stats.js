@@ -508,6 +508,13 @@ const isLocked = active.length === 0 && greyed.length === 0;
 if (isLocked) {
   tierDiv.classList.add("locked");
   img.style.opacity = "0.35";
+  // Locked tiers should still open overlay, but with a clear message.
+  img.dataset.overlayText = "Not yet unlocked";
+}
+
+// If this tier is unlocked but no per-tier overlay text was produced, fall back to badge description/name.
+if (!isLocked && !img.dataset.overlayText) {
+  img.dataset.overlayText = badge.description || badge.name || "";
 }
 
      if (isLocked) {
