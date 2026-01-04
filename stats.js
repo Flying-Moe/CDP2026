@@ -313,10 +313,6 @@ function renderBadges(context, selectedPlayerId = "all") {
     .filter(b => b.type === "tiered")
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
 
-// renderBadges må ALDRIG styre synlighed af badge-tabs direkte
-// det håndteres udelukkende af initTabs (top-tab = badges)
-tabs.style.display = "none";
-
    // Build playerId → name lookup (én gang)
 playerNameById = {};
 context.players.forEach(p => {
