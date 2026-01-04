@@ -474,13 +474,18 @@ img.dataset.badgeName = badge.name;
 
 // 🔑 ALWAYS set overlay text
 if (typeof badge.overlayText === "function") {
-  const value =
-    tier?.threshold ??
-    tier?.min ??
-    tier?.value ??
-    null;
+const value =
+  tier?.threshold ??
+  tier?.percentage ??
+  tier?.required ??
+  tier?.min ??
+  tier?.value ??
+  tier?.count ??
+  null;
 
+if (typeof badge.overlayText === "function" && value !== null) {
   img.dataset.overlayText = badge.overlayText(value);
+}
 }
 
 else {
