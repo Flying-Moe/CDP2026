@@ -1397,17 +1397,12 @@ ul > li {
 @media (max-width: 720px) {
   .badge-tier-grid {
     display: flex;
-    flex-direction: column;
     gap: 16px;
   }
 
   .badge-tier {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    align-items: left;
+    text-align: left;
+  }
   }
 
-  .badge-tier-players {
-    text-align: center;
-  }
-}
