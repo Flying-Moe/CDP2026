@@ -157,9 +157,11 @@ function initTabs() {
         document.getElementById("stats-badges").style.display = "block";
       }
 
-      if (tab === "misses") {
-        document.getElementById("stats-misses").style.display = "block";
-      }
+// Misses tab is disabled for launch
+// if (tab === "misses") {
+//   document.getElementById("stats-misses").style.display = "block";
+// }
+
 
       if (tab === "hof") {
         hofTabs.style.display = "block";
@@ -200,7 +202,16 @@ function initTabs() {
   const restoreTopBtn = document.querySelector(
     `#top-tabs button[data-top-tab="${savedTop}"]`
   );
-  if (restoreTopBtn) restoreTopBtn.click();
+// Restore last active tab, but never allow "misses"
+const savedTopRaw = localStorage.getItem("topTab");
+const savedTop =
+  savedTopRaw === "misses" || !savedTopRaw ? "stats" : savedTopRaw;
+
+const restoreTopBtn = document.querySelector(
+  `#top-tabs button[data-top-tab="${savedTop}"]`
+);
+
+if (restoreTopBtn) restoreTopBtn.click();
 }
 
 /* =====================================================
@@ -1310,6 +1321,8 @@ scores.forEach(s => {
      YOLO / COWARD
   ============================ */
 
+   set("stat-beh-chaos", "—");
+
   const yoloRank = Object.entries(playerData)
     .map(([n,d]) => ({
       name: n,
@@ -1336,7 +1349,9 @@ scores.forEach(s => {
     `${cowardRank.name} (${cowardRank.raw} · ${(cowardRank.pct*100).toFixed(0)}%)`
   );
 
-  set("stat-beh-chaos", "—");
+  // Chaos Level disabled for launch
+const chaosEl = document.getElementById("stat-beh-chaos");
+if (chaosEl) chaosEl.closest("li")?.remove();
 
 /* ============================
    CROWD INDEX (EXCEL-ALIGNED – UNIQUE PER PLAYER)
