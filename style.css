@@ -1296,16 +1296,44 @@ ul > li {
   font-weight: 700;
 }
 
-/* Sub tabs (Overall / Deaths / Age / Fun / Behavior) */
+/* =========================
+   SUB TABS – ALL VARIANTS
+========================= */
+
+/* Stats sub-tabs */
 #stats-sub-tabs button {
   font-weight: 400;
 }
-
 #stats-sub-tabs button.active {
   font-weight: 700;
 }
 
+/* Badge sub-tabs */
+#badge-tabs button {
+  font-weight: 400;
+}
+#badge-tabs button.active {
+  font-weight: 700;
+}
+
+/* Hall of Fame year tabs */
+#hof-tabs button {
+  font-weight: 400;
+}
+#hof-tabs button.active {
+  font-weight: 700;
+}
+
 /* Spacing between top-tabs and sub-tabs */
+
 #stats-sub-tabs {
+  margin-top: 0.6rem;
+}
+
+#badge-tabs button {
+  margin-top: 0.6rem;
+}
+
+#hof-tabs button {
   margin-top: 0.6rem;
 }
