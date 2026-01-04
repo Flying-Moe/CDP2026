@@ -371,7 +371,19 @@ if (badge.type === "single") {
 
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}.png`;
+img.src = badge.image;
+img.alt = badge.name;
 
+// 🔑 VIGTIGT: bind overlay-tekst
+if (badge.overlayText) {
+  img.dataset.overlayText =
+    typeof badge.overlayText === "function"
+      ? badge.overlayText(badge.value ?? "")
+      : badge.overlayText;
+}
+
+img.dataset.badgeName = badge.name;
+   
 // optional custom overlay text
 if (badge.description) {
   img.dataset.overlayText = badge.description;
