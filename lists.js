@@ -2,6 +2,7 @@ console.log("lists.js loaded");
 
 let listsSortKey = "pp";   // name | age | pp | pb
 let listsSortDir = "desc"; // asc | desc
+let lastSortedTh = null;
 
 import { db } from "./firebase.js";
 
@@ -221,6 +222,16 @@ document.addEventListener("click", e => {
   if (!tbody) return;
 
   const key = th.dataset.sort;
+
+  // remove old arrows
+if (lastSortedTh) {
+  lastSortedTh.classList.remove("sorted-asc", "sorted-desc");
+}
+
+// add new arrow
+th.classList.add(listsSortDir === "asc" ? "sorted-asc" : "sorted-desc");
+lastSortedTh = th;
+
 
   // toggle direction
   if (listsSortKey === key) {
