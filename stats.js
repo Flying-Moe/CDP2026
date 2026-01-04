@@ -232,15 +232,24 @@ const activeTop =
 if (activeTop === "badges") {
   badgeSubTabs.style.display = "flex";
 
-  const singleBtn = document.querySelector(
-    '#badge-tabs button[data-badge-tab="single"]'
+  const savedBadgeTab =
+    localStorage.getItem("badgeSubTab") || "single";
+
+  document
+    .querySelectorAll('#badge-tabs button')
+    .forEach(b => b.classList.remove("active"));
+
+  const btn = document.querySelector(
+    `#badge-tabs button[data-badge-tab="${savedBadgeTab}"]`
   );
-  if (singleBtn) singleBtn.classList.add("active");
+  if (btn) btn.classList.add("active");
 
-  document.getElementById("badges-single").style.display = "block";
-  document.getElementById("badges-progressive").style.display = "none";
+  document.getElementById("badges-single").style.display =
+    savedBadgeTab === "single" ? "block" : "none";
+
+  document.getElementById("badges-progressive").style.display =
+    savedBadgeTab === "progressive" ? "block" : "none";
 }
-
 }
 
 /* =====================================================
@@ -591,7 +600,7 @@ function initBadgeOverlay() {
 
   // delegate badge clicks
 document.addEventListener("click", e => {
-const imgEl = e.target.closest("#stats-badges img");
+const imgEl = e.target.closest("img[data-overlay-text]");
 if (!imgEl || imgEl.dataset.noOverlay === "true") return;
 
   const src = imgEl.src;
