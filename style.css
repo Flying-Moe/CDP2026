@@ -1351,3 +1351,40 @@ ul > li {
   margin-right: 0.3rem;
 }
 
+/* =========================
+   BADGE OVERLAY
+========================= */
+
+#badge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+#badge-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+#badge-overlay-content {
+  position: relative;
+  z-index: 1;
+  max-width: 320px;
+  margin: 10vh auto 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+#badge-overlay-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+#badge-overlay-text {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #444;
+}
