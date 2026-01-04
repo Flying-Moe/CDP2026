@@ -441,8 +441,7 @@ if (badge.description) {
 const img = document.createElement("img");
 img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
-// optional custom overlay text
-if (badge.metricUnit) {
+if (typeof badge.overlayText === "function") {
   const value =
     tier?.threshold ??
     tier?.min ??
@@ -450,10 +449,10 @@ if (badge.metricUnit) {
     null;
 
   if (value != null) {
-    img.dataset.overlayText =
-      `At least ${value} ${badge.metricUnit}`;
+    img.dataset.overlayText = badge.overlayText(value);
   }
 }
+
 
     img.style.maxWidth = "256px";
 
