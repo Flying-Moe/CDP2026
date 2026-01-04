@@ -861,6 +861,13 @@ footer {
 }
 
 .badge-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.badge-tier-grid {
   display: contents;
   margin-top: 10px;
 }
