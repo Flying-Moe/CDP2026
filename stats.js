@@ -525,6 +525,53 @@ function renderSingleBadges(badges) {
 }
 
 /* =====================================================
+   BADGE OVERLAY
+===================================================== */
+
+function initBadgeOverlay() {
+  const overlay = document.getElementById("badge-overlay");
+  const backdrop = document.getElementById("badge-overlay-backdrop");
+  const img = document.getElementById("badge-overlay-img");
+  const text = document.getElementById("badge-overlay-text");
+
+  if (!overlay) return;
+
+  function close() {
+    overlay.style.display = "none";
+    img.src = "";
+    text.textContent = "";
+  }
+
+  // click outside
+  backdrop.addEventListener("click", close);
+
+  // ESC key
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") close();
+  });
+
+  // delegate badge clicks
+  document.addEventListener("click", e => {
+    const badge = e.target.closest(".badge");
+    if (!badge) return;
+
+    const src = badge.querySelector("img")?.src;
+    const label = badge.getAttribute("title") || "";
+
+    if (!src) return;
+
+    // toggle behavior
+    if (overlay.style.display === "block") {
+      close();
+    } else {
+      img.src = src;
+      text.textContent = label;
+      overlay.style.display = "block";
+    }
+  });
+}
+
+/* =====================================================
    RENDER DEATH STATS
 ===================================================== */
 
@@ -795,6 +842,7 @@ renderFunStats(players, peopleMap);
 renderAgeAndPickStats(players, peopleMap);
 renderBadges(badgeContext);
 renderBehaviorStats(players, peopleMap);
+initBadgeOverlay();
 
 });
 
