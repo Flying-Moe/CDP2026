@@ -76,8 +76,6 @@ results.sort((a, b) => {
 
 results.forEach((p, i) => (p.rank = i + 1));
 
-const badgesByPlayer = computeBadges(results);
-
 /* ---------- Render ---------- */
 
 tbody.innerHTML = "";
