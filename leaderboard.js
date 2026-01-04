@@ -11,15 +11,6 @@ import {
 import { calculatePlayerTotals } from "./admin.core.js";
 
 /* =====================================================
-   BADGES – LOGIC (LOCAL, DISABLED)
-   (legacy UI badges – intentionally disabled)
-===================================================== */
-
-function computeBadges() {
-  return {};
-}
-
-/* =====================================================
    LOAD + RENDER LEADERBOARD
 ===================================================== */
 
@@ -97,8 +88,6 @@ results.forEach((r, index) => {
   if (index === 0 && r.totalScore > 0) {
     tr.classList.add("leader");
   }
-
-const badgeIcons = "";
 
 tr.innerHTML = `
   <td>${index + 1}</td>
