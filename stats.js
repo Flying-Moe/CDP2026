@@ -473,16 +473,15 @@ if (typeof badge.overlayText === "function") {
   const value =
     tier?.threshold ??
     tier?.min ??
+    tier?.value ??
     null;
 
-  img.dataset.overlayText =
-    value != null
-      ? badge.overlayText(value)
-      : badge.description || badge.name;
-} else {
-  img.dataset.overlayText = badge.description || badge.name;
+  img.dataset.overlayText = badge.overlayText(value);
 }
 
+else {
+  img.dataset.overlayText = badge.description || badge.name;
+}
     img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
