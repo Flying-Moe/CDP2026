@@ -1413,6 +1413,7 @@ return {
 {
   id: "lone_wolf",
   name: "Lone Wolf",
+  description: "Has a lot of unique picks",
   type: "tiered",
   order: 8,
   overlayText: (value) => `At least ${value}% unique picks`,
