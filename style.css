@@ -806,6 +806,11 @@ footer {
   text-align: left;
 }
 
+.badge-tier-players {
+  text-align: left;
+}
+
+
 /* Badge-ikon – stor og læsbar */
 .badge-tier img {
   width: 192px;     /* tydelig læsbarhed fra 512x512 */
