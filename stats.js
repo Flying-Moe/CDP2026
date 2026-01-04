@@ -151,28 +151,37 @@ function hideAllContent() {
 
       const tab = btn.dataset.topTab;
 
-      if (tab === "stats") {
-        statsSubTabs.style.display = "block";
-        activateStatsSubTab(
-          localStorage.getItem("statsSubTab") || "overall"
-        );
-      }
+if (tab === "stats") {
+  statsSubTabs.style.display = "block";
+  activateStatsSubTab(
+    localStorage.getItem("statsSubTab") || "overall"
+  );
+}
 
-      if (tab === "badges") {
-        badgeSubTabs.style.display = "flex";
-        document.getElementById("stats-badges").style.display = "block";
-      }
+if (tab === "badges") {
+  badgeSubTabs.style.display = "flex";
 
+  // default badge sub-tab
+  const singleBtn = document.querySelector(
+    '#badge-tabs button[data-badge-tab="single"]'
+  );
+  if (singleBtn) singleBtn.classList.add("active");
+
+  document.getElementById("badges-single").style.display = "block";
+  document.getElementById("badges-progressive").style.display = "none";
+  document.getElementById("stats-badges").style.display = "block";
+}
+       
 // Misses tab is disabled for launch
 // if (tab === "misses") {
 //   document.getElementById("stats-misses").style.display = "block";
 // }
 
+if (tab === "hof") {
+  hofTabs.style.display = "block";
+  document.getElementById("stats-hof").style.display = "block";
+}
 
-      if (tab === "hof") {
-        hofTabs.style.display = "block";
-        document.getElementById("stats-hof").style.display = "block";
-      }
 
       localStorage.setItem("topTab", tab);
     });
