@@ -809,6 +809,7 @@ evaluate({ players }) {
     type: "tiered",
     metricUnit: "minus points",
 
+    overlayText: (value) => `At least ${value} minus points`,
 
     evaluate({ players }) {
       const tiers = buildEmptyTiers();
@@ -856,6 +857,7 @@ evaluate({ players }) {
         tiers
       };
     }
+    
   },
 
 /* ============ THE VULTURE ========================= */
@@ -866,6 +868,7 @@ evaluate({ players }) {
   description: "Low average age across picks",
   type: "tiered",
   metricUnit: "average age or lower",
+  overlayText: (value) => `Average pick age ${value} or lower`,
   tiers: [
     { id: "bronze", label: "Bronze", threshold: 70 },
     { id: "silver", label: "Silver", threshold: 65 },
