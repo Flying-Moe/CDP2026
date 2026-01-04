@@ -918,6 +918,7 @@ evaluate({ players }) {
   metricUnit: "average age or higher",
   tiers: [75, 80, 85, 90],
 
+  overlayText: (value) => `Average pick age ${value} or higher`,
 
   evaluate({ players }) {
     const results = [];
@@ -962,6 +963,8 @@ evaluate({ players }) {
   order: 11,
   metricUnit: "confirmed kills",
   tiers: [1, 3, 5, 8],
+
+  overlayText: (value) => `At least ${value} confirmed kills`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1015,6 +1018,7 @@ evaluate({ players }) {
   type: "tiered",
   order: 12,
   metricUnit: "rapid death streaks",
+  overlayText: (value) => `Multiple deaths within ${value} days`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1124,6 +1128,7 @@ evaluate({ players }) {
   order: 6,
   type: "tiered",
   metricUnit: "picks under 60",
+  overlayText: (value) => `At least ${value} picks under 60`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1206,6 +1211,7 @@ evaluate({ players }) {
   order: 7,
   type: "tiered",
   metricUnit: "safe picks (80+)",
+  overlayText: (value) => `At least ${value}% safe picks`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1287,6 +1293,7 @@ evaluate({ players }) {
   order: 8,
   type: "tiered",
   metricUnit: "shared picks",
+  overlayText: (value) => `Shared at least ${value} picks`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1390,6 +1397,7 @@ evaluate({ players }) {
   type: "tiered",
   order: 14,
   metricUnit: "unique picks",
+  overlayText: (value) => `At least ${value}% unique picks`,
 
   evaluate() {
     return {
@@ -1411,6 +1419,7 @@ evaluate({ players }) {
   order: 2,
   type: "tiered",
   metricUnit: "Q1 kills",
+  overlayText: (value) => `At least ${value} early-season deaths`,
 
   evaluate({ players, deaths }) {
     const tiers = buildEmptyTiers();
@@ -1487,6 +1496,7 @@ evaluate({ players }) {
   type: "tiered",
   order: 16,
   metricUnit: "Q4 kills",
+  overlayText: (value) => `At least ${value} late-season deaths`,
   tiers: [1, 2, 3, 5],
 
   evaluate({ players }) {
@@ -1526,6 +1536,7 @@ evaluate({ players }) {
   order: 3,
   type: "tiered",
   metricUnit: "80+ picks",
+  overlayText: (value) => `At least ${value}% picks aged 80+`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1608,6 +1619,7 @@ evaluate({ players }) {
   type: "tiered",
   order: 10,
   metricUnit: "90+ picks",
+  overlayText: (value) => `Picked ${value} celebrities aged 90+`,
   tiers: [1, 2, 3, 5],
 
   evaluate({ players }) {
