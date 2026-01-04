@@ -508,13 +508,11 @@ if (typeof badge.overlayText === "function") {
 }
 
 else {
-  img.dataset.overlayText = badge.description || badge.name;
-}
-}
+  img.dataset.overlayText = unlocked
+  ? badge.description || badge.name
+  : "Not yet unlocked";
+}}
 
-else {
-  img.dataset.overlayText = badge.description || badge.name;
-}
     img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
