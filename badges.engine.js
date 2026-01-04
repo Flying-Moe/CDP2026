@@ -805,8 +805,8 @@ evaluate({ players }) {
     id: "glass_cannon",
     name: "Glass Cannon",
     description: "Accumulated minus points",
-    order: 2,
     type: "tiered",
+    order: 2,
     metricUnit: "minus points",
 
     overlayText: (value) => `At least ${value} minus points`,
@@ -1395,20 +1395,63 @@ evaluate({ players }) {
   id: "lone_wolf",
   name: "Lone Wolf",
   type: "tiered",
-  order: 14,
-  metricUnit: "unique picks",
+  order: 8,
   overlayText: (value) => `At least ${value}% unique picks`,
+  tiers: [25, 50, 75, 100],
 
-  evaluate() {
+  evaluate({ players }) {
+    const tiers = buildEmptyTiers();
+
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry) return;
+
+      const picks = (entry.picks || []).filter(p => p.status === "approved");
+      if (!picks.length) return;
+
+      const freq = {};
+      picks.forEach(p => {
+        const key = p.personId || p.normalizedName;
+        if (!key) return;
+        freq[key] = (freq[key] || 0) + 1;
+      });
+
+      const unique = Object.values(freq).filter(c => c === 1).length;
+      const pct = Math.round((unique / picks.length) * 100);
+
+      const thresholds = {
+        bronze: 25,
+        silver: 50,
+        gold: 75,
+        prestige: 100
+      };
+
+      Object.entries(thresholds).forEach(([tierId, min]) => {
+        if (pct >= min) {
+          tiers[tierId].players.push({
+            id: player.id,
+            name: player.name,
+            value: pct,
+            achievedAt: "9999-12-31",
+            leaderboardScore: player.totalScore ?? 0
+          });
+        }
+      });
+    });
+
+    Object.values(tiers).forEach(t => {
+      t.unlocked = t.players.length > 0;
+      t.players.sort(sortPlayers);
+    });
+
     return {
       id: this.id,
       name: this.name,
       type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
+      tiers
     };
   }
-},
+}
 
 /* ============ EARLY GAME PREDATOR ======================== */
   
