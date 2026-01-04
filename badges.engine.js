@@ -223,47 +223,60 @@ return {
 },
 
 /* ============ Optimist ========================= */
+/* ============ Optimist ========================= */
 {
-  const anyHits = players.some(p =>
-  (p.entries?.["2026"]?.picks || []).some(x => x.deathDate)
-);
-
-if (!anyHits) {
-  return {
   id: "optimist",
   name: "Optimist",
   description: "Held a full list with no confirmed kills",
   order: 6,
   type: "single",
 
-evaluate({ players }) {
-  const winners = [];
+  evaluate({ players }) {
+    // Check if ANY confirmed death exists in the season
+    const anyHits = players.some(p =>
+      (p.entries?.["2026"]?.picks || []).some(x => x.deathDate)
+    );
 
-  players.forEach(player => {
-    const entry = player.entries?.["2026"];
-    if (!entry || entry.active === false) return;
+    // Before first hit: badge exists, but is locked
+    if (!anyHits) {
+      return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        type: "single",
+        unlocked: false,
+        players: []
+      };
+    }
 
-    const picks = (entry.picks || []).filter(p => p.status === "approved");
-    if (picks.length !== 20) return;
+    // After first hit: evaluate optimists
+    const winners = [];
 
-    const hasDeath = picks.some(p => !!p.deathDate);
-    if (hasDeath) return;
+    players.forEach(player => {
+      const entry = player.entries?.["2026"];
+      if (!entry || entry.active === false) return;
 
-    winners.push({
-      id: player.id,
-      name: player.name
+      const picks = (entry.picks || []).filter(p => p.status === "approved");
+      if (picks.length !== 20) return;
+
+      const hasDeath = picks.some(p => !!p.deathDate);
+      if (hasDeath) return;
+
+      winners.push({
+        id: player.id,
+        name: player.name
+      });
     });
-  });
 
-  return {
-    id: this.id,
-    name: this.name,
-    description: this.description,
-    type: "single",
-    unlocked: winners.length > 0,
-    players: winners
-  };
- }
+    return {
+      id: this.id,
+      name: this.name,
+      description: this.description,
+      type: "single",
+      unlocked: winners.length > 0,
+      players: winners
+    };
+  }
 },
 
 /* ============ July Sweep ========================= */
