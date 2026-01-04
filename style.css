@@ -148,6 +148,16 @@ table.list-table td:not(:first-child) {
   font-weight: bold;
 }
 
+th.sorted-asc::after {
+  content: " ▲";
+  font-size: 0.75em;
+}
+
+th.sorted-desc::after {
+  content: " ▼";
+  font-size: 0.75em;
+}
+
 /* ===============================
    PEOPLE TABLE – DATE COLUMNS COMPACT
    =============================== */
@@ -1454,3 +1464,4 @@ ul > li {
     text-align: left;
   }
 }
+
