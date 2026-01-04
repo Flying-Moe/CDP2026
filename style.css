@@ -1432,3 +1432,22 @@ ul > li {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 720px) {
+  .badge-tier-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .badge-tier {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .badge-tier img {
+    width: 128px;
+  }
+
+  .badge-tier-players {
+    text-align: left;
+  }
+}
