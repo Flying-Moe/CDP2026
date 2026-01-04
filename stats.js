@@ -210,10 +210,12 @@ if (tab === "hof") {
     if (target) target.style.display = "block";
 
     localStorage.setItem("statsSubTab", tab);
+    localStorage.setItem("badgeSubTab", tab);
+
   }
 
   // ---------- RESTORE STATE ----------
-// ---------- RESTORE STATE ----------
+
 // Restore last active tab, but never allow "misses"
 const savedTopRaw = localStorage.getItem("topTab");
 const safeTop =
