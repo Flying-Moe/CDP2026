@@ -131,6 +131,9 @@ function initTabs() {
   const missesBtn = document.querySelector('#top-tabs button[data-top-tab="misses"]');
   if (missesBtn) missesBtn.style.display = "none";
    
+   const missesTab = document.getElementById("stats-misses");
+   if (missesTab) missesTab.style.display = "none";
+
 function hideAllContent() {
   contentTabs.forEach(t => t.style.display = "none");
 
