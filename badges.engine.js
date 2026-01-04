@@ -134,6 +134,26 @@ function calculateAge(birthDate, refDate = "2026-01-01") {
 /* =====================================================
    BADGES
 ===================================================== */
+/* =====================================================
+   LAUNCH NOTE — 2026 v1.0
+   -----------------------------------------------------
+   Chaos-related badges (Agent of Chaos, The Stabilizer)
+   are intentionally REMOVED from the launch build.
+
+   Reason:
+   - Chaos Level metric is not implemented yet
+   - Showing locked / placeholder badges breaks the
+     "clean launch" principle
+
+   These badges must NOT exist in BADGES[] until
+   Chaos logic is fully defined and implemented.
+
+   TODO (post-launch):
+   - Define Chaos Level metric
+   - Re-introduce Agent of Chaos (tiered)
+   - Re-introduce The Stabilizer (tiered)
+===================================================== */
+
 
 export const BADGES = [
 
@@ -774,43 +794,10 @@ evaluate({ players }) {
 ============================================================================ */
   
 /* ============ AGENT OF CHAOS ============================= */
-/* ====== ⚠ afhænger af Chaos-logik ======================== */
-
-{
-  id: "agent_of_chaos",
-  name: "Agent of Chaos",
-  description: "Chaos-driven mayhem",
-  order: 8,
-  type: "tiered",
-
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      description: this.description,
-      globalUnlocked: true,   // synlig men låst
-      tiers: buildEmptyTiers()
-    };
-  }
-},
 
 /* ============ THE STABILIZER ============================== */
 
-{
-  id: "the_stabilizer",
-  name: "The Stabilizer",
-  type: "tiered",
-  order: 16,
-  evaluate() {
-    return {
-      id: this.id,
-      name: this.name,
-      type: "tiered",
-      globalUnlocked: false,
-      tiers: buildEmptyTiers()
-    };
-  }
-},
+
 
 /* ============ GLASS CANNON ========================= */
 /* =========== OK?  ================================== */
