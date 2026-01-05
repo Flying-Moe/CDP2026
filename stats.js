@@ -1281,17 +1281,23 @@ scores.forEach(s => {
   =============================== */
 
 const topPicked = Object.entries(pickFrequency)
-  .sort((a, b) => b[1] - a[1])
+  .map(([pid, c]) => ({
+    name: peopleMap[pid]?.name || pid,
+    count: c
+  }))
+  .sort((a, b) =>
+    b.count !== a.count
+      ? b.count - a.count
+      : a.name.localeCompare(b.name)
+  )
   .slice(0, 3);
 
 set(
   "stat-fun-most-picked",
   topPicked.length
     ? topPicked
-        .map(([pid, c]) =>
-          `${peopleMap[pid]?.name || pid} (${c})`
-        )
-        .join(" · ")
+        .map(x => `${x.name} (${x.count})`)
+        .join("\n")
     : "—"
 );
 
@@ -1304,15 +1310,20 @@ set(
   const minUnique = Math.min(...uniqueValues);
 
 const topUnique = Object.entries(playerUniqueCount)
-  .sort((a, b) => b[1] - a[1])
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) =>
+    b.count !== a.count
+      ? b.count - a.count
+      : a.name.localeCompare(b.name)
+  )
   .slice(0, 3);
 
 set(
   "stat-fun-most-unique",
   topUnique.length
     ? topUnique
-        .map(([n, v]) => `${n} (${v})`)
-        .join(" · ")
+        .map(x => `${x.name} (${x.count})`)
+        .join("\n")
     : "—"
 );
 
