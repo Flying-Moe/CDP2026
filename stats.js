@@ -1167,16 +1167,17 @@ if (age === null) return;
   ul.innerHTML = "";
 
 perPlayer
-  .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach(p => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <strong>${p.name}</strong> –
-        Avg: ${p.avg.toFixed(2)} 
-       <i>(Median: ${p.median.toFixed(2)})</i)
-      `;
-      ul.appendChild(li);
-    });
+  .sort((a, b) => b.avg - a.avg)
+  .forEach(p => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <strong>${p.name}</strong> –
+      Avg: ${p.avg.toFixed(2)} 
+     <i>(Median: ${p.median.toFixed(2)})</i)
+    `;
+    ul.appendChild(li);
+  });
+
 }
 
 /* =====================================================
