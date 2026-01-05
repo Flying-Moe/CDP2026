@@ -1724,22 +1724,19 @@ return {
 export function evaluateBadges(context) {
   return BADGES
     .sort((a, b) => a.order - b.order)
-    .map(badge => {
-      const result = badge.evaluate(context) || {};
+    .map(def => {
+      const result = def.evaluate(context) || {};
 
-      // Always attach shared metadata so the UI can render descriptions + overlay text
-      // consistently for both single and tiered badges.
-      const meta = {
-        id: badge.id,
-        name: badge.name,
-        type: badge.type,
-        order: badge.order,
-        description: badge.description || "",
-        overlayText: typeof badge.overlayText === "function" ? badge.overlayText : null,
-        // For tiered badges, expose the tier thresholds (used to build per-tier overlay text).
-        tierThresholds: Array.isArray(badge.tiers) ? badge.tiers : null
+      // tierThresholds bruges af stats.js til at vise korrekt "krav pr tier"
+      // - hvis def.tiers er et array, bruger vi det som threshold-liste
+      const tierThresholds = Array.isArray(def.tiers) ? def.tiers : null;
+
+      return {
+        ...result,
+        // Meta som UI skal kunne bruge (uden at evaluate() behøver returnere dem)
+        metricUnit: def.metricUnit,
+        overlayText: def.overlayText,
+        tierThresholds
       };
-
-      return { ...meta, ...result };
     });
 }
