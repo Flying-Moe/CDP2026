@@ -1359,12 +1359,13 @@ function renderFunStats(players, peopleMap) {
 
   const worst = rates.sort((a, b) => a.rate - b.rate)[0];
 
-  set(
-    "stat-fun-unlucky",
-    worst
-      ? `${worst.name} (${worst.hits}/${worst.total} · ${(worst.rate * 100).toFixed(0)}%)`
-      : "—"
-  );
+// Temporarily disabled for launch
+// set(
+//   "stat-fun-unlucky",
+//   worst
+//     ? `${worst.name} (${worst.hits}/${worst.total} · ${(worst.rate * 100).toFixed(0)}%)`
+//     : "—"
+// );
 
   /* ===============================
      MOST PENALTIES (EXISTING)
