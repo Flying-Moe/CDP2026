@@ -927,8 +927,27 @@ return {
 const storedPlayer =
   localStorage.getItem(BADGE_PLAYER_STORAGE_KEY) || "all";
 
+const storedBadgeTab =
+  localStorage.getItem("badgeSubTab") || "single";
+
 setupBadgePlayerDropdown(badgeContext.players, (playerId) => {
   renderBadges(badgeContext, playerId);
+
+  // 🔁 GENAKTIVER KORREKT SUB-TAB
+  document.getElementById("badges-single").style.display =
+    storedBadgeTab === "single" ? "block" : "none";
+
+  document.getElementById("badges-progressive").style.display =
+    storedBadgeTab === "progressive" ? "block" : "none";
+
+  document
+    .querySelectorAll("#badge-tabs button")
+    .forEach(b => b.classList.remove("active"));
+
+  const btn = document.querySelector(
+    `#badge-tabs button[data-badge-tab="${storedBadgeTab}"]`
+  );
+  if (btn) btn.classList.add("active");
 });
 
 document.querySelectorAll("#badge-tabs button").forEach(btn => {
@@ -940,6 +959,9 @@ document.querySelectorAll("#badge-tabs button").forEach(btn => {
     btn.classList.add("active");
 
     const tab = btn.dataset.badgeTab;
+
+    // ✅ GEM SUB-TAB
+    localStorage.setItem("badgeSubTab", tab);
 
     document.getElementById("badges-single").style.display =
       tab === "single" ? "block" : "none";
