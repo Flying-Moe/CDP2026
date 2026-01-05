@@ -499,13 +499,27 @@ tierOrder.forEach(tierId => {
   const tierPlayers = tier?.players || [];
   const isTierUnlocked = tierPlayers.length > 0;
 
-  // ✅ KORREKT threshold for DETTE tier
-  const threshold =
-    Array.isArray(badge.tierThresholds)
-      ? badge.tierThresholds[idx]
-      : null;
+  // ✅ threshold for DETTE tier (kan være number eller object)
+  const threshold = (() => {
+    const t = badge.tierThresholds;
+    if (!Array.isArray(t)) return null;
 
-  // ✅ KORREKT overlayText
+    // hvis tiers er objects med id/threshold, så match på tierId først
+    const byId =
+      t.find(x => x && typeof x === "object" && x.id === tierId) || null;
+
+    const raw = byId ?? t[idx];
+    if (raw == null) return null;
+
+    if (typeof raw === "object") {
+      // understøt både {threshold: ...} og evt. {min: ...}
+      return raw.threshold ?? raw.min ?? null;
+    }
+
+    return raw; // number
+  })();
+
+  // ✅ overlayText pr tier
   if (!isTierUnlocked) {
     img.dataset.overlayText = "Not yet unlocked";
     img.style.opacity = "0.35";
@@ -513,6 +527,7 @@ tierOrder.forEach(tierId => {
   } else if (typeof badge.overlayText === "function" && threshold != null) {
     img.dataset.overlayText = badge.overlayText(threshold);
   } else {
+    // fallback (burde næsten aldrig ske efter fixes)
     img.dataset.overlayText = badge.description || badge.name || "";
   }
 
