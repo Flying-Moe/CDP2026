@@ -1832,7 +1832,10 @@ Object.values(playerData).forEach(d => {
 if (globalMax === 0) globalMax = 1;
 
 /* Rows */
-Object.entries(playerData).forEach(([playerName, data]) => {
+Object.entries(playerData)
+  .sort((a, b) => a[0].localeCompare(b[0]))
+  .forEach(([playerName, data]) => {
+
   const row = document.createElement("tr");
 
   const nameCell = document.createElement("td");
