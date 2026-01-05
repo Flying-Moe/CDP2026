@@ -1464,3 +1464,26 @@ ul > li {
 #stats-age ul > li {
   margin-bottom: 0.9rem;
 }
+
+/* =========================
+   STATS – AGE & PICKS TWEAKS
+========================= */
+
+/* Youngest / Oldest main line */
+#stat-youngest-pick,
+#stat-oldest-pick {
+  display: block;
+  margin-top: 0.4em;
+  margin-bottom: 0.25rem;
+  
+}
+
+/* Picked by-lines under each */
+#stat-youngest-picked-by,
+#stat-oldest-picked-by {
+  display: block;
+  margin-top: -0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+
