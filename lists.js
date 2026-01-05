@@ -121,20 +121,25 @@ async function renderLists() {
 
   container.innerHTML = "";
   
-    // ---------- Populate player filter ----------
-  const filterSelect = document.getElementById("player-filter");
-  if (filterSelect) {
-    filterSelect.innerHTML =
-      `<option value="all">All players</option>` +
-      players
-        .map(p => `<option value="${p.id}">${p.name}</option>`)
-        .join("");
+// ---------- Populate player filter ----------
+const filterSelect = document.getElementById("player-filter");
+if (filterSelect) {
+  const previousValue = activePlayerFilter;
 
-    filterSelect.onchange = () => {
-      activePlayerFilter = filterSelect.value;
-      renderLists();
-    };
-  }
+  filterSelect.innerHTML =
+    `<option value="all">All players</option>` +
+    players
+      .map(p => `<option value="${p.id}">${p.name}</option>`)
+      .join("");
+
+  // 🔑 restore selection
+  filterSelect.value = previousValue;
+
+  filterSelect.onchange = () => {
+    activePlayerFilter = filterSelect.value;
+    renderLists();
+  };
+}
 
   players.forEach(player => {
   if (activePlayerFilter !== "all" && player.id !== activePlayerFilter) {
