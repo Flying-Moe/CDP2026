@@ -528,7 +528,7 @@ const active = [];
 const greyed = [];
 
 Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
-  const entry = tier.players.find(p => p.id === pid);
+  const entry = (tier?.players || []).find(p => p.id === pid);
   if (!entry) return;
 
   if (maxIdx === idx) active.push(entry);
