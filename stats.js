@@ -374,19 +374,21 @@ tieredBadges.forEach(badge => {
 ===================================================== */
 
 function renderTieredBadge(badge, selectedPlayerId) {
-  // 🔍 Player filter: hide badges the selected player has not unlocked
-  if (selectedPlayerId !== "all") {
-    const unlocked =
-      badge.type === "single"
-        ? badge.players?.some(p => p.id === selectedPlayerId)
-        : Object.values(badge.tiers || {}).some(t =>
-            t.players?.some(p => p.id === selectedPlayerId)
-          );
+if (selectedPlayerId !== "all") {
+  const unlocked =
+    badge.type === "single"
+      ? Array.isArray(badge.players) &&
+        badge.players.some(p => p.id === selectedPlayerId)
+      : Object.values(badge.tiers || {}).some(t =>
+          Array.isArray(t.players) &&
+          t.players.some(p => p.id === selectedPlayerId)
+        );
 
-    if (!unlocked) {
-      return null;
-    }
-  }  
+  if (!unlocked) {
+    return null;
+  }
+}
+
   const wrapper = document.createElement("div");
   wrapper.className = "badge-block";
 
