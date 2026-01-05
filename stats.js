@@ -484,19 +484,7 @@ img.dataset.badgeName = badge.name;
     });
   });
 
-  tierOrder.forEach(tierId => {
-    const tier = badge.tiers?.[tierId];
-    const idx = tierIndex[tierId];
-
-    const tierDiv = document.createElement("div");
-    tierDiv.className = "badge-tier";
-
-const img = document.createElement("img");
-img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
-
-img.dataset.badgeName = badge.name;
-
-// ✅ Per-tier overlay text (tiered/progressive)
+  tierOrder.forEach(tierId => // ✅ Per-tier overlay text (tiered/progressive)
 // - locked tiers: "Not yet unlocked"
 // - unlocked tiers: use engine overlayText(threshold-for-that-tier)
 {
