@@ -484,88 +484,80 @@ img.dataset.badgeName = badge.name;
     });
   });
 
-  tierOrder.forEach(tierId => // ✅ Per-tier overlay text (tiered/progressive)
-// - locked tiers: "Not yet unlocked"
-// - unlocked tiers: use engine overlayText(threshold-for-that-tier)
-{
+tierOrder.forEach(tierId => {
+  const idx = tierIndex[tierId];
+  const tier = badge.tiers?.[tierId];
+
+  const tierDiv = document.createElement("div");
+  tierDiv.className = "badge-tier";
+
+  const img = document.createElement("img");
+  img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
+  img.dataset.badgeName = badge.name;
+  img.style.maxWidth = "256px";
+
   const tierPlayers = tier?.players || [];
   const isTierUnlocked = tierPlayers.length > 0;
 
+  // ✅ KORREKT threshold for DETTE tier
   const threshold =
-    Array.isArray(badge.tierThresholds) ? badge.tierThresholds[idx] : null;
+    Array.isArray(badge.tierThresholds)
+      ? badge.tierThresholds[idx]
+      : null;
 
+  // ✅ KORREKT overlayText
   if (!isTierUnlocked) {
     img.dataset.overlayText = "Not yet unlocked";
+    img.style.opacity = "0.35";
+    tierDiv.classList.add("locked");
   } else if (typeof badge.overlayText === "function" && threshold != null) {
     img.dataset.overlayText = badge.overlayText(threshold);
   } else {
-    // fallback (should rarely happen)
     img.dataset.overlayText = badge.description || badge.name || "";
   }
 
-   img.style.maxWidth = "256px";
+  tierDiv.appendChild(img);
 
-    tierDiv.appendChild(img);
+  const list = document.createElement("div");
+  list.className = "badge-tier-players";
 
-    const list = document.createElement("div");
-    list.className = "badge-tier-players";
+  const active = [];
+  const greyed = [];
 
-const active = [];
-const greyed = [];
+  Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
+    const entry = (tier?.players || []).find(p => p.id === pid);
+    if (!entry) return;
 
-Object.entries(highestTierByPlayer).forEach(([pid, maxIdx]) => {
-  const entry = (tier?.players || []).find(p => p.id === pid);
-  if (!entry) return;
-
-  if (maxIdx === idx) active.push(entry);
-  else if (maxIdx > idx) greyed.push(entry);
-});
-
-
-// 🔒 LOCKED TIER hvis ingen data overhovedet
-const isUnlockedTier = active.length > 0 || greyed.length > 0;
-
-if (!isUnlockedTier) {
-  tierDiv.classList.add("locked");
-  img.style.opacity = "0.35";
-
-  // ❗️KUN sæt overlayText hvis det ikke allerede er sat
-  if (!img.dataset.overlayText) {
-    img.dataset.overlayText = "Not yet unlocked";
-  }
-}
-
-    if (!active.length && !greyed.length) {
-      const span = document.createElement("div");
-      span.className = "badge-placeholder";
-      span.textContent = "Not yet unlocked";
-      list.appendChild(span);
-    } else {
-// Aktive spillere (sort tekst)
-active.forEach(p => {
-  if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
-
-  const div = document.createElement("div");
-  div.className = "badge-player";
-  div.textContent = p.name;
-  list.appendChild(div);
-});
-
-// Demoted spillere (har højere tier – grå, nederst)
-greyed.forEach(p => {
-  if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
-
-  const div = document.createElement("div");
-  div.className = "badge-player demoted";
-  div.textContent = p.name;
-  list.appendChild(div);
-});
-
-    }
-
-    tierDiv.appendChild(list);
-    tierGrid.appendChild(tierDiv);
+    if (maxIdx === idx) active.push(entry);
+    else if (maxIdx > idx) greyed.push(entry);
   });
+
+  if (!active.length && !greyed.length) {
+    const span = document.createElement("div");
+    span.className = "badge-placeholder";
+    span.textContent = "Not yet unlocked";
+    list.appendChild(span);
+  } else {
+    active.forEach(p => {
+      if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
+      const div = document.createElement("div");
+      div.className = "badge-player";
+      div.textContent = p.name;
+      list.appendChild(div);
+    });
+
+    greyed.forEach(p => {
+      if (selectedPlayerId !== "all" && p.id !== selectedPlayerId) return;
+      const div = document.createElement("div");
+      div.className = "badge-player demoted";
+      div.textContent = p.name;
+      list.appendChild(div);
+    });
+  }
+
+  tierDiv.appendChild(list);
+  tierGrid.appendChild(tierDiv);
+});
 
   wrapper.appendChild(tierGrid);
   return wrapper;
