@@ -348,12 +348,6 @@ tieredBadges.forEach(badge => {
   if (el) progHost.appendChild(el);
 });
 
-
-  // Render PROGRESSIVE
-  tieredBadges.forEach(badge => {
-    progHost.appendChild(renderTieredBadge(badge, selectedPlayerId));
-  });
-
   // Default tab = Single
   document
     .querySelectorAll("#badge-tabs button")
