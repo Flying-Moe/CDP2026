@@ -128,11 +128,11 @@ function initTabs() {
   const contentTabs = document.querySelectorAll(".stats-tab");
    
   // Launch: hide Misses until the feature is implemented
-  const missesBtn = document.querySelector('#top-tabs button[data-top-tab="misses"]');
-  if (missesBtn) missesBtn.style.display = "none";
+  /const missesBtn = document.querySelector('#top-tabs button[data-top-tab="misses"]');
+ / if (missesBtn) missesBtn.style.display = "none";
    
-   const missesTab = document.getElementById("stats-misses");
-   if (missesTab) missesTab.style.display = "none";
+  / const missesTab = document.getElementById("stats-misses");
+ // if (missesTab) missesTab.style.display = "none";
 
 function hideAllContent() {
   contentTabs.forEach(t => t.style.display = "none");
