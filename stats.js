@@ -348,20 +348,26 @@ tieredBadges.forEach(badge => {
   if (el) progHost.appendChild(el);
 });
 
-  // Default tab = Single
-  document
-    .querySelectorAll("#badge-tabs button")
-    .forEach(b => b.classList.remove("active"));
+// 🔁 Restore badge sub-tab state (do NOT force switch)
+const activeBadgeTab =
+  localStorage.getItem("badgeSubTab") || "single";
 
-  const defaultBtn = document.querySelector(
-    '#badge-tabs button[data-badge-tab="single"]'
-  );
-  if (defaultBtn) defaultBtn.classList.add("active");
+document
+  .querySelectorAll("#badge-tabs button")
+  .forEach(b => b.classList.remove("active"));
 
-  singleHost.style.display = "block";
-  progHost.style.display = "none";
+const activeBtn = document.querySelector(
+  `#badge-tabs button[data-badge-tab="${activeBadgeTab}"]`
+);
+if (activeBtn) activeBtn.classList.add("active");
+
+singleHost.style.display =
+  activeBadgeTab === "single" ? "block" : "none";
+
+progHost.style.display =
+  activeBadgeTab === "progressive" ? "block" : "none";
+
 }
-
 
 /* =====================================================
    RENDER BADGE (SINGLE + TIERED)
