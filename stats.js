@@ -496,32 +496,24 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
 img.dataset.badgeName = badge.name;
 
-if (typeof badge.overlayText === "function") {
-// ---------- OVERLAY TEXT (TIERED – CORRECT MODEL) ----------
+// ✅ Per-tier overlay text (tiered/progressive)
+// - locked tiers: "Not yet unlocked"
+// - unlocked tiers: use engine overlayText(threshold-for-that-tier)
+{
+  const tierPlayers = tier?.players || [];
+  const isTierUnlocked = tierPlayers.length > 0;
 
-let tierThreshold = null;
+  const threshold =
+    Array.isArray(badge.tierThresholds) ? badge.tierThresholds[idx] : null;
 
-// Case 1: tier har eksplicit threshold (DETTE ER STANDARD)
-if (tier && typeof tier.threshold === "number") {
-  tierThreshold = tier.threshold;
-}
-
-// Case 2: fallback – tiers defineret som array (sjældent, men sikkert)
-else if (Array.isArray(badge.tiers)) {
-  tierThreshold = badge.tiers[idx] ?? null;
-}
-
-// Afgør om dette tier er unlocked
-const isTierUnlocked =
-  (tier?.players?.length || 0) > 0;
-
-// Sæt overlay tekst
-if (typeof badge.overlayText === "function" && tierThreshold !== null) {
-  img.dataset.overlayText = isTierUnlocked
-    ? badge.overlayText(tierThreshold)
-    : "Not yet unlocked";
-} else {
-  img.dataset.overlayText = "Not yet unlocked";
+  if (!isTierUnlocked) {
+    img.dataset.overlayText = "Not yet unlocked";
+  } else if (typeof badge.overlayText === "function" && threshold != null) {
+    img.dataset.overlayText = badge.overlayText(threshold);
+  } else {
+    // fallback (should rarely happen)
+    img.dataset.overlayText = badge.description || badge.name || "";
+  }
 }
 
 }
