@@ -920,8 +920,8 @@ return {
   deaths: deathsByPlayer
 };
 
-const storedPlayer =
-  localStorage.getItem(BADGE_PLAYER_STORAGE_KEY) || "all";
+localStorage.removeItem(BADGE_PLAYER_STORAGE_KEY);
+const storedPlayer = "all";
 
 const storedBadgeTab =
   localStorage.getItem("badgeSubTab") || "single";
