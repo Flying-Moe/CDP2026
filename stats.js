@@ -216,7 +216,6 @@ if (tab === "hof") {
     if (target) target.style.display = "block";
 
     localStorage.setItem("statsSubTab", tab);
-    localStorage.setItem("badgeSubTab", tab);
 
   }
 
@@ -929,27 +928,10 @@ return {
 localStorage.removeItem(BADGE_PLAYER_STORAGE_KEY);
 const storedPlayer = "all";
 
-const storedBadgeTab =
-  localStorage.getItem("badgeSubTab") || "single";
-
 setupBadgePlayerDropdown(badgeContext.players, (playerId) => {
+  // renderBadges() håndterer selv at holde korrekt badge-subtab aktiv
+  // baseret på localStorage("badgeSubTab"), så vi skal ikke tvinge UI her.
   renderBadges(badgeContext, playerId);
-
-  // 🔁 GENAKTIVER KORREKT SUB-TAB
-  document.getElementById("badges-single").style.display =
-    storedBadgeTab === "single" ? "block" : "none";
-
-  document.getElementById("badges-progressive").style.display =
-    storedBadgeTab === "progressive" ? "block" : "none";
-
-  document
-    .querySelectorAll("#badge-tabs button")
-    .forEach(b => b.classList.remove("active"));
-
-  const btn = document.querySelector(
-    `#badge-tabs button[data-badge-tab="${storedBadgeTab}"]`
-  );
-  if (btn) btn.classList.add("active");
 });
 
 document.querySelectorAll("#badge-tabs button").forEach(btn => {
