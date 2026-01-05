@@ -1146,13 +1146,13 @@ return {
 {
   id: "yolo",
   name: "YOLO",
-  description: "Picked very young celebrities (<60)",
+  description: "Picked very young celebrities (<50)",
   order: 6,
   type: "tiered",
-  metricUnit: "picks under 60",
+  metricUnit: "picks under 50",
   tiers: [1, 2, 3, 5],
 
-  overlayText: (value) => `At least ${value} picks under 60`,
+  overlayText: (value) => `At least ${value} picks under 50`,
 
   evaluate({ players }) {
     const tiers = buildEmptyTiers();
@@ -1182,17 +1182,17 @@ return {
       const total = ages.length;
       if (!total) return;
 
-      const under60 = ages.filter(a => a < 60).length;
+      const under50 = ages.filter(a => a < 50).length;
 
       Object.entries(thresholds).forEach(([tierId, min]) => {
-        if (under60 >= min) {
-          const pct = Math.round((under60 / total) * 100);
+        if (under50 >= min) {
+          const pct = Math.round((under50 / total) * 100);
           achieved[tierId].push({
             id: p.id,
             name: p.name,
             achievedAt: "9999-12-31",
             leaderboardScore: p.totalScore ?? 0,
-            value: `${under60}/${total} · ${pct}%`
+            value: `${under50}/${total} · ${pct}%`
           });
         }
       });
