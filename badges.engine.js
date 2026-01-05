@@ -1234,7 +1234,7 @@ return {
   description: "Played it safe (many 80+ picks)",
   order: 7,
   type: "tiered",
-  metricUnit: "safe picks (80+)",
+  metricUnit: "safe picks (90+)",
   tiers: [30, 50, 70, 90],
 
   overlayText: (value) => `At least ${value}% safe picks`,
@@ -1267,7 +1267,7 @@ return {
       const total = ages.length;
       if (!total) return;
 
-      const over80 = ages.filter(a => a >= 80).length;
+      const over90 = ages.filter(a => a >= 90).length;
       const pct = (over80 / total) * 100;
 
       Object.entries(pctThresholds).forEach(([tierId, minPct]) => {
@@ -1277,7 +1277,7 @@ return {
             name: p.name,
             achievedAt: "9999-12-31",
             leaderboardScore: p.totalScore ?? 0,
-            value: `${over80}/${total} · ${Math.round(pct)}%`
+            value: `${over90}/${total} · ${Math.round(pct)}%`
           });
         }
       });
