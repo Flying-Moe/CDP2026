@@ -1509,12 +1509,12 @@ scores.forEach(s => {
 
   set(
     "stat-beh-unique",
-    `${topU.name} (${topU.unique}/${topU.approved} · ${(topU.pct*100).toFixed(0)}%)`
+    `${topU.name} - ${topU.unique}/${topU.approved} (${(topU.pct*100).toFixed(0)}%)`
   );
 
   set(
     "stat-beh-copycat",
-    `${lowU.name} (${lowU.approved-lowU.unique}/${lowU.approved} · ${(100 - lowU.pct*100).toFixed(0)}%)`
+    `${lowU.name} - ${lowU.approved-lowU.unique}/${lowU.approved} (${(100 - lowU.pct*100).toFixed(0)}%)`
   );
 
   /* ============================
@@ -1541,12 +1541,12 @@ scores.forEach(s => {
 
   set(
     "stat-beh-yolo",
-    `${yoloRank.name} (${yoloRank.raw} · ${(yoloRank.pct*100).toFixed(0)}%)`
+    `${yoloRank.name} - ${yoloRank.raw} (${(yoloRank.pct*100).toFixed(0)}%)`
   );
 
   set(
     "stat-beh-coward",
-    `${cowardRank.name} (${cowardRank.raw} · ${(cowardRank.pct*100).toFixed(0)}%)`
+    `${cowardRank.name} - ${cowardRank.raw} (${(cowardRank.pct*100).toFixed(0)}%)`
   );
 
   // Chaos Level disabled for launch
