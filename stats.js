@@ -497,28 +497,33 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 img.dataset.badgeName = badge.name;
 
 if (typeof badge.overlayText === "function") {
+// ---------- OVERLAY TEXT (TIERED – CORRECT MODEL) ----------
+
 let tierThreshold = null;
 
-// Case 1: badge.tiers er array med objects
-if (Array.isArray(badge.tiers) && badge.tiers[idx]?.threshold != null) {
-  tierThreshold = badge.tiers[idx].threshold;
-}
-
-// Case 2: badge.tiers er array af tal
-else if (Array.isArray(badge.tiers) && typeof badge.tiers[idx] === "number") {
-  tierThreshold = badge.tiers[idx];
-}
-
-// Case 3: thresholds defineret implicit i engine-resultatet
-else if (tier?.threshold != null) {
+// Case 1: tier har eksplicit threshold (DETTE ER STANDARD)
+if (tier && typeof tier.threshold === "number") {
   tierThreshold = tier.threshold;
 }
 
-if (typeof badge.overlayText === "function" && tierThreshold != null) {
-  img.dataset.overlayText = badge.overlayText(tierThreshold);
+// Case 2: fallback – tiers defineret som array (sjældent, men sikkert)
+else if (Array.isArray(badge.tiers)) {
+  tierThreshold = badge.tiers[idx] ?? null;
+}
+
+// Afgør om dette tier er unlocked
+const isTierUnlocked =
+  (tier?.players?.length || 0) > 0;
+
+// Sæt overlay tekst
+if (typeof badge.overlayText === "function" && tierThreshold !== null) {
+  img.dataset.overlayText = isTierUnlocked
+    ? badge.overlayText(tierThreshold)
+    : "Not yet unlocked";
 } else {
   img.dataset.overlayText = "Not yet unlocked";
 }
+
 }
    img.style.maxWidth = "256px";
 
