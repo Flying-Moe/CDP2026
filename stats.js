@@ -1189,10 +1189,16 @@ function renderFunStats(players, peopleMap) {
 
   const nameToId = buildNameToIdMap(peopleMap); // ← DEN MANGLEDE LINJE
 
-  const set = (id, value) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = value;
-  };
+const set = (id, value) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (typeof value === "string" && value.includes("<br>")) {
+    el.innerHTML = value;
+  } else {
+    el.textContent = value;
+  }
+};
 
   /* ===============================
      BUILD MAPS
@@ -1297,7 +1303,8 @@ set(
   topPicked.length
     ? topPicked
         .map(x => `${x.name} (${x.count})`)
-        .join("\n")
+        .join("<br>")
+
     : "—"
 );
 
@@ -1323,7 +1330,8 @@ set(
   topUnique.length
     ? topUnique
         .map(x => `${x.name} (${x.count})`)
-        .join("\n")
+        .join("<br>")
+
     : "—"
 );
 
