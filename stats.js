@@ -497,14 +497,28 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 img.dataset.badgeName = badge.name;
 
 if (typeof badge.overlayText === "function") {
-  const samplePlayer =
-    (tier?.players && tier.players.length)
-      ? tier.players[0]
-      : null;
+let tierThreshold = null;
 
-  if (samplePlayer && samplePlayer.value != null) {
-    img.dataset.overlayText = badge.overlayText(samplePlayer.value);
-  } else {
+// Case 1: badge.tiers er array med objects
+if (Array.isArray(badge.tiers) && badge.tiers[idx]?.threshold != null) {
+  tierThreshold = badge.tiers[idx].threshold;
+}
+
+// Case 2: badge.tiers er array af tal
+else if (Array.isArray(badge.tiers) && typeof badge.tiers[idx] === "number") {
+  tierThreshold = badge.tiers[idx];
+}
+
+// Case 3: thresholds defineret implicit i engine-resultatet
+else if (tier?.threshold != null) {
+  tierThreshold = tier.threshold;
+}
+
+if (typeof badge.overlayText === "function" && tierThreshold != null) {
+  img.dataset.overlayText = badge.overlayText(tierThreshold);
+} else {
+  img.dataset.overlayText = "Not yet unlocked";
+} else {
     img.dataset.overlayText = "Not yet unlocked";
   }
 } else {
