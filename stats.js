@@ -516,7 +516,6 @@ img.dataset.badgeName = badge.name;
   }
 }
 
-}
    img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
