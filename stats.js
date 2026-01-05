@@ -497,7 +497,6 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 img.dataset.badgeName = badge.name;
 
 if (typeof badge.overlayText === "function") {
-  // find EN repræsentativ player for dette tier
   const samplePlayer =
     (tier?.players && tier.players.length)
       ? tier.players[0]
@@ -508,13 +507,11 @@ if (typeof badge.overlayText === "function") {
   } else {
     img.dataset.overlayText = "Not yet unlocked";
   }
-}
-
-else {
+} else {
   img.dataset.overlayText = unlocked
-  ? badge.description || badge.name
-  : "Not yet unlocked";
-}}
+    ? badge.description || badge.name
+    : "Not yet unlocked";
+}
 
     img.style.maxWidth = "256px";
 
