@@ -3,6 +3,7 @@ console.log("lists.js loaded");
 let listsSortKey = "pp";   // name | age | pp | pb
 let listsSortDir = "desc"; // asc | desc
 let lastSortedTh = null;
+let activePlayerFilter = "all";
 
 import { db } from "./firebase.js";
 
@@ -119,8 +120,27 @@ async function renderLists() {
   /* ---------- Render ---------- */
 
   container.innerHTML = "";
+  
+    // ---------- Populate player filter ----------
+  const filterSelect = document.getElementById("player-filter");
+  if (filterSelect) {
+    filterSelect.innerHTML =
+      `<option value="all">All players</option>` +
+      players
+        .map(p => `<option value="${p.id}">${p.name}</option>`)
+        .join("");
+
+    filterSelect.onchange = () => {
+      activePlayerFilter = filterSelect.value;
+      renderLists();
+    };
+  }
 
   players.forEach(player => {
+  if (activePlayerFilter !== "all" && player.id !== activePlayerFilter) {
+    return;
+  }
+
 let rowData = [];
 let totalPotential = 0;
 
