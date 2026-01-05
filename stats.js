@@ -1349,17 +1349,17 @@ function renderFunStats(players, peopleMap) {
      UNLUCKIEST PLAYER
   =============================== */
 
-  const rates = Object.entries(playerApprovedCount)
-    .map(([n, total]) => {
-      const hits = playerHits[n] || 0;
-      return total > 0
-        ? { name: n, rate: hits / total, hits, total }
-        : null;
-    })
-    .filter(Boolean);
-
-  const worst = rates.sort((a, b) => a.rate - b.rate)[0];
-
+// const rates = Object.entries(playerApprovedCount)
+//   .map(([n, total]) => {
+//     const hits = playerHits[n] || 0;
+//     return total > 0
+//       ? { name: n, rate: hits / total, hits, total }
+//       : null;
+//   })
+//   .filter(Boolean);
+// 
+// const worst = rates.sort((a, b) => a.rate - b.rate)[0];
+// 
 // Temporarily disabled for launch
 // set(
 //   "stat-fun-unlucky",
