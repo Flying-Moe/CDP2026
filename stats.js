@@ -1172,8 +1172,8 @@ perPlayer
       const li = document.createElement("li");
       li.innerHTML = `
         <strong>${p.name}</strong> –
-        Avg: ${p.avg.toFixed(1)} 
-       <i>(Median: ${p.median.toFixed(1)})</i)
+        Avg: ${p.avg.toFixed(2)} 
+       <i>(Median: ${p.median.toFixed(2)})</i)
       `;
       ul.appendChild(li);
     });
