@@ -827,6 +827,7 @@ return {
     type: "tiered",
     order: 2,
     metricUnit: "minus points",
+    tiers: [3, 6, 9, 12],
 
     overlayText: (value) => `At least ${value} minus points`,
 
@@ -1037,6 +1038,8 @@ return {
   type: "tiered",
   order: 12,
   metricUnit: "rapid death streaks",
+  tiers: [30, 14, 7, 14],
+
   overlayText: (value) => `Multiple deaths within ${value} days`,
 
   evaluate({ players }) {
@@ -1147,6 +1150,8 @@ return {
   order: 6,
   type: "tiered",
   metricUnit: "picks under 60",
+  tiers: [1, 2, 3, 5],
+
   overlayText: (value) => `At least ${value} picks under 60`,
 
   evaluate({ players }) {
@@ -1230,6 +1235,8 @@ return {
   order: 7,
   type: "tiered",
   metricUnit: "safe picks (80+)",
+  tiers: [30, 50, 70, 90],
+
   overlayText: (value) => `At least ${value}% safe picks`,
 
   evaluate({ players }) {
@@ -1312,6 +1319,8 @@ return {
   order: 8,
   type: "tiered",
   metricUnit: "shared picks",
+  tiers: [5, 8, 13, 18],
+
   overlayText: (value) => `Shared at least ${value} picks`,
 
   evaluate({ players }) {
@@ -1319,9 +1328,9 @@ return {
 
     const thresholds = {
       bronze: 5,
-      silver: 10,
-      gold: 15,
-      prestige: 25
+      silver: 8,
+      gold: 13,
+      prestige: 18
     };
 
     // Build sets per player
@@ -1482,6 +1491,8 @@ return {
   order: 2,
   type: "tiered",
   metricUnit: "Q1 kills",
+  tiers: [1, 2, 3, 4],
+
   overlayText: (value) => `At least ${value} early-season deaths`,
 
   evaluate({ players, deaths }) {
@@ -1599,6 +1610,8 @@ return {
   order: 3,
   type: "tiered",
   metricUnit: "80+ picks",
+  tiers: [25, 40, 60, 80],
+
   overlayText: (value) => `At least ${value}% picks aged 80+`,
 
   evaluate({ players }) {
