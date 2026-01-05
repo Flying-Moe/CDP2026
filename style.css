@@ -1452,3 +1452,15 @@ ul > li {
   padding: 0.25rem 0.4rem;
   font-size: 0.9rem;
 }
+
+/* =========================
+   AGE & PICKS – SPACING
+========================= */
+
+#stats-age .stat-block {
+  margin-bottom: 0.6rem;
+}
+
+#stats-age ul > li {
+  margin-bottom: 0.9rem;
+}
