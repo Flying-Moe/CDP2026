@@ -502,7 +502,6 @@ img.dataset.badgeName = badge.name;
     // fallback (should rarely happen)
     img.dataset.overlayText = badge.description || badge.name || "";
   }
-}
 
    img.style.maxWidth = "256px";
 
