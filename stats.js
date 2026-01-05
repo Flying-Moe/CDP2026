@@ -496,22 +496,18 @@ img.src = `assets/badges/${badge.id}_${idx + 1}.png`;
 
 img.dataset.badgeName = badge.name;
 
-// 🔑 ALWAYS set overlay text
 if (typeof badge.overlayText === "function") {
-let value = null;
+  // find EN repræsentativ player for dette tier
+  const samplePlayer =
+    (tier?.players && tier.players.length)
+      ? tier.players[0]
+      : null;
 
-if (tier && typeof tier === "object") {
-  if ("threshold" in tier) value = tier.threshold;
-  else if ("count" in tier) value = tier.count;
-  else if ("min" in tier) value = tier.min;
-  else if ("percentage" in tier) value = tier.percentage;
-}
-
-if (typeof badge.overlayText === "function") {
-  img.dataset.overlayText =
-    value !== null
-      ? badge.overlayText(value)
-      : "Not yet unlocked";
+  if (samplePlayer && samplePlayer.value != null) {
+    img.dataset.overlayText = badge.overlayText(samplePlayer.value);
+  } else {
+    img.dataset.overlayText = "Not yet unlocked";
+  }
 }
 
 else {
