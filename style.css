@@ -1412,7 +1412,7 @@ ul > li {
 
 @media (max-width: 720px) {
 .badge-tiers {
-  display: grid !important;
+  display: contents;
   grid-template-columns: 1fr !important;
 }
 
