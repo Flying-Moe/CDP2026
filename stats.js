@@ -519,7 +519,7 @@ if (typeof badge.overlayText === "function" && tierThreshold != null) {
 } else {
   img.dataset.overlayText = "Not yet unlocked";
 }
-
+}
    img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
