@@ -1151,7 +1151,7 @@ if (age === null) return;
     const p = oldestPicks[0];
     set(
       "stat-oldest-pick",
-      `${p.person} (Age: ${p.age.toFixed(1)} · Potential Points: ${p.pp})`
+      `${p.person} (Age: ${p.age.toFixed(2)} · Potential Points: ${p.pp})`
     );
     set(
       "stat-oldest-picked-by",
