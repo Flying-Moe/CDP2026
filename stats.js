@@ -1206,35 +1206,48 @@ function renderFunStats(players, peopleMap) {
   const overlapMap = {};             // "A|B" -> count
   const cleanKills = {};             // player -> unique hits
 
-  scores.forEach(s => {
-    playerUniqueCount[s.name] = 0;
-    playerApprovedCount[s.name] = 0;
-    playerHits[s.name] = s.hits || 0;
+// ---------- PASS 1: build global frequency ----------
+scores.forEach(s => {
+  playerUniqueCount[s.name] = 0;
+  playerApprovedCount[s.name] = 0;
+  playerHits[s.name] = s.hits || 0;
 
-    const seenPersons = new Set();
+  const seen = new Set();
 
-    s.picks.forEach(pick => {
-      if (pick.status !== "approved") return;
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
 
-      const pid = getPersonKey(pick, peopleMap, nameToId);
-      if (!pid) return;
+    const pid = getPersonKey(pick, peopleMap, nameToId);
+    if (!pid) return;
 
-      playerApprovedCount[s.name]++;
-
-      pickFrequency[pid] = (pickFrequency[pid] || 0) + 1;
-
-      if (!personPlayers[pid]) personPlayers[pid] = [];
-      personPlayers[pid].push(s.name);
-
-      seenPersons.add(pid);
-    });
-
-    seenPersons.forEach(pid => {
-      if (personPlayers[pid].length === 1) {
-        playerUniqueCount[s.name]++;
-      }
-    });
+    playerApprovedCount[s.name]++;
+    seen.add(pid);
   });
+
+  seen.forEach(pid => {
+    pickFrequency[pid] = (pickFrequency[pid] || 0) + 1;
+  });
+});
+
+// ---------- PASS 2: per-player unique ----------
+scores.forEach(s => {
+  const seen = new Set();
+
+  s.picks.forEach(pick => {
+    if (pick.status !== "approved") return;
+
+    const pid = getPersonKey(pick, peopleMap, nameToId);
+    if (!pid) return;
+
+    seen.add(pid);
+  });
+
+  seen.forEach(pid => {
+    if (pickFrequency[pid] === 1) {
+      playerUniqueCount[s.name]++;
+    }
+  });
+});
 
   /* ===============================
      OVERLAPS (PAIRWISE)
