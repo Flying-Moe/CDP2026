@@ -518,14 +518,9 @@ if (typeof badge.overlayText === "function" && tierThreshold != null) {
   img.dataset.overlayText = badge.overlayText(tierThreshold);
 } else {
   img.dataset.overlayText = "Not yet unlocked";
-} 
- else {
-  img.dataset.overlayText = unlocked
-    ? badge.description || badge.name
-    : "Not yet unlocked";
 }
 
-    img.style.maxWidth = "256px";
+   img.style.maxWidth = "256px";
 
     tierDiv.appendChild(img);
 
