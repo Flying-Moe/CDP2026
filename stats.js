@@ -1301,12 +1301,12 @@ const topPicked = Object.entries(pickFrequency)
 set(
   "stat-fun-most-picked",
   topPicked.length
-    ? topPicked
+    ? "<br>" + topPicked
         .map(x => `${x.name} (${x.count})`)
         .join("<br>")
-
     : "—"
 );
+
 
   /* ===============================
      MOST / LEAST UNIQUE PICKS
@@ -1328,10 +1328,9 @@ const topUnique = Object.entries(playerUniqueCount)
 set(
   "stat-fun-most-unique",
   topUnique.length
-    ? topUnique
+    ? "<br>" + topUnique
         .map(x => `${x.name} (${x.count})`)
         .join("<br>")
-
     : "—"
 );
 
