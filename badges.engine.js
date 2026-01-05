@@ -1231,7 +1231,7 @@ return {
 {
   id: "coward",
   name: "Coward",
-  description: "Played it safe (many 80+ picks)",
+  description: "Played it safe (many 90+ picks)",
   order: 7,
   type: "tiered",
   metricUnit: "safe picks (90+)",
@@ -1268,7 +1268,7 @@ return {
       if (!total) return;
 
       const over90 = ages.filter(a => a >= 90).length;
-      const pct = (over80 / total) * 100;
+      const pct = (over90 / total) * 100;
 
       Object.entries(pctThresholds).forEach(([tierId, minPct]) => {
         if (pct >= minPct) {
