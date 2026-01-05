@@ -1280,15 +1280,20 @@ scores.forEach(s => {
      MOST PICKED CELEBRITY
   =============================== */
 
-  const mostPickedId = Object.keys(pickFrequency)
-    .sort((a, b) => pickFrequency[b] - pickFrequency[a])[0];
+const topPicked = Object.entries(pickFrequency)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 3);
 
-  set(
-    "stat-fun-most-picked",
-    mostPickedId
-      ? `${peopleMap[mostPickedId]?.name || mostPickedId} (${pickFrequency[mostPickedId]})`
-      : "—"
-  );
+set(
+  "stat-fun-most-picked",
+  topPicked.length
+    ? topPicked
+        .map(([pid, c]) =>
+          `${peopleMap[pid]?.name || pid} (${c})`
+        )
+        .join(" · ")
+    : "—"
+);
 
   /* ===============================
      MOST / LEAST UNIQUE PICKS
@@ -1298,13 +1303,18 @@ scores.forEach(s => {
   const maxUnique = Math.max(...uniqueValues);
   const minUnique = Math.min(...uniqueValues);
 
-  set(
-    "stat-fun-most-unique",
-    Object.entries(playerUniqueCount)
-      .filter(([, v]) => v === maxUnique)
-      .map(([n]) => n)
-      .join(", ") + ` (${maxUnique})`
-  );
+const topUnique = Object.entries(playerUniqueCount)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 3);
+
+set(
+  "stat-fun-most-unique",
+  topUnique.length
+    ? topUnique
+        .map(([n, v]) => `${n} (${v})`)
+        .join(" · ")
+    : "—"
+);
 
   set(
     "stat-fun-least-unique",
