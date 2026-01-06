@@ -249,8 +249,8 @@ for (const docSnap of peopleSnap.docs) {
 
   const person = docSnap.data();
 
-  // skip hvis deathDate allerede findes
-  if (person.deathDate) continue;
+const deathIsNew =
+  foundDeath && (!localDeath || localDeath !== foundDeath);
 
   const name = person.name;
   if (!name) continue;
