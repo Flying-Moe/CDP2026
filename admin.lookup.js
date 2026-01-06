@@ -350,7 +350,6 @@ if (google) {
     source = source === "wiki" ? "wiki,google" : "google";
   }
  }
-}
 
 if (!foundBirth && !foundDeath) {
   checked++;
