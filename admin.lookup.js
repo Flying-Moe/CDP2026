@@ -2,6 +2,43 @@ const elProgress = document.getElementById("lookup-progress");
 const yieldToUI = () =>
   new Promise(resolve => setTimeout(resolve, 0));
 
+const GOOGLE_API_KEY = "AIzaSyATUlvUT2RsVfoFv2qsNGfwuIDZU7sKuc4";
+const GOOGLE_DELAY_MS = 120;
+
+const googleRateLimit = () =>
+  new Promise(resolve => setTimeout(resolve, GOOGLE_DELAY_MS));
+
+async function fetchGoogleKnowledgePerson(name) {
+  await googleRateLimit();
+
+  const url =
+    "https://kgsearch.googleapis.com/v1/entities:search" +
+    `?query=${encodeURIComponent(name)}` +
+    `&limit=1&indent=True&key=${GOOGLE_API_KEY}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const item = data.itemListElement?.[0]?.result;
+    if (!item) return null;
+
+    // Google KG er ikke konsekvent – vi læser forsigtigt
+    const birthDate = item.birthDate || null;
+    const deathDate = item.deathDate || null;
+
+    return {
+      birthDate,
+      deathDate,
+      label: item.name || name
+    };
+  } catch (err) {
+    console.warn("Google KG lookup failed for", name);
+    return null;
+  }
+}
+
 // ================================
 // ADMIN – GLOBAL DEATH LOOKUP
 // ================================
@@ -285,20 +322,40 @@ for (const docSnap of peopleSnap.docs) {
   }
 
   try {
-    const wiki = await fetchWikidataPerson(name);
+const wiki = await fetchWikidataPerson(name);
 
-    if (!wiki) {
-      checked++;
-      elProgress.textContent = `Checked ${checked} / ${total}`;
-      if (checked % 5 === 0) await yieldToUI();
-      continue;
+let foundBirth = wiki?.birthDate || "";
+let foundDeath = wiki?.deathDate || "";
+let source = "wiki";
+
+// Google fallback hvis noget mangler
+if (!foundBirth || !foundDeath) {
+  const google = await fetchGoogleKnowledgePerson(name);
+
+  if (google) {
+    if (!foundBirth && google.birthDate) {
+      foundBirth = google.birthDate;
+      source = source === "wiki" ? "wiki,google" : "google";
     }
+
+    if (!foundDeath && google.deathDate) {
+      foundDeath = google.deathDate;
+      source = source === "wiki" ? "wiki,google" : "google";
+    }
+  }
+}
+
+if (!foundBirth && !foundDeath) {
+  checked++;
+  elProgress.textContent = `Checked ${checked} / ${total}`;
+  if (checked % 5 === 0) await yieldToUI();
+  continue;
+}
 
     const localBirth = person.birthDate || "";
     const localDeath = person.deathDate || "";
 
-    const foundBirth = wiki.birthDate || "";
-    const foundDeath = wiki.deathDate || "";
+    // allerede sat via wiki/google
 
     const birthIsNew =
       foundBirth && (!localBirth || localBirth !== foundBirth);
@@ -315,14 +372,14 @@ for (const docSnap of peopleSnap.docs) {
     }
 
     // gyldigt resultat
-    lookupState.results.push({
-      personId,
-      name: wiki.label || name,
-      foundBirthDate: foundBirth || null,
-      foundDeathDate: foundDeath || null,
-      source: "wiki",
-      flagged: person?.flags?.pendingDeath === true
-    });
+lookupState.results.push({
+  personId,
+  name: wiki.label || name,
+  foundBirthDate: foundBirth || null,
+  foundDeathDate: foundDeath || null,
+  source,
+  flagged: person?.flags?.pendingDeath === true
+});
 
   } catch (err) {
     console.warn("Wiki lookup failed for", name);
