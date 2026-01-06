@@ -149,6 +149,17 @@ if (filterSelect) {
 let rowData = [];
 let totalPotential = 0;
 
+  const pickedByNamesMap = {};
+
+players.forEach(p => {
+  p.approved.forEach(x => {
+    const key = x.normalizedName;
+    if (!key) return;
+    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
+    pickedByNamesMap[key].push(p.name);
+  });
+});    
+
 player.approved.forEach(pick => {
 const age = calculateAgeAtDeath(
   pick.birthDate,
@@ -171,29 +182,18 @@ rowData.push({
   pickedBy: pickCount[pick.normalizedName] || 1,
   pickedByNames: [], // udfyldes nedenfor
   isDead: !!pick.deathDate
-});
-
-  const pickedByNamesMap = {};
-
-players.forEach(p => {
-  p.approved.forEach(x => {
-    const key = x.normalizedName;
-    if (!key) return;
-    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
-    pickedByNamesMap[key].push(p.name);
   });
 });
-
-});
-    sortListRows(rowData);
+    
+sortListRows(rowData);
 
 let rows = "";
 
-r.pickedByNames = (pickedByNamesMap[r.name] || [])
-  .sort((a,b)=>a.localeCompare(b,"en",{sensitivity:"base"}))
-  .join(", ");
-    
 rowData.forEach(r => {
+  r.pickedByNames = (pickedByNamesMap[r.name] || [])
+    .sort((a,b)=>a.localeCompare(b,"en",{sensitivity:"base"}))
+    .join(", ");
+
   rows += `
     <tr class="${r.isDead ? "is-dead" : ""}">
 <td>
