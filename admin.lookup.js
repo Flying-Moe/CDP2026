@@ -338,18 +338,26 @@ const [wiki, google] = await Promise.all([
 
 let foundBirth = wiki?.birthDate || "";
 let foundDeath = wiki?.deathDate || "";
-let source = "wiki";
+let sourceParts = [];
+
+if (wiki?.birthDate || wiki?.deathDate) {
+  sourceParts.push("wiki");
+}
 
 if (google) {
   if (!foundBirth && google.birthDate) {
     foundBirth = google.birthDate;
-    source = source === "wiki" ? "wiki,google" : "google";
   }
   if (!foundDeath && google.deathDate) {
     foundDeath = google.deathDate;
-    source = source === "wiki" ? "wiki,google" : "google";
   }
- }
+
+  if (google.birthDate || google.deathDate) {
+    sourceParts.push("google");
+  }
+}
+
+const source = sourceParts.join(",");
 
 if (!foundBirth && !foundDeath) {
   checked++;
