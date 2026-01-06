@@ -1487,4 +1487,14 @@ ul > li {
   margin-bottom: 0.6rem;
 }
 
+/* =========================
+   /* Center BirthD. and DeathD. columns in lists */
+========================= */
 
+.list-table th:nth-child(2),
+.list-table th:nth-child(3),
+.list-table td:nth-child(2),
+.list-table td:nth-child(3) {
+  text-align: center;
+  white-space: nowrap;
+}
