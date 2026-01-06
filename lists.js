@@ -248,6 +248,8 @@ rowData.forEach(r => {
             <tr class="total-row">
               <td>Total</td>
               <td></td>
+              <td></td>
+              <td></td>
               <td>${totalPotential}</td>
               <td></td>
             </tr>
