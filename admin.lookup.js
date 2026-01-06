@@ -4,7 +4,15 @@ const elProgress = document.getElementById("lookup-progress");
 // ADMIN – GLOBAL DEATH LOOKUP
 // ================================
 
-import { db, refreshAdminViews, invalidateAdminCache } from "./admin.core.js";
+import {
+  db,
+  refreshAdminViews,
+  invalidateAdminCache,
+  getPeopleSnap,
+  getPlayersSnap,
+  fetchWikidataPerson
+} from "./admin.core.js";
+
 import {
   doc,
   updateDoc,
@@ -215,6 +223,12 @@ playersSnap.forEach(ps => {
 
 lookupState.results = [];
 
+  let checked = 0;
+const total = usedPersonIds.size;
+
+// før loop
+elProgress.textContent = `Checked 0 / ${total}`;
+
 for (const docSnap of peopleSnap.docs) {
   const personId = docSnap.id;
   if (!usedPersonIds.has(personId)) continue;
@@ -229,7 +243,11 @@ for (const docSnap of peopleSnap.docs) {
 
   try {
     const wiki = await fetchWikidataPerson(name);
-    if (!wiki || !wiki.deathDate) continue;
+    if (!wiki) continue;
+
+// hvis hverken birth eller death findes → ignorer
+if (!wiki.birthDate && !wiki.deathDate) continue;
+
 
 lookupState.results.push({
   personId,
@@ -245,11 +263,6 @@ lookupState.results.push({
     console.warn("Wiki lookup failed for", name);
   }
 
-let checked = 0;
-const total = usedPersonIds.size;
-
-// før loop
-elProgress.textContent = `Checked 0 / ${total}`;
 
 // inde i loopets slutning
 checked++;
