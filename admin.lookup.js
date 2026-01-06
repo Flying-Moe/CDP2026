@@ -1,30 +1,59 @@
+// ================================
+// ADMIN – GLOBAL DEATH LOOKUP
+// ================================
 
 import { db, refreshAdminViews, invalidateAdminCache } from "./admin.core.js";
 import {
   doc,
   updateDoc,
   getDoc,
-  writeBatch
+  writeBatch,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* =====================================================
+   STATE
+===================================================== */
 
 export const lookupState = {
   loading: false,
   results: [] // { personId, name, foundDeathDate, source, confidence, flagged }
 };
 
-const lookupState = {
-  loading: false,
-  results: [
-    {
-      personId,
-      name,
-      foundDeathDate,     // ISO
-      source,             // "wiki" | "google" | "news"
-      confidence,         // "high" | "medium" | "low"
-      flagged: false      // eksisterende flag i people
-    }
-  ]
-};
+/* =====================================================
+   DOM HOOKS
+===================================================== */
+
+const btnOpen   = document.getElementById("btn-global-lookup");
+const modal     = document.getElementById("death-lookup-modal");
+const btnClose  = document.getElementById("lookup-close-btn");
+const btnApplyAll = document.getElementById("lookup-apply-all-btn");
+
+const elLoading = document.getElementById("lookup-loading");
+const elEmpty   = document.getElementById("lookup-empty");
+const elResults = document.getElementById("lookup-results");
+const elBody    = document.getElementById("lookup-results-body");
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function formatDate(iso) {
+  if (!iso || !iso.includes("-")) return "";
+  const [y,m,d] = iso.split("-");
+  return `${d}-${m}-${y}`;
+}
+
+function resetUI() {
+  elLoading.style.display = "none";
+  elEmpty.style.display   = "none";
+  elResults.style.display = "none";
+  elBody.innerHTML = "";
+}
+
+/* =====================================================
+   FLAG HANDLING
+===================================================== */
 
 async function setPendingDeathFlag(personId, value) {
   const ref = doc(db, "people", personId);
@@ -41,32 +70,51 @@ async function setPendingDeathFlag(personId, value) {
   await updateDoc(ref, { flags });
 }
 
-export async function applyLookupResult(result) {
+/* =====================================================
+   APPLY SINGLE
+===================================================== */
+
+async function applySingle(result) {
   if (result.confidence === "low") {
     const ok = confirm(
-      "This death date has LOW confidence.\n\nAre you sure you want to apply it?"
+      "This result has LOW confidence.\n\nDouble-check before applying.\n\nApply anyway?"
     );
     if (!ok) return;
   }
 
-  const ref = doc(db, "people", result.personId);
-  await updateDoc(ref, {
+  await updateDoc(doc(db, "people", result.personId), {
     deathDate: result.foundDeathDate,
     "flags.pendingDeath": false
   });
 
-  invalidateAdminCache("people", "players");
-  await refreshAdminViews({ force: true });
+  // Optional audit log
+  /*
+  await addDoc(collection(db,"adminAudit"),{
+    action:"applyDeathDate",
+    personId: result.personId,
+    date: result.foundDeathDate,
+    source: result.source,
+    confidence: result.confidence,
+    at: new Date().toISOString()
+  });
+  */
+
+  invalidateAdminCache("people","players");
+  await refreshAdminViews({ force:true });
 }
 
-export async function applyAllHighConfidence() {
+/* =====================================================
+   APPLY ALL (HIGH CONFIDENCE ONLY)
+===================================================== */
+
+async function applyAllHighConfidence() {
   const batch = writeBatch(db);
 
   lookupState.results.forEach(r => {
     if (r.confidence !== "high") return;
     if (r.flagged) return;
 
-    batch.update(doc(db, "people", r.personId), {
+    batch.update(doc(db,"people",r.personId),{
       deathDate: r.foundDeathDate,
       "flags.pendingDeath": false
     });
@@ -74,13 +122,69 @@ export async function applyAllHighConfidence() {
 
   await batch.commit();
 
-  invalidateAdminCache("people", "players");
-  await refreshAdminViews({ force: true });
+  invalidateAdminCache("people","players");
+  await refreshAdminViews({ force:true });
 }
 
-export async function toggleLookupFlag(result) {
-  result.flagged = !result.flagged;
-  await setPendingDeathFlag(result.personId, result.flagged);
+/* =====================================================
+   RENDER RESULTS
+===================================================== */
+
+function renderResults() {
+  resetUI();
+
+  if (!lookupState.results.length) {
+    elEmpty.style.display = "block";
+    return;
+  }
+
+  elResults.style.display = "block";
+
+  lookupState.results.forEach(r => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${r.name}</td>
+      <td>${formatDate(r.foundDeathDate)}</td>
+      <td>${r.source}</td>
+      <td>${r.confidence}</td>
+      <td>${r.flagged ? "⚑ flagged" : "—"}</td>
+      <td>
+        <button data-act="apply">Apply</button>
+        <button data-act="flag">${r.flagged ? "Unflag" : "Flag"}</button>
+      </td>
+    `;
+
+    tr.querySelector('[data-act="apply"]').onclick = () => applySingle(r);
+    tr.querySelector('[data-act="flag"]').onclick = async () => {
+      r.flagged = !r.flagged;
+      await setPendingDeathFlag(r.personId, r.flagged);
+      renderResults();
+    };
+
+    elBody.appendChild(tr);
+  });
 }
 
+/* =====================================================
+   ENTRY POINT (mock scan for now)
+===================================================== */
 
+btnOpen?.addEventListener("click", async () => {
+  resetUI();
+  modal.classList.remove("hidden");
+
+  lookupState.loading = true;
+  elLoading.style.display = "block";
+
+  // TODO: replace with real scan (wiki/google/news)
+  await new Promise(r => setTimeout(r, 500));
+
+  lookupState.results = []; // empty = no deaths found (for now)
+
+  lookupState.loading = false;
+  renderResults();
+});
+
+btnApplyAll?.addEventListener("click", applyAllHighConfidence);
+btnClose?.addEventListener("click", () => modal.classList.add("hidden"));
