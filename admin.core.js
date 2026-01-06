@@ -4,6 +4,7 @@ let adminInitialized = false;
 
 import { loadPlayers } from "./admin.players.js";
 import { loadPeople } from "./admin.people.js";
+import "./admin.lookup.js";
 
 /* =====================================================
    FIREBASE
