@@ -268,7 +268,7 @@ const birthIsNew =
   foundBirth && (!localBirth || localBirth !== foundBirth);
 
 const deathIsNew =
-  foundDeath && !localDeath;
+  foundDeath && (!localDeath || localDeath !== foundDeath);
 
 if (!birthIsNew && !deathIsNew) continue;
 
