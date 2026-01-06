@@ -225,7 +225,6 @@ function renderResults() {
           ${r.source === "google" ? "🄶" : ""}
           ${r.source === "wiki,google" ? "🅆🄶" : ""}
         </span>
-        <span class="confidence-label">${r.confidence}</span>
       </td>
       <td>${r.flagged ? "⚑ flagged" : "—"}</td>
       <td>
@@ -324,21 +323,44 @@ for (const docSnap of peopleSnap.docs) {
   }
 
   try {
-const wikiPromise = fetchWikidataPerson(name);
+const wiki = await fetchWikidataPerson(name);
 
-let googlePromise = null;
-if (!person.birthDate || !person.deathDate) {
-  googlePromise = fetchGoogleKnowledgePerson(name);
+let google = null;
+if (!wiki?.deathDate) {
+  google = await fetchGoogleKnowledgePerson(name);
 }
 
-const [wiki, google] = await Promise.all([
-  wikiPromise,
-  googlePromise
-]);
-
-let foundBirth = wiki?.birthDate || "";
-let foundDeath = wiki?.deathDate || "";
+let foundBirth = "";
+let foundDeath = "";
 let sourceParts = [];
+
+// WIKI
+if (wiki?.birthDate) {
+  foundBirth = wiki.birthDate;
+  sourceParts.push("wiki");
+}
+if (wiki?.deathDate) {
+  foundDeath = wiki.deathDate;
+  if (!sourceParts.includes("wiki")) {
+    sourceParts.push("wiki");
+  }
+}
+
+// GOOGLE (kun hvis Wiki ikke fandt det)
+if (google) {
+  if (!foundBirth && google.birthDate) {
+    foundBirth = google.birthDate;
+    sourceParts.push("google");
+  }
+  if (!foundDeath && google.deathDate) {
+    foundDeath = google.deathDate;
+    if (!sourceParts.includes("google")) {
+      sourceParts.push("google");
+    }
+  }
+}
+
+const source = sourceParts.join(",");
 
 if (wiki?.birthDate || wiki?.deathDate) {
   sourceParts.push("wiki");
