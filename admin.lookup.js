@@ -183,12 +183,15 @@ function renderResults() {
 
     `;
 
-    tr.querySelector('[data-act="apply"]').onclick = () => applySingle(r);
-    tr.querySelector('[data-act="flag"]').onclick = async () => {
-      r.flagged = !r.flagged;
-      await setPendingDeathFlag(r.personId, r.flagged);
-      renderResults();
-    tr.querySelector('[data-act="delete"]').onclick = () => {
+tr.querySelector('[data-act="apply"]').onclick = () => applySingle(r);
+
+tr.querySelector('[data-act="flag"]').onclick = async () => {
+  r.flagged = !r.flagged;
+  await setPendingDeathFlag(r.personId, r.flagged);
+  renderResults();
+};
+
+tr.querySelector('[data-act="delete"]').onclick = () => {
   lookupState.dismissed.add(r.personId);
   lookupState.results = lookupState.results.filter(
     x => x.personId !== r.personId
