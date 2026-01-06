@@ -379,8 +379,6 @@ if (google) {
   }
 }
 
-const source = sourceParts.join(",");
-
 if (!foundBirth && !foundDeath) {
   checked++;
   elProgress.textContent = `Checked ${checked} / ${total}`;
