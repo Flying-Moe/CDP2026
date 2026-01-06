@@ -324,13 +324,11 @@ for (const docSnap of peopleSnap.docs) {
   }
 
   try {
-const wiki = await fetchWikidataPerson(name);
+const wikiPromise = fetchWikidataPerson(name);
 
-let google = null;
-
-// Google fallback KUN hvis Wiki mangler noget
-if (!wiki?.birthDate || !wiki?.deathDate) {
-  google = await fetchGoogleKnowledgePerson(name);
+let googlePromise = null;
+if (!person.birthDate || !person.deathDate) {
+  googlePromise = fetchGoogleKnowledgePerson(name);
 }
 
 const [wiki, google] = await Promise.all([
