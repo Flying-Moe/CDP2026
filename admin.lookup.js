@@ -258,54 +258,79 @@ elProgress.textContent = `Checked 0 / ${total}`;
 
 for (const docSnap of peopleSnap.docs) {
   const personId = docSnap.id;
-  if (!usedPersonIds.has(personId)) continue;
-  if (lookupState.dismissed.has(personId)) continue;
+
+  // skip hvis ikke i brug
+  if (!usedPersonIds.has(personId)) {
+    checked++;
+    elProgress.textContent = `Checked ${checked} / ${total}`;
+    if (checked % 5 === 0) await yieldToUI();
+    continue;
+  }
+
+  if (lookupState.dismissed.has(personId)) {
+    checked++;
+    elProgress.textContent = `Checked ${checked} / ${total}`;
+    if (checked % 5 === 0) await yieldToUI();
+    continue;
+  }
 
   const person = docSnap.data();
-
   const name = person.name;
-  if (!name) continue;
+
+  if (!name) {
+    checked++;
+    elProgress.textContent = `Checked ${checked} / ${total}`;
+    if (checked % 5 === 0) await yieldToUI();
+    continue;
+  }
 
   try {
     const wiki = await fetchWikidataPerson(name);
-    if (!wiki) continue;
 
-// hvis hverken birth eller death findes → ignorer
-const localBirth = person.birthDate || "";
-const localDeath = person.deathDate || "";
+    if (!wiki) {
+      checked++;
+      elProgress.textContent = `Checked ${checked} / ${total}`;
+      if (checked % 5 === 0) await yieldToUI();
+      continue;
+    }
 
-const foundBirth = wiki.birthDate || "";
-const foundDeath = wiki.deathDate || "";
+    const localBirth = person.birthDate || "";
+    const localDeath = person.deathDate || "";
 
-// ignorér hvis intet nyt info
-const birthIsNew =
-  foundBirth && (!localBirth || localBirth !== foundBirth);
+    const foundBirth = wiki.birthDate || "";
+    const foundDeath = wiki.deathDate || "";
 
-const deathIsNew =
-  foundDeath && (!localDeath || localDeath !== foundDeath);
+    const birthIsNew =
+      foundBirth && (!localBirth || localBirth !== foundBirth);
 
-if (!birthIsNew && !deathIsNew) continue;
+    const deathIsNew =
+      foundDeath && (!localDeath || localDeath !== foundDeath);
 
-lookupState.results.push({
-  personId,
-  name: wiki.label || name,
-  foundBirthDate: wiki.birthDate || null,
-  foundDeathDate: wiki.deathDate || null,
-  source: "wiki",
-  confidence: "high",
-  flagged: person?.flags?.pendingDeath === true
-});
+    // intet nyt → kun tælle, ikke vise
+    if (!birthIsNew && !deathIsNew) {
+      checked++;
+      elProgress.textContent = `Checked ${checked} / ${total}`;
+      if (checked % 5 === 0) await yieldToUI();
+      continue;
+    }
+
+    // gyldigt resultat
+    lookupState.results.push({
+      personId,
+      name: wiki.label || name,
+      foundBirthDate: foundBirth || null,
+      foundDeathDate: foundDeath || null,
+      source: "wiki",
+      flagged: person?.flags?.pendingDeath === true
+    });
 
   } catch (err) {
     console.warn("Wiki lookup failed for", name);
   }
 
-
-// inde i loopets slutning
-checked++;
-elProgress.textContent = `Checked ${checked} / ${total}`;
-  
-    // lad browseren opdatere UI
+  // ALTID tælle til sidst
+  checked++;
+  elProgress.textContent = `Checked ${checked} / ${total}`;
   if (checked % 5 === 0) {
     await yieldToUI();
   }
