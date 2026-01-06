@@ -162,18 +162,37 @@ const points =
 
   totalPotential += points ?? 0;
 
-  rowData.push({
-    name: pick.normalizedName || pick.raw,
-    age,
-    pp: points,
-    pickedBy: pickCount[pick.normalizedName] || 1,
-    isDead: !!pick.deathDate
+rowData.push({
+  name: pick.normalizedName || pick.raw,
+  birthDate: pick.birthDate || "",
+  deathDate: pick.deathDate || "",
+  age,
+  pp: points,
+  pickedBy: pickCount[pick.normalizedName] || 1,
+  pickedByNames: [], // udfyldes nedenfor
+  isDead: !!pick.deathDate
+});
+
+  const pickedByNamesMap = {};
+
+players.forEach(p => {
+  p.approved.forEach(x => {
+    const key = x.normalizedName;
+    if (!key) return;
+    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
+    pickedByNamesMap[key].push(p.name);
   });
+});
+
 });
     sortListRows(rowData);
 
 let rows = "";
 
+r.pickedByNames = (pickedByNamesMap[r.name] || [])
+  .sort((a,b)=>a.localeCompare(b,"en",{sensitivity:"base"}))
+  .join(", ");
+    
 rowData.forEach(r => {
   rows += `
     <tr class="${r.isDead ? "is-dead" : ""}">
