@@ -25,11 +25,13 @@ import {
    STATE
 ===================================================== */
 
-export const lookupState = {
+const lookupState = {
   loading: false,
   results: [] // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged },
   dismissed: new Set()
 };
+
+window.lookupState = lookupState;
 
 /* =====================================================
    DOM HOOKS
