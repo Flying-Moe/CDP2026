@@ -1,4 +1,6 @@
 const elProgress = document.getElementById("lookup-progress");
+const yieldToUI = () =>
+  new Promise(resolve => setTimeout(resolve, 0));
 
 // ================================
 // ADMIN – GLOBAL DEATH LOOKUP
@@ -298,6 +300,10 @@ lookupState.results.push({
 checked++;
 elProgress.textContent = `Checked ${checked} / ${total}`;
   
+    // lad browseren opdatere UI
+  if (checked % 5 === 0) {
+    await yieldToUI();
+  }
 }
 
   lookupState.loading = false;
