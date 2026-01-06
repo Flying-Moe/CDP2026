@@ -270,20 +270,26 @@ tbody.innerHTML += `
   data-player-ids="${[...g.playerIds].join(",")}"
   data-key="${normalizeName(g.displayName)}"
 >
-      <td class="people-name">
-        ${g.displayName}
-        ${g.deathDates?.size === 1 ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-        ${
-          similarGroups.length
-            ? `<div style="font-size:0.8em;color:#666;">
-                 Possible matches: ${similarGroups
-                   .map(s => s.displayName)
-                   .join(", ")}
-               </div>`
-               : ""
-        }
-      </td>
+<td class="people-name">
+  ${g.displayName}
 
+  ${g.deathDates?.size === 1
+    ? `<span class="death-mark" title="Deceased">✞</span>`
+    : ""
+  }
+
+  ${
+    (() => {
+      // vis ⚑ hvis personId har pendingDeath-flag
+      const pid = [...g.personIds][0];
+      const person = pid ? peopleById[pid] : null;
+
+      return person?.flags?.pendingDeath
+        ? `<span title="Pending death verification" style="margin-left:4px;">⚑</span>`
+        : "";
+    })()
+  }
+</td>
 
 <td class="birth-date">${birthDate}</td>
 <td class="death-date">${deathDate}</td>
