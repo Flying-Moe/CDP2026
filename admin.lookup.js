@@ -27,7 +27,7 @@ import {
 
 const lookupState = {
   loading: false,
-  results: [] // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged },
+  results: [], // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged }
   dismissed: new Set()
 };
 
