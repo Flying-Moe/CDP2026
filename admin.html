@@ -278,6 +278,60 @@ People details (name, birth/death dates) are managed in the <em>Celebrities tab<
   </div>
 </div>
 
+  <!-- ================= GLOBAL DEATH LOOKUP MODAL ================= -->
+
+<div id="death-lookup-modal" class="modal hidden">
+  <div class="modal-content" style="max-width:900px;">
+
+    <h3>☠️ Death verification audit</h3>
+    <p style="color:#666;font-size:0.9em;">
+      Only people with newly detected death dates are shown.
+    </p>
+
+    <!-- STATE: loading -->
+    <div id="lookup-loading" style="display:none;">
+      <p>Scanning all picks…</p>
+      <ul style="font-size:0.9em;color:#555;">
+        <li>Collecting candidates</li>
+        <li>Checking Wikipedia</li>
+        <li>Checking Google</li>
+      </ul>
+    </div>
+
+    <!-- STATE: empty -->
+    <div id="lookup-empty" style="display:none;">
+      <p>✔ No new deaths detected</p>
+    </div>
+
+    <!-- STATE: results -->
+    <div id="lookup-results" style="display:none;">
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Person</th>
+            <th>Found death date</th>
+            <th>Source</th>
+            <th>Confidence</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="lookup-results-body">
+          <!-- injected -->
+        </tbody>
+      </table>
+
+    </div>
+
+    <div class="modal-actions">
+      <button id="lookup-apply-all-btn">Apply all (high confidence)</button>
+      <button id="lookup-close-btn">Close</button>
+    </div>
+
+  </div>
+</div>
+
   <!-- ================= GRIM ESKE REAPER ================= -->
   
 <img
