@@ -117,6 +117,15 @@ async function renderLists() {
     })
   );
 
+  players.forEach(p => {
+  p.approved.forEach(x => {
+    const key = x.normalizedName;
+    if (!key) return;
+    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
+    pickedByNamesMap[key].push(p.name);
+  });
+});    
+
   /* ---------- Render ---------- */
 
   container.innerHTML = "";
@@ -150,15 +159,6 @@ let rowData = [];
 let totalPotential = 0;
 
   const pickedByNamesMap = {};
-
-players.forEach(p => {
-  p.approved.forEach(x => {
-    const key = x.normalizedName;
-    if (!key) return;
-    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
-    pickedByNamesMap[key].push(p.name);
-  });
-});    
 
 player.approved.forEach(pick => {
 const age = calculateAgeAtDeath(
