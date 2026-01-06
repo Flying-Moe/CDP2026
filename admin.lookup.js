@@ -5,7 +5,7 @@ const yieldToUI = () =>
   new Promise(resolve => setTimeout(resolve, 0));
 
 const GOOGLE_API_KEY = "AIzaSyATUlvUT2RsVfoFv2qsNGfwuIDZU7sKuc4";
-const GOOGLE_DELAY_MS = 120;
+const GOOGLE_DELAY_MS = 110;
 
 const googleRateLimit = () =>
   new Promise(resolve => setTimeout(resolve, GOOGLE_DELAY_MS));
