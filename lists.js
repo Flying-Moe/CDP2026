@@ -234,6 +234,8 @@ rowData.forEach(r => {
           <thead>
             <tr>
               <th data-sort="name">Name</th>
+              <th>BirthD.</th>
+              <th>DeathD.</th>
               <th data-sort="age">Age</th>
               <th data-sort="pp" title="Potential points">P.P.</th>
               <th data-sort="pb" title="Picked by">P.B.</th>
