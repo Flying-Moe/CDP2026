@@ -177,11 +177,16 @@ function renderResults() {
 </td>
 
       <td>
-        <span title="${r.confidence}">
+        <span title="${
+          r.source === "wiki" ? "Wikipedia" :
+          r.source === "google" ? "Google" :
+          r.source === "wiki,google" ? "Wikipedia + Google" : ""
+        }">
           ${r.source === "wiki" ? "🅆" : ""}
           ${r.source === "google" ? "🄶" : ""}
           ${r.source === "wiki,google" ? "🅆🄶" : ""}
         </span>
+        <span class="confidence-label">${r.confidence}</span>
       </td>
       <td>${r.flagged ? "⚑ flagged" : "—"}</td>
       <td>
