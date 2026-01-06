@@ -257,8 +257,20 @@ for (const docSnap of peopleSnap.docs) {
     if (!wiki) continue;
 
 // hvis hverken birth eller death findes → ignorer
-if (!wiki.birthDate && !wiki.deathDate) continue;
+const localBirth = person.birthDate || "";
+const localDeath = person.deathDate || "";
 
+const foundBirth = wiki.birthDate || "";
+const foundDeath = wiki.deathDate || "";
+
+// ignorér hvis intet nyt info
+const birthIsNew =
+  foundBirth && (!localBirth || localBirth !== foundBirth);
+
+const deathIsNew =
+  foundDeath && !localDeath;
+
+if (!birthIsNew && !deathIsNew) continue;
 
 lookupState.results.push({
   personId,
