@@ -1,3 +1,5 @@
+const elProgress = document.getElementById("lookup-progress");
+
 // ================================
 // ADMIN – GLOBAL DEATH LOOKUP
 // ================================
@@ -17,7 +19,7 @@ import {
 
 export const lookupState = {
   loading: false,
-  results: [] // { personId, name, foundDeathDate, source, confidence, flagged }
+  results: [] // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged }
 };
 
 /* =====================================================
@@ -82,10 +84,20 @@ async function applySingle(result) {
     if (!ok) return;
   }
 
-  await updateDoc(doc(db, "people", result.personId), {
-    deathDate: result.foundDeathDate,
-    "flags.pendingDeath": false
-  });
+const patch = {
+  "flags.pendingDeath": false
+};
+
+if (result.foundDeathDate) {
+  patch.deathDate = result.foundDeathDate;
+}
+if (result.foundBirthDate) {
+  // skriv kun hvis birthDate mangler lokalt
+  patch.birthDate = patch.birthDate ?? result.foundBirthDate;
+}
+
+await updateDoc(doc(db, "people", result.personId), patch);
+
 
   // Optional audit log
   /*
@@ -145,7 +157,11 @@ function renderResults() {
 
     tr.innerHTML = `
       <td>${r.name}</td>
-      <td>${formatDate(r.foundDeathDate)}</td>
+      <td>
+  ${r.foundDeathDate ? `Død: ${formatDate(r.foundDeathDate)}` : ""}
+  ${r.foundBirthDate ? `<div>Født: ${formatDate(r.foundBirthDate)}</div>` : ""}
+</td>
+
       <td>${r.source}</td>
       <td>${r.confidence}</td>
       <td>${r.flagged ? "⚑ flagged" : "—"}</td>
@@ -215,22 +231,37 @@ for (const docSnap of peopleSnap.docs) {
     const wiki = await fetchWikidataPerson(name);
     if (!wiki || !wiki.deathDate) continue;
 
-    lookupState.results.push({
-      personId,
-      name: wiki.label || name,
-      foundDeathDate: wiki.deathDate,
-      source: "wiki",
-      confidence: "high",
-      flagged: person?.flags?.pendingDeath === true
-    });
+lookupState.results.push({
+  personId,
+  name: wiki.label || name,
+  foundBirthDate: wiki.birthDate || null,
+  foundDeathDate: wiki.deathDate || null,
+  source: "wiki",
+  confidence: "high",
+  flagged: person?.flags?.pendingDeath === true
+});
+
   } catch (err) {
     console.warn("Wiki lookup failed for", name);
   }
+
+let checked = 0;
+const total = usedPersonIds.size;
+
+// før loop
+elProgress.textContent = `Checked 0 / ${total}`;
+
+// inde i loopets slutning
+checked++;
+elProgress.textContent = `Checked ${checked} / ${total}`;
+  
 }
 
   lookupState.loading = false;
   renderResults();
 });
+
+
 
 btnApplyAll?.addEventListener("click", applyAllHighConfidence);
 btnClose?.addEventListener("click", () => modal.classList.add("hidden"));
