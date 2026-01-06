@@ -117,6 +117,18 @@ async function renderLists() {
     })
   );
 
+  
+    const pickedByNamesMap = {};
+
+players.forEach(p => {
+  p.approved.forEach(x => {
+    const key = x.normalizedName;
+    if (!key) return;
+    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
+    pickedByNamesMap[key].push(p.name);
+  });
+});
+
   /* ---------- Render ---------- */
 
   container.innerHTML = "";
@@ -149,8 +161,6 @@ if (filterSelect) {
 let rowData = [];
 let totalPotential = 0;
 
-  const pickedByNamesMap = {};
-
 player.approved.forEach(pick => {
 const age = calculateAgeAtDeath(
   pick.birthDate,
@@ -173,17 +183,6 @@ rowData.push({
   pickedBy: pickCount[pick.normalizedName] || 1,
   pickedByNames: [], // udfyldes nedenfor
   isDead: !!pick.deathDate
-  });
-});
-
-    const pickedByNamesMap = {};
-
-players.forEach(p => {
-  p.approved.forEach(x => {
-    const key = x.normalizedName;
-    if (!key) return;
-    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
-    pickedByNamesMap[key].push(p.name);
   });
 });
     
