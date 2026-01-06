@@ -27,7 +27,8 @@ import {
 
 export const lookupState = {
   loading: false,
-  results: [] // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged }
+  results: [] // { personId, name, foundBirthDate?, foundDeathDate?, source, confidence, flagged },
+  dismissed: new Set()
 };
 
 /* =====================================================
@@ -133,6 +134,7 @@ async function applyAllHighConfidence() {
   lookupState.results.forEach(r => {
     if (r.confidence !== "high") return;
     if (r.flagged) return;
+    if (lookupState.dismissed.has(r.personId)) return;
 
     batch.update(doc(db,"people",r.personId),{
       deathDate: r.foundDeathDate,
@@ -176,7 +178,9 @@ function renderResults() {
       <td>
         <button data-act="apply">Apply</button>
         <button data-act="flag">${r.flagged ? "Unflag" : "Flag"}</button>
+        <button data-act="delete">Delete</button>
       </td>
+
     `;
 
     tr.querySelector('[data-act="apply"]').onclick = () => applySingle(r);
@@ -184,7 +188,13 @@ function renderResults() {
       r.flagged = !r.flagged;
       await setPendingDeathFlag(r.personId, r.flagged);
       renderResults();
-    };
+    tr.querySelector('[data-act="delete"]').onclick = () => {
+  lookupState.dismissed.add(r.personId);
+  lookupState.results = lookupState.results.filter(
+    x => x.personId !== r.personId
+  );
+  renderResults();
+};
 
     elBody.appendChild(tr);
   });
@@ -232,6 +242,7 @@ elProgress.textContent = `Checked 0 / ${total}`;
 for (const docSnap of peopleSnap.docs) {
   const personId = docSnap.id;
   if (!usedPersonIds.has(personId)) continue;
+  if (lookupState.dismissed.has(personId)) continue;
 
   const person = docSnap.data();
 
