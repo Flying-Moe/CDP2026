@@ -249,9 +249,6 @@ for (const docSnap of peopleSnap.docs) {
 
   const person = docSnap.data();
 
-const deathIsNew =
-  foundDeath && (!localDeath || localDeath !== foundDeath);
-
   const name = person.name;
   if (!name) continue;
 
