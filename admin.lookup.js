@@ -177,10 +177,56 @@ btnOpen?.addEventListener("click", async () => {
   lookupState.loading = true;
   elLoading.style.display = "block";
 
-  // TODO: replace with real scan (wiki/google/news)
-  await new Promise(r => setTimeout(r, 500));
+// =====================================================
+// WIKI SCAN v1 (DRY RUN)
+// =====================================================
 
-  lookupState.results = []; // empty = no deaths found (for now)
+// hent alle people + players (cached via admin.core)
+const peopleSnap = await getPeopleSnap(true);
+const playersSnap = await getPlayersSnap(true);
+
+// find personIds der bruges af mindst ét approved pick
+const usedPersonIds = new Set();
+
+playersSnap.forEach(ps => {
+  const picks = ps.data().entries?.["2026"]?.picks || [];
+  picks.forEach(p => {
+    if (p.status === "approved" && p.personId) {
+      usedPersonIds.add(p.personId);
+    }
+  });
+});
+
+lookupState.results = [];
+
+for (const docSnap of peopleSnap.docs) {
+  const personId = docSnap.id;
+  if (!usedPersonIds.has(personId)) continue;
+
+  const person = docSnap.data();
+
+  // skip hvis deathDate allerede findes
+  if (person.deathDate) continue;
+
+  const name = person.name;
+  if (!name) continue;
+
+  try {
+    const wiki = await fetchWikidataPerson(name);
+    if (!wiki || !wiki.deathDate) continue;
+
+    lookupState.results.push({
+      personId,
+      name: wiki.label || name,
+      foundDeathDate: wiki.deathDate,
+      source: "wiki",
+      confidence: "high",
+      flagged: person?.flags?.pendingDeath === true
+    });
+  } catch (err) {
+    console.warn("Wiki lookup failed for", name);
+  }
+}
 
   lookupState.loading = false;
   renderResults();
