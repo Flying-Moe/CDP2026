@@ -174,8 +174,13 @@ function renderResults() {
   ${r.foundBirthDate ? `<div>Født: ${formatDate(r.foundBirthDate)}</div>` : ""}
 </td>
 
-      <td>${r.source}</td>
-      <td>${r.confidence}</td>
+      <td>
+        <span title="${r.confidence}">
+          ${r.source === "wiki" ? "🅆" : ""}
+          ${r.source === "google" ? "🄶" : ""}
+          ${r.source === "wiki,google" ? "🅆🄶" : ""}
+        </span>
+      </td>
       <td>${r.flagged ? "⚑ flagged" : "—"}</td>
       <td>
         <button data-act="apply">Apply</button>
