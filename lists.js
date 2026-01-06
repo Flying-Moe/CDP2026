@@ -105,20 +105,21 @@ async function renderLists() {
   players.sort((a, b) => a.name.localeCompare(b.name));
   players.forEach((p, i) => (p.rank = i + 1));
 
-  /* ---------- Picked-by counter ---------- */
+/* ---------- Picked-by counter ---------- */
 
-  const pickCount = {};
-  players.forEach(p =>
-    p.approved.forEach(x => {
-      if (x.normalizedName) {
-        pickCount[x.normalizedName] =
-          (pickCount[x.normalizedName] || 0) + 1;
-      }
-    })
-  );
+const pickCount = {};
+players.forEach(p =>
+  p.approved.forEach(x => {
+    if (x.normalizedName) {
+      pickCount[x.normalizedName] =
+        (pickCount[x.normalizedName] || 0) + 1;
+    }
+  })
+);
 
-  
-    const pickedByNamesMap = {};
+/* ---------- Picked-by names (HOVER) ---------- */
+
+const pickedByNamesMap = {};
 
 players.forEach(p => {
   p.approved.forEach(x => {
