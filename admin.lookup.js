@@ -1,3 +1,5 @@
+const SHOW_ALL_LOOKUP_RESULTS = true; // midlertidigt
+
 const elProgress = document.getElementById("lookup-progress");
 const yieldToUI = () =>
   new Promise(resolve => setTimeout(resolve, 0));
@@ -322,27 +324,32 @@ for (const docSnap of peopleSnap.docs) {
   }
 
   try {
-const wiki = await fetchWikidataPerson(name);
+const wikiPromise = fetchWikidataPerson(name);
+
+let googlePromise = null;
+if (!person.birthDate || !person.deathDate) {
+  googlePromise = fetchGoogleKnowledgePerson(name);
+}
+
+const [wiki, google] = await Promise.all([
+  wikiPromise,
+  googlePromise
+]);
 
 let foundBirth = wiki?.birthDate || "";
 let foundDeath = wiki?.deathDate || "";
 let source = "wiki";
 
-// Google fallback hvis noget mangler
-if (!foundBirth || !foundDeath) {
-  const google = await fetchGoogleKnowledgePerson(name);
-
-  if (google) {
-    if (!foundBirth && google.birthDate) {
-      foundBirth = google.birthDate;
-      source = source === "wiki" ? "wiki,google" : "google";
-    }
-
-    if (!foundDeath && google.deathDate) {
-      foundDeath = google.deathDate;
-      source = source === "wiki" ? "wiki,google" : "google";
-    }
+if (google) {
+  if (!foundBirth && google.birthDate) {
+    foundBirth = google.birthDate;
+    source = source === "wiki" ? "wiki,google" : "google";
   }
+  if (!foundDeath && google.deathDate) {
+    foundDeath = google.deathDate;
+    source = source === "wiki" ? "wiki,google" : "google";
+  }
+ }
 }
 
 if (!foundBirth && !foundDeath) {
@@ -363,14 +370,25 @@ if (!foundBirth && !foundDeath) {
     const deathIsNew =
       foundDeath && (!localDeath || localDeath !== foundDeath);
 
-    // intet nyt → kun tælle, ikke vise
-    if (!birthIsNew && !deathIsNew) {
-      checked++;
-      elProgress.textContent = `Checked ${checked} / ${total}`;
-      if (checked % 5 === 0) await yieldToUI();
-      continue;
-    }
+  //=========== Midlertidig kode for VIS ALLE RESULTATER i lookup  =============
 
+  if (!SHOW_ALL_LOOKUP_RESULTS && !birthIsNew && !deathIsNew) {
+  checked++;
+  elProgress.textContent = `Checked ${checked} / ${total}`;
+  if (checked % 5 === 0) await yieldToUI();
+  continue;
+}
+  //=========== Genaktiver denne kode (fra if (!...  ===========================
+  
+    // intet nyt → kun tælle, ikke vise
+    // if (!birthIsNew && !deathIsNew) {
+    //  checked++;
+    //  elProgress.textContent = `Checked ${checked} / ${total}`;
+    //  if (checked % 5 === 0) await yieldToUI();
+    //  continue;
+    //  }
+
+  
     // gyldigt resultat
 lookupState.results.push({
   personId,
