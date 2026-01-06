@@ -117,15 +117,6 @@ async function renderLists() {
     })
   );
 
-  players.forEach(p => {
-  p.approved.forEach(x => {
-    const key = x.normalizedName;
-    if (!key) return;
-    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
-    pickedByNamesMap[key].push(p.name);
-  });
-});    
-
   /* ---------- Render ---------- */
 
   container.innerHTML = "";
@@ -182,6 +173,17 @@ rowData.push({
   pickedBy: pickCount[pick.normalizedName] || 1,
   pickedByNames: [], // udfyldes nedenfor
   isDead: !!pick.deathDate
+  });
+});
+
+    const pickedByNamesMap = {};
+
+players.forEach(p => {
+  p.approved.forEach(x => {
+    const key = x.normalizedName;
+    if (!key) return;
+    if (!pickedByNamesMap[key]) pickedByNamesMap[key] = [];
+    pickedByNamesMap[key].push(p.name);
   });
 });
     
@@ -307,25 +309,25 @@ lastSortedTh = th;
     let A, B;
 
     switch (key) {
-      case "name":
-        A = a.children[0].innerText.trim().toLowerCase();
-        B = b.children[0].innerText.trim().toLowerCase();
-        break;
+case "name":
+  A = a.children[0].innerText.trim().toLowerCase();
+  B = b.children[0].innerText.trim().toLowerCase();
+  break;
 
-      case "age":
-        A = parseInt(a.children[1].innerText) || -1;
-        B = parseInt(b.children[1].innerText) || -1;
-        break;
+case "age":
+  A = parseFloat(a.children[3].innerText) || -1;
+  B = parseFloat(b.children[3].innerText) || -1;
+  break;
 
-      case "pp":
-        A = parseInt(a.children[2].innerText) || -1;
-        B = parseInt(b.children[2].innerText) || -1;
-        break;
+case "pp":
+  A = parseInt(a.children[4].innerText) || -1;
+  B = parseInt(b.children[4].innerText) || -1;
+  break;
 
-      case "pb":
-        A = parseInt(a.children[3].innerText) || -1;
-        B = parseInt(b.children[3].innerText) || -1;
-        break;
+case "pb":
+  A = parseInt(a.children[5].innerText) || -1;
+  B = parseInt(b.children[5].innerText) || -1;
+  break;
 
       default:
         return 0;
