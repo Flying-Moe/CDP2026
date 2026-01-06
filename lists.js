@@ -196,13 +196,19 @@ r.pickedByNames = (pickedByNamesMap[r.name] || [])
 rowData.forEach(r => {
   rows += `
     <tr class="${r.isDead ? "is-dead" : ""}">
-      <td>
-        ${r.name}
-        ${r.isDead ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
-      </td>
-      <td>${r.age ?? "—"}</td>
-      <td>${r.pp ?? "—"}</td>
-      <td>${r.pickedBy}</td>
+<td>
+  ${r.name}
+  ${r.isDead ? `<span class="death-mark" title="Deceased">✞</span>` : ""}
+</td>
+<td>${r.birthDate || "—"}</td>
+<td>${r.deathDate || "—"}</td>
+<td>${r.age ?? "—"}</td>
+<td>${r.pp ?? "—"}</td>
+<td>
+  <span title="${r.pickedByNames}">
+    ${r.pickedBy}
+  </span>
+</td>
     </tr>
   `;
 });
