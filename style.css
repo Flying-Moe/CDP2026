@@ -1498,3 +1498,14 @@ ul > li {
   text-align: center;
   white-space: nowrap;
 }
+
+/* =========================
+   Lookup ikoner
+========================= */
+
+.source-icons img {
+  width: 16px;
+  height: 16px;
+  margin: 0 2px;
+  vertical-align: middle;
+}
