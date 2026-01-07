@@ -429,7 +429,5 @@ lookupState.results.push({
   renderResults();
 });
 
-
-
 btnApplyAll?.addEventListener("click", applyAllHighConfidence);
 btnClose?.addEventListener("click", () => modal.classList.add("hidden"));
