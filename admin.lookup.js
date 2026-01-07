@@ -4,7 +4,7 @@ const elProgress = document.getElementById("lookup-progress");
 const yieldToUI = () =>
   new Promise(resolve => setTimeout(resolve, 0));
 
-const GOOGLE_API_KEY = "AIzaSyATUlvUT2RsVfoFv2qsNGfwuIDZU7sKuc4";
+const GOOGLE_API_KEY = "AIzaSyDqqEGxe2KYOdEJbwLAim4nm9Q27RfXQlI";
 const GOOGLE_DELAY_MS = 110;
 
 const googleRateLimit = () =>
