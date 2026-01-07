@@ -318,27 +318,51 @@ function renderResults() {
    SCAN (approved picks only)
 ===================================================== */
 
-btnOpen?.addEventListener("click", async () => {
+// ---------- OPEN MODAL (NO SCAN) ----------
+btnOpen?.addEventListener("click", () => {
   resetUI();
   modal.classList.remove("hidden");
 
-  // init state
   lookupAbort = false;
+  lookupState.loading = false;
+
   SHOW_ALL_LOOKUP_RESULTS = chkShowAll?.checked ?? true;
 
-  lookupState.loading = true;
-  elLoading.style.display = "block";
-  btnStartStop.textContent = "Stop";
+  elLoading.style.display = "none";
+  elProgress.textContent = "";
+  btnStartStop.textContent = "Start";
+});
 
+// ---------- START / STOP ----------
+btnStartStop?.addEventListener("click", async () => {
+  if (lookupState.loading) {
+    // STOP
+    lookupAbort = true;
+    btnStartStop.textContent = "Start";
+    return;
+  }
+
+  // START
+  lookupAbort = false;
+  lookupState.loading = true;
+  btnStartStop.textContent = "Stop";
+  elLoading.style.display = "block";
+
+  await runLookupScan();
+
+  lookupState.loading = false;
+  btnStartStop.textContent = "Start";
+  elLoading.style.display = "none";
+});
+
+// ---------- CORE SCAN ----------
+async function runLookupScan() {
   const peopleSnap  = await getPeopleSnap(true);
   const playersSnap = await getPlayersSnap(true);
 
-  // Map people docs for O(1) lookup
   const peopleById = new Map(peopleSnap.docs.map(d => [d.id, d]));
 
-  // personIds der bruges af mindst ét approved pick (2026)
   const usedPersonIds = new Set();
-
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
     picks.forEach(p => {
@@ -356,7 +380,7 @@ btnOpen?.addEventListener("click", async () => {
 
   elProgress.textContent = `Checked 0 / ${total} (Results: 0)`;
 
-  // ---------- CONCURRENCY HELPER ----------
+  // ---------- CONCURRENCY ----------
   async function runWithConcurrency(items, limit, handler) {
     const queue = [...items];
     const workers = Array.from({ length: limit }, async () => {
@@ -368,12 +392,10 @@ btnOpen?.addEventListener("click", async () => {
     await Promise.all(workers);
   }
 
-  // ---------- SCAN ----------
   await runWithConcurrency(ids, 8, async (personId) => {
     if (lookupAbort) return;
 
     checked++;
-
     if (checked % 5 === 0 || checked === total) {
       elProgress.textContent =
         `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
@@ -392,7 +414,7 @@ btnOpen?.addEventListener("click", async () => {
     const localBirth = normStr(person?.birthDate);
     const localDeath = normStr(person?.deathDate);
 
-    // Hvis deathDate allerede findes, ignorer (aftalt)
+    // ignorer hvis death allerede findes
     if (localDeath) return;
 
     try {
@@ -402,25 +424,24 @@ btnOpen?.addEventListener("click", async () => {
 
       // Wikidata
       const wd = await fetchWikidataPerson(name);
-      const wdBirth = wd?.birthDate || "";
-      const wdDeath = wd?.deathDate || "";
+      if (wd?.birthDate || wd?.deathDate) {
+        sourceParts.push("wikidata");
+        foundBirth = wd.birthDate || "";
+        foundDeath = wd.deathDate || "";
+      }
 
-      if (wdBirth || wdDeath) sourceParts.push("wikidata");
-
-      // Wikipedia → QID → Wikidata
-      const wp = await fetchWikipediaFallbackDates(name);
-      const wpBirth = wp?.birthDate || "";
-      const wpDeath = wp?.deathDate || "";
-
-      if (wpBirth || wpDeath) sourceParts.push("wikipedia");
-
-      // konsolider (prioritet: wikidata først)
-      foundBirth = wdBirth || wpBirth;
-      foundDeath = wdDeath || wpDeath;
+      // Wikipedia fallback
+      if (!foundBirth && !foundDeath) {
+        const wp = await fetchWikipediaFallbackDates(name);
+        if (wp?.birthDate || wp?.deathDate) {
+          sourceParts.push("wikipedia");
+          foundBirth = wp.birthDate || "";
+          foundDeath = wp.deathDate || "";
+        }
+      }
 
       const source = sourceParts.join(",");
 
-      // SHOW ALL (analyse-mode)
       if (SHOW_ALL_LOOKUP_RESULTS) {
         lookupState.results.push({
           personId,
@@ -433,7 +454,6 @@ btnOpen?.addEventListener("click", async () => {
         return;
       }
 
-      // Action-mode
       const birthIsRelevant =
         foundBirth && (!localBirth || localBirth !== foundBirth);
 
@@ -456,14 +476,12 @@ btnOpen?.addEventListener("click", async () => {
     }
   });
 
-  lookupState.loading = false;
-  btnStartStop.textContent = "Start";
-
   elProgress.textContent =
     `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
 
   renderResults();
-});
+}
 
+// ---------- FOOTER ----------
 btnApplyAll?.addEventListener("click", applyAll);
 btnClose?.addEventListener("click", () => modal.classList.add("hidden"));
