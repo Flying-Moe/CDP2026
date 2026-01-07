@@ -1,3 +1,6 @@
+let SHOW_ALL_LOOKUP_RESULTS = true;
+let lookupAbort = false;
+
 // ================================
 // ADMIN – GLOBAL LOOKUP (Wikidata + Wikipedia fallback)
 // ================================
@@ -29,8 +32,6 @@ const lookupState = {
 };
 
 window.lookupState = lookupState;
-
-const SHOW_ALL_LOOKUP_RESULTS = true; // TEST MODE
 
 /* =====================================================
    DOM HOOKS
