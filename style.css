@@ -1528,3 +1528,40 @@ ul > li {
 .lookup-actions button {
   margin-right: 6px;
 }
+
+/* =========================
+   Mobile table text safety
+   (prevents iOS letter-stacking)
+========================= */
+
+.list-table th,
+.list-table td {
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+/* Name column: allow word wrap, never letter wrap */
+.list-table th:first-child,
+.list-table td:first-child {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: break-word; /* only at spaces */
+}
+
+/* Mobile tuning – very light */
+@media (max-width: 600px) {
+  .list-table {
+    table-layout: auto;
+    font-size: 13px;
+  }
+
+  .list-table th,
+  .list-table td {
+    padding: 6px 6px;
+  }
+
+  .list-table td:first-child {
+    max-width: 160px;
+  }
+}
