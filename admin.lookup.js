@@ -30,6 +30,8 @@ const lookupState = {
 
 window.lookupState = lookupState;
 
+const SHOW_ALL_LOOKUP_RESULTS = true; // TEST MODE
+
 /* =====================================================
    DOM HOOKS
 ===================================================== */
@@ -91,24 +93,23 @@ function sortResults(arr) {
 ===================================================== */
 
 function renderSourceIcon(source) {
-  // wiki.png = “Wikidata direkte”
-  // google.png = “Wikipedia fallback” (midlertidigt ikon-mapping)
-  const map = {
-    wikidata: { src: "assets/images/wiki.png", title: "Wikidata" },
-    wikipedia: { src: "assets/images/google.png", title: "Wikipedia fallback" }
-  };
+  if (!source) return "—";
 
-  const item = map[source];
-  if (!item) return "—";
+  const icons = [];
 
-  return `
-    <img
-      src="${item.src}"
-      class="lookup-src-icon"
-      title="${item.title}"
-      alt="${item.title}"
-    />
-  `;
+  if (source.includes("wikidata")) {
+    icons.push(
+      `<img src="assets/images/wikidata.png" title="Wikidata" class="lookup-src-icon">`
+    );
+  }
+
+  if (source.includes("wikipedia")) {
+    icons.push(
+      `<img src="assets/images/wikipedia.png" title="Wikipedia" class="lookup-src-icon">`
+    );
+  }
+
+  return icons.join("");
 }
 
 /* =====================================================
@@ -371,35 +372,32 @@ btnOpen?.addEventListener("click", async () => {
     if (localDeath) continue;
 
     try {
-      // 1) Wikidata (SPARQL)
-      let foundBirth = "";
-      let foundDeath = "";
-      let source = "";
+let foundBirth = "";
+let foundDeath = "";
+let sourceParts = [];
 
-      const wiki = await fetchWikidataPerson(name);
+// Wikidata
+const wd = await fetchWikidataPerson(name);
+const wdBirth = wd?.birthDate || "";
+const wdDeath = wd?.deathDate || "";
 
-      if (wiki?.birthDate) foundBirth = wiki.birthDate;
-      if (wiki?.deathDate) foundDeath = wiki.deathDate;
+if (wdBirth || wdDeath) sourceParts.push("wikidata");
 
-      if (foundBirth || foundDeath) source = "wikidata";
+// Wikipedia → QID → Wikidata
+const wp = await fetchWikipediaFallbackDates(name);
+const wpBirth = wp?.birthDate || "";
+const wpDeath = wp?.deathDate || "";
 
-      // 2) Wikipedia fallback (kun hvis vi stadig mangler birth og/eller death)
-      if (!foundBirth || !foundDeath) {
-        const fb = await fetchWikipediaFallbackDates(name);
+if (wpBirth || wpDeath) sourceParts.push("wikipedia");
 
-        if (!foundBirth && fb?.birthDate) {
-          foundBirth = fb.birthDate;
-          if (!source) source = "wikipedia";
-        }
+// konsolider (prioritet: wikidata først, wikipedia som sekundær)
+foundBirth = wdBirth || wpBirth;
+foundDeath = wdDeath || wpDeath;
 
-        if (!foundDeath && fb?.deathDate) {
-          foundDeath = fb.deathDate;
-          if (!source) source = "wikipedia";
-        }
-      }
+const source = sourceParts.join(",");
 
       // Hvis intet fundet → skip (vi viser kun relevante results)
-      if (!foundBirth && !foundDeath) continue;
+      if (!SHOW_ALL_LOOKUP_RESULTS && !foundBirth && !foundDeath) continue;
 
       // BirthDate skal kun på result-listen hvis:
       // - lokalt mangler, og vi fandt den
