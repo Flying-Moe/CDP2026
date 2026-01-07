@@ -396,20 +396,27 @@ foundDeath = wdDeath || wpDeath;
 
 const source = sourceParts.join(",");
 
-      // Hvis intet fundet → skip (vi viser kun relevante results)
-      if (!SHOW_ALL_LOOKUP_RESULTS && !foundBirth && !foundDeath) continue;
+// I SHOW_ALL mode: vis alt hvad vi fandt
+if (SHOW_ALL_LOOKUP_RESULTS) {
+  lookupState.results.push({
+    personId,
+    name,
+    foundBirthDate: foundBirth || null,
+    foundDeathDate: foundDeath || null,
+    source: source || "wikidata",
+    flagged: person?.flags?.pendingDeath === true
+  });
+  continue;
+}
 
-      // BirthDate skal kun på result-listen hvis:
-      // - lokalt mangler, og vi fandt den
-      // - eller lokalt findes men er uenig (så man kan tage stilling)
-      const birthIsRelevant =
-        foundBirth && (!localBirth || localBirth !== foundBirth);
+// Ellers: kun actionable ændringer
+const birthIsRelevant =
+  foundBirth && (!localBirth || localBirth !== foundBirth);
 
-      // DeathDate er altid relevant her (lokalt er tomt), men vi forventer næsten altid tomt IRL
-      const deathIsRelevant =
-        foundDeath && (!localDeath || localDeath !== foundDeath);
+const deathIsRelevant =
+  foundDeath && (!localDeath || localDeath !== foundDeath);
 
-      if (!birthIsRelevant && !deathIsRelevant) continue;
+if (!birthIsRelevant && !deathIsRelevant) continue;
 
       lookupState.results.push({
         personId,
