@@ -1565,3 +1565,13 @@ ul > li {
     max-width: 160px;
   }
 }
+
+/* iOS SAFETY: prevent letter-by-letter wrapping in tables */
+@supports (-webkit-touch-callout: none) {
+  .list-table td:first-child,
+  .list-table th:first-child {
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+}
