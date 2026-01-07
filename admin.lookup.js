@@ -37,16 +37,17 @@ window.lookupState = lookupState;
    DOM HOOKS
 ===================================================== */
 
-const btnOpen     = document.getElementById("btn-global-lookup");
-const modal       = document.getElementById("death-lookup-modal");
-const btnClose    = document.getElementById("lookup-close-btn");
-const btnApplyAll = document.getElementById("lookup-apply-all-btn");
-
-const elLoading  = document.getElementById("lookup-loading");
-const elEmpty    = document.getElementById("lookup-empty");
-const elResults  = document.getElementById("lookup-results");
-const elBody     = document.getElementById("lookup-results-body");
-const elProgress = document.getElementById("lookup-progress");
+const btnOpen      = document.getElementById("btn-global-lookup");
+const modal        = document.getElementById("death-lookup-modal");
+const btnClose     = document.getElementById("lookup-close-btn");
+const btnApplyAll  = document.getElementById("lookup-apply-all-btn");
+const btnStartStop = document.getElementById("lookup-start-stop-btn");
+const chkShowAll   = document.getElementById("lookup-show-all");
+const elLoading    = document.getElementById("lookup-loading");
+const elEmpty      = document.getElementById("lookup-empty");
+const elResults    = document.getElementById("lookup-results");
+const elBody       = document.getElementById("lookup-results-body");
+const elProgress   = document.getElementById("lookup-progress");
 
 /* =====================================================
    UI YIELD (så progress føles “levende”)
