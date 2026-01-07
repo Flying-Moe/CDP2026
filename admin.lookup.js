@@ -215,17 +215,16 @@ function renderResults() {
   ${r.foundBirthDate ? `<div>Født: ${formatDate(r.foundBirthDate)}</div>` : ""}
 </td>
 
-      <td>
-        <span title="${
-          r.source === "wiki" ? "Wikipedia" :
-          r.source === "google" ? "Google" :
-          r.source === "wiki,google" ? "Wikipedia + Google" : ""
-        }">
-          ${r.source === "wiki" ? "🅆" : ""}
-          ${r.source === "google" ? "🄶" : ""}
-          ${r.source === "wiki,google" ? "🅆🄶" : ""}
-        </span>
-      </td>
+<td style="text-align:center">
+  <span class="source-icons">
+    ${r.source.includes("wiki")
+      ? `<img src="assets/images/wiki.png" title="Wikipedia">`
+      : ""}
+    ${r.source.includes("google")
+      ? `<img src="assets/images/google.png" title="Google Knowledge Graph">`
+      : ""}
+  </span>
+</td>
       <td>${r.flagged ? "⚑ flagged" : "—"}</td>
       <td>
         <button data-act="apply">Apply</button>
@@ -361,23 +360,6 @@ if (google) {
 }
 
 const source = sourceParts.join(",");
-
-if (wiki?.birthDate || wiki?.deathDate) {
-  sourceParts.push("wiki");
-}
-
-if (google) {
-  if (!foundBirth && google.birthDate) {
-    foundBirth = google.birthDate;
-  }
-  if (!foundDeath && google.deathDate) {
-    foundDeath = google.deathDate;
-  }
-
-  if (google.birthDate || google.deathDate) {
-    sourceParts.push("google");
-  }
-}
 
 if (!foundBirth && !foundDeath) {
   checked++;
