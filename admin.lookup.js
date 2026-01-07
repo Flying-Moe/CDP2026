@@ -195,6 +195,10 @@ async function applyAllHighConfidence() {
    RENDER RESULTS
 ===================================================== */
 
+lookupState.results.sort((a, b) =>
+  a.name.localeCompare(b.name, "da")
+);
+
 function renderResults() {
   resetUI();
 
@@ -414,7 +418,8 @@ lookupState.results.push({
 
   // ALTID tælle til sidst
   checked++;
-  elProgress.textContent = `Checked ${checked} / ${total}`;
+  elProgress.textContent =
+  `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
   if (checked % 5 === 0) {
     await yieldToUI();
   }
