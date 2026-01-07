@@ -322,8 +322,13 @@ btnOpen?.addEventListener("click", async () => {
   resetUI();
   modal.classList.remove("hidden");
 
+  // init state
+  lookupAbort = false;
+  SHOW_ALL_LOOKUP_RESULTS = chkShowAll?.checked ?? true;
+
   lookupState.loading = true;
   elLoading.style.display = "block";
+  btnStartStop.textContent = "Stop";
 
   const peopleSnap  = await getPeopleSnap(true);
   const playersSnap = await getPlayersSnap(true);
@@ -337,7 +342,9 @@ btnOpen?.addEventListener("click", async () => {
   playersSnap.forEach(ps => {
     const picks = ps.data().entries?.["2026"]?.picks || [];
     picks.forEach(p => {
-      if (p.status === "approved" && p.personId) usedPersonIds.add(p.personId);
+      if (p.status === "approved" && p.personId) {
+        usedPersonIds.add(p.personId);
+      }
     });
   });
 
@@ -349,94 +356,112 @@ btnOpen?.addEventListener("click", async () => {
 
   elProgress.textContent = `Checked 0 / ${total} (Results: 0)`;
 
-  for (const personId of ids) {
+  // ---------- CONCURRENCY HELPER ----------
+  async function runWithConcurrency(items, limit, handler) {
+    const queue = [...items];
+    const workers = Array.from({ length: limit }, async () => {
+      while (queue.length && !lookupAbort) {
+        const item = queue.shift();
+        await handler(item);
+      }
+    });
+    await Promise.all(workers);
+  }
+
+  // ---------- SCAN ----------
+  await runWithConcurrency(ids, 8, async (personId) => {
+    if (lookupAbort) return;
+
     checked++;
 
-    // progress update løbende
-    if (checked % 3 === 0 || checked === total) {
-      elProgress.textContent = `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
+    if (checked % 5 === 0 || checked === total) {
+      elProgress.textContent =
+        `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
       await yieldToUI();
     }
 
-    if (lookupState.dismissed.has(personId)) continue;
+    if (lookupState.dismissed.has(personId)) return;
 
     const docSnap = peopleById.get(personId);
-    if (!docSnap) continue;
+    if (!docSnap) return;
 
     const person = docSnap.data();
     const name = normStr(person?.name);
-    if (!name) continue;
+    if (!name) return;
 
     const localBirth = normStr(person?.birthDate);
     const localDeath = normStr(person?.deathDate);
 
-    // Hvis deathDate allerede findes, ignorer (som aftalt)
-    if (localDeath) continue;
+    // Hvis deathDate allerede findes, ignorer (aftalt)
+    if (localDeath) return;
 
     try {
-let foundBirth = "";
-let foundDeath = "";
-let sourceParts = [];
+      let foundBirth = "";
+      let foundDeath = "";
+      const sourceParts = [];
 
-// Wikidata
-const wd = await fetchWikidataPerson(name);
-const wdBirth = wd?.birthDate || "";
-const wdDeath = wd?.deathDate || "";
+      // Wikidata
+      const wd = await fetchWikidataPerson(name);
+      const wdBirth = wd?.birthDate || "";
+      const wdDeath = wd?.deathDate || "";
 
-if (wdBirth || wdDeath) sourceParts.push("wikidata");
+      if (wdBirth || wdDeath) sourceParts.push("wikidata");
 
-// Wikipedia → QID → Wikidata
-const wp = await fetchWikipediaFallbackDates(name);
-const wpBirth = wp?.birthDate || "";
-const wpDeath = wp?.deathDate || "";
+      // Wikipedia → QID → Wikidata
+      const wp = await fetchWikipediaFallbackDates(name);
+      const wpBirth = wp?.birthDate || "";
+      const wpDeath = wp?.deathDate || "";
 
-if (wpBirth || wpDeath) sourceParts.push("wikipedia");
+      if (wpBirth || wpDeath) sourceParts.push("wikipedia");
 
-// konsolider (prioritet: wikidata først, wikipedia som sekundær)
-foundBirth = wdBirth || wpBirth;
-foundDeath = wdDeath || wpDeath;
+      // konsolider (prioritet: wikidata først)
+      foundBirth = wdBirth || wpBirth;
+      foundDeath = wdDeath || wpDeath;
 
-const source = sourceParts.join(",");
+      const source = sourceParts.join(",");
 
-// I SHOW_ALL mode: vis alt hvad vi fandt
-if (SHOW_ALL_LOOKUP_RESULTS) {
-  lookupState.results.push({
-    personId,
-    name,
-    foundBirthDate: foundBirth || null,
-    foundDeathDate: foundDeath || null,
-    source: source || "wikidata",
-    flagged: person?.flags?.pendingDeath === true
-  });
-  continue;
-}
+      // SHOW ALL (analyse-mode)
+      if (SHOW_ALL_LOOKUP_RESULTS) {
+        lookupState.results.push({
+          personId,
+          name,
+          foundBirthDate: foundBirth || null,
+          foundDeathDate: foundDeath || null,
+          source,
+          flagged: person?.flags?.pendingDeath === true
+        });
+        return;
+      }
 
-// Ellers: kun actionable ændringer
-const birthIsRelevant =
-  foundBirth && (!localBirth || localBirth !== foundBirth);
+      // Action-mode
+      const birthIsRelevant =
+        foundBirth && (!localBirth || localBirth !== foundBirth);
 
-const deathIsRelevant =
-  foundDeath && (!localDeath || localDeath !== foundDeath);
+      const deathIsRelevant =
+        foundDeath && (!localDeath || localDeath !== foundDeath);
 
-if (!birthIsRelevant && !deathIsRelevant) continue;
+      if (!birthIsRelevant && !deathIsRelevant) return;
 
       lookupState.results.push({
         personId,
-        name: wiki?.label || name,
+        name,
         foundBirthDate: birthIsRelevant ? foundBirth : null,
         foundDeathDate: deathIsRelevant ? foundDeath : null,
-        source: source || "wikidata",
+        source,
         flagged: person?.flags?.pendingDeath === true
       });
 
     } catch (err) {
       console.warn("Lookup failed for", name, err);
     }
-  }
+  });
 
   lookupState.loading = false;
+  btnStartStop.textContent = "Start";
 
-  elProgress.textContent = `Checked ${total} / ${total} (Results: ${lookupState.results.length})`;
+  elProgress.textContent =
+    `Checked ${checked} / ${total} (Results: ${lookupState.results.length})`;
+
   renderResults();
 });
 
