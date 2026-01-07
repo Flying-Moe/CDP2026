@@ -179,7 +179,7 @@ th.sorted-desc::after {
 
 #people-table th,
 #people-table td {
-  padding: 0.3rem 0.4rem;
+  padding: 0.3rem 0.1rem;
   vertical-align: middle;
 }
 
@@ -206,13 +206,13 @@ th.sorted-desc::after {
 #people-table th:nth-child(5),
 #people-table td:nth-child(5) {
   text-align: center;
-  width: 4.5em;
+/* width: 4.5em; ================================================
 }
 
 /* Wiki-kolonne meget smal */
 #people-table th.wiki-cell,
 #people-table td.wiki-cell {
-  width: 3.5em;
+  width: 2.5em;
   text-align: center;
   white-space: nowrap;
 }
