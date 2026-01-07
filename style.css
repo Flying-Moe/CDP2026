@@ -419,7 +419,7 @@ footer {
 
   table.list-table th:nth-child(1),
   table.list-table td:nth-child(1) {
-    word-break: break-word;
+    /* word-break: break-word; */
   }
 
   /* lidt luft til kanterne */
