@@ -195,9 +195,16 @@ async function applyAllHighConfidence() {
    RENDER RESULTS
 ===================================================== */
 
-lookupState.results.sort((a, b) =>
-  a.name.localeCompare(b.name, "da")
-);
+lookupState.results.sort((a, b) => {
+  const aHasDeath = !!a.foundDeathDate;
+  const bHasDeath = !!b.foundDeathDate;
+
+  if (aHasDeath !== bHasDeath) {
+    return aHasDeath ? -1 : 1; // deathDate øverst
+  }
+
+  return a.name.localeCompare(b.name, "da");
+});
 
 function renderResults() {
   resetUI();
@@ -326,7 +333,9 @@ for (const docSnap of peopleSnap.docs) {
   }
 
   try {
-const wiki = await fetchWikidataPerson(name);
+// const wiki = await fetchWikidataPerson(name); <-- korrekt kode
+const wiki = null; // MIDLERTIDIGT: disable Wiki lookup
+
 
 let google = null;
 if (!wiki?.deathDate) {
